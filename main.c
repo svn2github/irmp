@@ -3,6 +3,8 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
+ * $Id: main.c,v 1.5 2010/03/29 09:33:29 fm Exp $
+ *
  * ATMEGA88 @ 8 MHz
  *
  * Fuses: lfuse: 0xE2 hfuse: 0xDC efuse: 0xF9
@@ -45,6 +47,8 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include "irmp.h"
+#include "irmpconfig.h"
+
 
 #endif  // CODEVISION
 

@@ -3,6 +3,8 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
+ * $Id: irmp.h,v 1.11 2010/03/29 09:33:29 fm Exp $
+ *
  * ATMEGA88 @ 8 MHz
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,24 +23,22 @@ extern "C"
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change F_INTERRUPTS if you change the number of interrupts per second, F_INTERRUPTS should be in the range from 10000 to 15000
+ * IR protocols
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define F_INTERRUPTS                             10000                        // interrupts per second
-
-#define IRMP_SIRCS_PROTOCOL                          1                        // Sony
-#define IRMP_NEC_PROTOCOL                            2                        // NEC, Pioneer, JVC, Toshiba, NoName etc.
-#define IRMP_SAMSUNG_PROTOCOL                        3                        // Samsung
-#define IRMP_MATSUSHITA_PROTOCOL                     4                        // Matsushita
-#define IRMP_KASEIKYO_PROTOCOL                       5                        // Kaseikyo (Panasonic etc)
-#define IRMP_RECS80_PROTOCOL                         6                        // Philips, Thomson, Nordmende, Telefunken, Saba
-#define IRMP_RC5_PROTOCOL                            7                        // Philips etc
-#define IRMP_DENON_PROTOCOL                          8                        // Denon
-#define IRMP_RC6_PROTOCOL                            9                        // Philips etc
-#define IRMP_SAMSUNG32_PROTOCOL                     10                        // Samsung32: no sync pulse at bit 16, length 32 instead of 37
-#define IRMP_APPLE_PROTOCOL                         11                        // Apple, very similar to NEC
-#define IRMP_RECS80EXT_PROTOCOL                     12                        // Philips, Technisat, Thomson, Nordmende, Telefunken, Saba
-#define IRMP_NUBERT_PROTOCOL                        13                        // Nubert
+#define IRMP_SIRCS_PROTOCOL                      1                            // Sony
+#define IRMP_NEC_PROTOCOL                        2                            // NEC, Pioneer, JVC, Toshiba, NoName etc.
+#define IRMP_SAMSUNG_PROTOCOL                    3                            // Samsung
+#define IRMP_MATSUSHITA_PROTOCOL                 4                            // Matsushita
+#define IRMP_KASEIKYO_PROTOCOL                   5                            // Kaseikyo (Panasonic etc)
+#define IRMP_RECS80_PROTOCOL                     6                            // Philips, Thomson, Nordmende, Telefunken, Saba
+#define IRMP_RC5_PROTOCOL                        7                            // Philips etc
+#define IRMP_DENON_PROTOCOL                      8                            // Denon
+#define IRMP_RC6_PROTOCOL                        9                            // Philips etc
+#define IRMP_SAMSUNG32_PROTOCOL                 10                            // Samsung32: no sync pulse at bit 16, length 32 instead of 37
+#define IRMP_APPLE_PROTOCOL                     11                            // Apple, very similar to NEC
+#define IRMP_RECS80EXT_PROTOCOL                 12                            // Philips, Technisat, Thomson, Nordmende, Telefunken, Saba
+#define IRMP_NUBERT_PROTOCOL                    13                            // Nubert
 
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                     // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                     //  600 usec pause

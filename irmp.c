@@ -3,6 +3,8 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
+ * $Id: irmp.c,v 1.14 2010/03/29 09:33:29 fm Exp $
+ *
  * ATMEGA88 @ 8 MHz
  *
  * Typical manufacturers:
@@ -266,49 +268,7 @@ typedef unsigned int16  uint16_t;
 #endif // unix
 
 #include "irmp.h"
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change settings from 1 to 0 if you want to disable one or more decoders.
- * This saves program space.
- * 1 enable  decoder
- * 0 disable decoder
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // flag: support SIRCS                      uses ~100 bytes
-#define IRMP_SUPPORT_NEC_PROTOCOL               1       // flag: support NEC + APPLE                uses ~250 bytes
-#define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // flag: support Samsung + Samsung32        uses ~250 bytes
-#define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // flag: support Matsushita                 uses  ~50 bytes
-#define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // flag: support Kaseikyo                   uses  ~50 bytes
-#define IRMP_SUPPORT_RECS80_PROTOCOL            1       // flag: support RECS80                     uses  ~50 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               1       // flag: support RC5                        uses ~250 bytes
-#define IRMP_SUPPORT_DENON_PROTOCOL             1       // flag: support DENON                      uses ~250 bytes
-#define IRMP_SUPPORT_RC6_PROTOCOL               1       // flag: support RC6                        uses ~200 bytes
-#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         1       // flag: support RECS80EXT                  uses  ~50 bytes
-#define IRMP_SUPPORT_NUBERT_PROTOCOL            1       // flag: support NUBERT                     uses  ~50 bytes
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change hardware pin here:
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#ifdef PIC_CCS_COMPILER                                 // PIC CCS Compiler:
-
-#define IRMP_PIN                                PIN_B4  // use PB4 as IR input on PIC
-
-#else                                                   // AVR:
-
-#define IRMP_PORT                               PORTB
-#define IRMP_DDR                                DDRB
-#define IRMP_PIN                                PINB
-#define IRMP_BIT                                6       // use PB6 as IR input on AVR
-
-#define input(x)                                ((x) & (1 << IRMP_BIT))
-#endif
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Set IRMP_LOGGING to 1 if want to log data to UART with 9600Bd
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#define IRMP_LOGGING                            0                             // 1: log IR signal (scan), 0: do not (default)
+#include "irmpconfig.h"
 
 #define IRMP_TIMEOUT                            120                           // timeout after 12 ms darkness
 #define IRMP_REPETITION_TIME                    (uint16_t)(F_INTERRUPTS * 100.0e-3 + 0.5)  // autodetect key repetition within 100 msec
@@ -1649,18 +1609,15 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_DENON_PROTOCOL
-
+                    {
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
-                    if (irmp_param.protocol == IRMP_NEC_PROTOCOL && irmp_bit == 0)  // repetition frame
-                    {
-                        irmp_protocol = irmp_param.protocol;
-                        irmp_address = last_irmp_address;                           // address is last address
-                        irmp_command = last_irmp_command;                           // command is last command
-                        irmp_flags |= IRMP_FLAG_REPETITION;
-                    }
-                    else
+                        if (irmp_param.protocol == IRMP_NEC_PROTOCOL && irmp_bit == 0)  // repetition frame
+                        {
+                            irmp_tmp_address = last_irmp_address;                   // address is last address
+                            irmp_tmp_command = last_irmp_command;                   // command is last command
+                            irmp_flags |= IRMP_FLAG_REPETITION;
+                        }
 #endif // IRMP_SUPPORT_NEC_PROTOCOL
-                    {
                         irmp_protocol = irmp_param.protocol;
                         irmp_address = irmp_tmp_address;                            // store address
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
