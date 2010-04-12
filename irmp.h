@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.11 2010/03/29 09:33:29 fm Exp $
+ * $Id: irmp.h,v 1.12 2010/04/12 10:15:40 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -39,6 +39,7 @@ extern "C"
 #define IRMP_APPLE_PROTOCOL                     11                            // Apple, very similar to NEC
 #define IRMP_RECS80EXT_PROTOCOL                 12                            // Philips, Technisat, Thomson, Nordmende, Telefunken, Saba
 #define IRMP_NUBERT_PROTOCOL                    13                            // Nubert
+#define IRMP_BANG_OLUFSEN_PROTOCOL              14                            // Bang & Olufsen
 
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                     // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                     //  600 usec pause
@@ -189,6 +190,27 @@ extern "C"
 #define NUBERT_COMPLETE_DATA_LEN                10                            // complete length
 #define NUBERT_STOP_BIT                         1                             // has stop bit
 #define NUBERT_LSB                              0                             // MSB?
+
+#define BANG_OLUFSEN_START_BIT1_PULSE_TIME       210.0e-6                     //   210 usec pulse
+#define BANG_OLUFSEN_START_BIT1_PAUSE_TIME      3000.0e-6                     //  3000 usec pause
+#define BANG_OLUFSEN_START_BIT2_PULSE_TIME       210.0e-6                     //   210 usec pulse
+#define BANG_OLUFSEN_START_BIT2_PAUSE_TIME      3000.0e-6                     //  3000 usec pause
+#define BANG_OLUFSEN_START_BIT3_PULSE_TIME       210.0e-6                     //   210 usec pulse
+#define BANG_OLUFSEN_START_BIT3_PAUSE_TIME     15000.0e-6                     // 15000 usec pause
+#define BANG_OLUFSEN_START_BIT4_PULSE_TIME       210.0e-6                     //   210 usec pulse
+#define BANG_OLUFSEN_START_BIT4_PAUSE_TIME      3000.0e-6                     //  3000 usec pause
+#define BANG_OLUFSEN_PULSE_TIME                  210.0e-6                     //   210 usec pulse
+#define BANG_OLUFSEN_1_PAUSE_TIME               9000.0e-6                     //  9000 usec pause
+#define BANG_OLUFSEN_0_PAUSE_TIME               3000.0e-6                     //  3000 usec pause
+#define BANG_OLUFSEN_R_PAUSE_TIME               6000.0e-6                     //  6000 usec pause (repeat last bit)
+#define BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME    12000.0e-6                     // 12000 usec pause (trailer bit)
+#define BANG_OLUFSEN_ADDRESS_OFFSET             0                             // no address bits
+#define BANG_OLUFSEN_ADDRESS_LEN                0                             // no address bits
+#define BANG_OLUFSEN_COMMAND_OFFSET             3                             // skip startbits 2, 3, 4
+#define BANG_OLUFSEN_COMMAND_LEN                16                            // read 16 command bits
+#define BANG_OLUFSEN_COMPLETE_DATA_LEN          20                            // complete length: startbits 2, 3, 4 + 16 data bits + trailer bit
+#define BANG_OLUFSEN_STOP_BIT                   1                             // has stop bit
+#define BANG_OLUFSEN_LSB                        0                             // MSB...LSB
 
 #define AUTO_REPETITION_TIME                    50.0e-3                       // SIRCS or SAMSUNG32: automatic repetition after 45-50ms
 
