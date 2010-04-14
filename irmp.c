@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.15 2010/04/12 10:15:40 fm Exp $
+ * $Id: irmp.c,v 1.16 2010/04/12 13:26:46 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *

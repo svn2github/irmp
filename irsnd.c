@@ -3,6 +3,8 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
+ * $Id: irsnd.c,v 1.7 2010/04/14 13:21:39 fm Exp $
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -45,6 +47,7 @@ typedef unsigned short    uint16_t;
 #endif // WIN32
 #endif // unix
 
+#include "irmpconfig.h"
 #include "irmp.h"
 #include "irsnd.h"
 
@@ -66,6 +69,7 @@ typedef unsigned short    uint16_t;
 #define IRSND_SUPPORT_RC6_PROTOCOL              0       // flag: support RC6                    NOT SUPPORTED YET!
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        1       // flag: support RECS80EXT              uses ~100 bytes
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // flag: support NUBERT                 uses ~100 bytes
+#define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // flag: support Bang&Olufsen           uses ~250 bytes
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -141,11 +145,24 @@ typedef unsigned short    uint16_t;
 #define NUBERT_0_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * NUBERT_0_PAUSE_TIME + 0.5)
 #define NUBERT_REPETITION_LEN                   (uint16_t)(F_INTERRUPTS * NUBERT_REPETITION_TIME + 0.5)       // use uint16_t!
 
+#define BANG_OLUFSEN_START_BIT1_PULSE_LEN       (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT1_PULSE_TIME + 0.5)
+#define BANG_OLUFSEN_START_BIT1_PAUSE_LEN       (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT1_PAUSE_TIME + 0.5)
+#define BANG_OLUFSEN_START_BIT2_PULSE_LEN       (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT2_PULSE_TIME + 0.5)
+#define BANG_OLUFSEN_START_BIT2_PAUSE_LEN       (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT2_PAUSE_TIME + 0.5)
+#define BANG_OLUFSEN_START_BIT3_PULSE_LEN       (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PULSE_TIME + 0.5)
+#define BANG_OLUFSEN_START_BIT3_PAUSE_LEN       (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PAUSE_TIME + 0.5)
+#define BANG_OLUFSEN_PULSE_LEN                  (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_PULSE_TIME + 0.5)
+#define BANG_OLUFSEN_1_PAUSE_LEN                (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_1_PAUSE_TIME + 0.5)
+#define BANG_OLUFSEN_0_PAUSE_LEN                (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_0_PAUSE_TIME + 0.5)
+#define BANG_OLUFSEN_R_PAUSE_LEN                (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_R_PAUSE_TIME + 0.5)
+#define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN      (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME + 0.5)
+
 #define IRSND_FREQ_32_KHZ                       (uint8_t) ((F_CPU / 32000 / 2) - 1)
 #define IRSND_FREQ_36_KHZ                       (uint8_t) ((F_CPU / 36000 / 2) - 1)
 #define IRSND_FREQ_38_KHZ                       (uint8_t) ((F_CPU / 38000 / 2) - 1)
 #define IRSND_FREQ_40_KHZ                       (uint8_t) ((F_CPU / 40000 / 2) - 1)
 #define IRSND_FREQ_56_KHZ                       (uint8_t) ((F_CPU / 56000 / 2) - 1)
+#define IRSND_FREQ_455_KHZ                      (uint8_t) ((F_CPU / 455000 / 2) - 1)
 
 static volatile uint8_t                         irsnd_busy;
 static volatile uint8_t                         irsnd_protocol;
@@ -416,6 +433,17 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
             break;
         }
 #endif
+#if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
+        case IRMP_BANG_OLUFSEN_PROTOCOL:
+        {
+            irsnd_protocol  = irmp_data_p->protocol;
+            irsnd_buffer[0] = irmp_data_p->command >> 11;                                                       // SXSCCCCC
+            irsnd_buffer[1] = irmp_data_p->command >> 3;                                                        // CCCCCCCC
+            irsnd_buffer[2] = (irmp_data_p->command & 0x0007) << 5;                                             // CCC00000
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
         default:
         {
             break;
@@ -445,18 +473,21 @@ irsnd_ISR (void)
     static uint8_t  has_stop_bit;
     static uint8_t  new_frame = TRUE;
     static uint8_t  complete_data_len;
-    static uint8_t  n_repetitions;                                                  // number of repetitions
-    static uint8_t  repetition_counter;                                             // repetition counter
+    static uint8_t  n_frames;                                                  // number of repetitions
+    static uint8_t  frame_counter;                                             // repetition counter
     static uint16_t repetition_pause;                                               // pause before repetition, uint16_t!
     static uint16_t repetition_pause_counter;                                       // pause before repetition, uint16_t!
-    uint8_t         pulse_len = 0xFF;
-    uint8_t         pause_len = 0xFF;
+#if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
+    static uint8_t  last_bit_value;
+#endif
+    static uint8_t  pulse_len = 0xFF;
+    static uint8_t  pause_len = 0xFF;
 
     if (irsnd_busy)
     {
         if (current_bit == 0xFF && new_frame)                                       // start of transmission...
         {
-            if (repetition_counter > 0)
+            if (frame_counter > 0)
             {
                 repetition_pause_counter++;
 
@@ -487,6 +518,9 @@ irsnd_ISR (void)
             }
             else
             {
+                pulse_counter = 0;
+                pause_counter = 0;
+
                 switch (irsnd_protocol)
                 {
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1
@@ -500,7 +534,7 @@ irsnd_ISR (void)
                         pause_0_len         = SIRCS_PAUSE_LEN;
                         has_stop_bit        = SIRCS_STOP_BIT;
                         complete_data_len   = SIRCS_MINIMUM_DATA_LEN;
-                        n_repetitions       = SIRCS_REPETITION_CNT;
+                        n_frames            = SIRCS_REPETITION_CNT;
                         repetition_pause    = SIRCS_REPETITION_LEN;                     // 45 ms pause
                         irsnd_set_freq (IRSND_FREQ_40_KHZ);
                         break;
@@ -517,7 +551,7 @@ irsnd_ISR (void)
                         pause_0_len         = NEC_0_PAUSE_LEN;
                         has_stop_bit        = NEC_STOP_BIT;
                         complete_data_len   = NEC_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_38_KHZ);
                         break;
                     }
@@ -533,7 +567,7 @@ irsnd_ISR (void)
                         pause_0_len         = SAMSUNG_0_PAUSE_LEN;
                         has_stop_bit        = SAMSUNG_STOP_BIT;
                         complete_data_len   = SAMSUNG_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_38_KHZ);
                         break;
                     }
@@ -548,7 +582,7 @@ irsnd_ISR (void)
                         pause_0_len         = SAMSUNG_0_PAUSE_LEN;
                         has_stop_bit        = SAMSUNG_STOP_BIT;
                         complete_data_len   = SAMSUNG32_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_38_KHZ);
                         break;
                     }
@@ -564,7 +598,7 @@ irsnd_ISR (void)
                         pause_0_len         = MATSUSHITA_0_PAUSE_LEN;
                         has_stop_bit        = MATSUSHITA_STOP_BIT;
                         complete_data_len   = MATSUSHITA_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_36_KHZ);
                         break;
                     }
@@ -580,7 +614,7 @@ irsnd_ISR (void)
                         pause_0_len         = RECS80_0_PAUSE_LEN;
                         has_stop_bit        = RECS80_STOP_BIT;
                         complete_data_len   = RECS80_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_38_KHZ);
                         break;
                     }
@@ -596,7 +630,7 @@ irsnd_ISR (void)
                         pause_0_len         = RECS80EXT_0_PAUSE_LEN;
                         has_stop_bit        = RECS80EXT_STOP_BIT;
                         complete_data_len   = RECS80EXT_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_38_KHZ);
                         break;
                     }
@@ -612,7 +646,7 @@ irsnd_ISR (void)
                         pause_0_len         = RC5_BIT_LEN;
                         has_stop_bit        = RC5_STOP_BIT;
                         complete_data_len   = RC5_COMPLETE_DATA_LEN;
-                        n_repetitions       = 1;
+                        n_frames            = 1;
                         irsnd_set_freq (IRSND_FREQ_36_KHZ);
                         break;
                     }
@@ -628,7 +662,7 @@ irsnd_ISR (void)
                         pause_0_len         = DENON_0_PAUSE_LEN;
                         has_stop_bit        = DENON_STOP_BIT;
                         complete_data_len   = DENON_COMPLETE_DATA_LEN;
-                        n_repetitions       = 2;
+                        n_frames            = 2;
                         repetition_pause    = DENON_REPETITION_LEN;                     // 65 ms pause after 1st frame (15 bits)
                         irsnd_set_freq (IRSND_FREQ_32_KHZ);
                         break;
@@ -645,9 +679,26 @@ irsnd_ISR (void)
                         pause_0_len         = NUBERT_0_PAUSE_LEN;
                         has_stop_bit        = NUBERT_STOP_BIT;
                         complete_data_len   = NUBERT_COMPLETE_DATA_LEN;
-                        n_repetitions       = 2;
+                        n_frames            = 2;
                         repetition_pause    = NUBERT_REPETITION_LEN;                     // 35 ms pause
                         irsnd_set_freq (IRSND_FREQ_36_KHZ);
+                        break;
+                    }
+#endif
+#if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
+                    case IRMP_BANG_OLUFSEN_PROTOCOL:
+                    {
+                        startbit_pulse_len  = BANG_OLUFSEN_START_BIT1_PULSE_LEN;
+                        startbit_pause_len  = BANG_OLUFSEN_START_BIT1_PAUSE_LEN;
+                        pulse_1_len         = BANG_OLUFSEN_PULSE_LEN;
+                        pause_1_len         = BANG_OLUFSEN_1_PAUSE_LEN;
+                        pulse_0_len         = BANG_OLUFSEN_PULSE_LEN;
+                        pause_0_len         = BANG_OLUFSEN_0_PAUSE_LEN;
+                        has_stop_bit        = BANG_OLUFSEN_STOP_BIT;
+                        complete_data_len   = BANG_OLUFSEN_COMPLETE_DATA_LEN;
+                        n_frames            = 1;
+                        last_bit_value      = 0;
+                        irsnd_set_freq (IRSND_FREQ_455_KHZ);
                         break;
                     }
 #endif
@@ -690,58 +741,109 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_NUBERT_PROTOCOL == 1
                 case IRMP_NUBERT_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
+                case IRMP_BANG_OLUFSEN_PROTOCOL:
+#endif
                 {
-                    if (current_bit == 0xFF)                                                    // send start bit
+                    if (pulse_counter == 0)
                     {
-                        pulse_len = startbit_pulse_len;
-                        pause_len = startbit_pause_len;
-                    }
-                    else if (current_bit < complete_data_len)                                   // send n'th bit
-                    {
-                        if (irsnd_protocol == IRMP_SAMSUNG_PROTOCOL)
+                        if (current_bit == 0xFF)                                                    // send start bit
                         {
-                            if (current_bit < SAMSUNG_ADDRESS_LEN)                              // send address bits
+                            pulse_len = startbit_pulse_len;
+                            pause_len = startbit_pause_len;
+                        }
+                        else if (current_bit < complete_data_len)                                   // send n'th bit
+                        {
+#if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
+                            if (irsnd_protocol == IRMP_SAMSUNG_PROTOCOL)
                             {
-                                pulse_len = SAMSUNG_PULSE_LEN;
-                                pause_len = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ?
-                                                SAMSUNG_1_PAUSE_LEN : SAMSUNG_0_PAUSE_LEN;
-                            }
-                            else if (current_bit == SAMSUNG_ADDRESS_LEN)                        // send SYNC bit (16th bit)
-                            {
-                                pulse_len = SAMSUNG_PULSE_LEN;
-                                pause_len = SAMSUNG_START_BIT_PAUSE_LEN;
-                            }
-                            else if (current_bit < SAMSUNG_COMPLETE_DATA_LEN)                   // send n'th bit
-                            {
-                                uint8_t cur_bit = current_bit - 1;
+                                if (current_bit < SAMSUNG_ADDRESS_LEN)                              // send address bits
+                                {
+                                    pulse_len = SAMSUNG_PULSE_LEN;
+                                    pause_len = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ?
+                                                    SAMSUNG_1_PAUSE_LEN : SAMSUNG_0_PAUSE_LEN;
+                                }
+                                else if (current_bit == SAMSUNG_ADDRESS_LEN)                        // send SYNC bit (16th bit)
+                                {
+                                    pulse_len = SAMSUNG_PULSE_LEN;
+                                    pause_len = SAMSUNG_START_BIT_PAUSE_LEN;
+                                }
+                                else if (current_bit < SAMSUNG_COMPLETE_DATA_LEN)                   // send n'th bit
+                                {
+                                    uint8_t cur_bit = current_bit - 1;                              // sync skipped, offset = -1 !
 
-                                pulse_len = SAMSUNG_PULSE_LEN;
-                                pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
-                                                SAMSUNG_1_PAUSE_LEN : SAMSUNG_0_PAUSE_LEN;
+                                    pulse_len = SAMSUNG_PULSE_LEN;
+                                    pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
+                                                    SAMSUNG_1_PAUSE_LEN : SAMSUNG_0_PAUSE_LEN;
+                                }
+                            }
+                            else
+#endif
+
+#if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
+                            if (irsnd_protocol == IRMP_BANG_OLUFSEN_PROTOCOL)
+                            {
+                                if (current_bit == 0)                                               // send 2nd start bit
+                                {
+                                    pulse_len = BANG_OLUFSEN_START_BIT2_PULSE_LEN;
+                                    pause_len = BANG_OLUFSEN_START_BIT2_PAUSE_LEN;
+                                }
+                                else if (current_bit == 1)                                          // send 3rd start bit
+                                {
+                                    pulse_len = BANG_OLUFSEN_START_BIT3_PULSE_LEN;
+                                    pause_len = BANG_OLUFSEN_START_BIT3_PAUSE_LEN;
+                                }
+                                else if (current_bit == 2)                                          // send 4th start bit
+                                {
+                                    pulse_len = BANG_OLUFSEN_START_BIT2_PULSE_LEN;
+                                    pause_len = BANG_OLUFSEN_START_BIT2_PAUSE_LEN;
+                                }
+                                else if (current_bit == 19)                                          // send trailer bit
+                                {
+                                    pulse_len = BANG_OLUFSEN_PULSE_LEN;
+                                    pause_len = BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN;
+                                }
+                                else if (current_bit < BANG_OLUFSEN_COMPLETE_DATA_LEN)              // send n'th bit
+                                {
+                                    uint8_t cur_bit_value = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ? 1 : 0;
+                                    pulse_len = BANG_OLUFSEN_PULSE_LEN;
+
+                                    if (cur_bit_value == last_bit_value)
+                                    {
+                                        pause_len = BANG_OLUFSEN_R_PAUSE_LEN;
+                                    }
+                                    else
+                                    {
+                                        pause_len = cur_bit_value ? BANG_OLUFSEN_1_PAUSE_LEN : BANG_OLUFSEN_0_PAUSE_LEN;
+                                        last_bit_value = cur_bit_value;
+                                    }
+                                }
+                            }
+                            else
+#endif
+                            if (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8))))
+                            {
+                                pulse_len = pulse_1_len;
+                                pause_len = pause_1_len;
+                            }
+                            else
+                            {
+                                pulse_len = pulse_0_len;
+                                pause_len = pause_0_len;
                             }
                         }
-                        else if (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8))))
-                        {
-                            pulse_len = pulse_1_len;
-                            pause_len = pause_1_len;
-                        }
-                        else
+                        else if (has_stop_bit)                                                                      // send stop bit
                         {
                             pulse_len = pulse_0_len;
-                            pause_len = pause_0_len;
-                        }
-                    }
-                    else if (has_stop_bit)                                                                      // send stop bit
-                    {
-                        pulse_len = pulse_0_len;
 
-                        if (repetition_counter < n_repetitions)
-                        {
-                            pause_len = pause_0_len;
-                        }
-                        else
-                        {
-                            pause_len = 255;                                        // last frame: pause of 255
+                            if (frame_counter < n_frames)
+                            {
+                                pause_len = pause_0_len;
+                            }
+                            else
+                            {
+                                pause_len = 255;                                        // last frame: pause of 255
+                            }
                         }
                     }
 
@@ -768,12 +870,12 @@ irsnd_ISR (void)
                         if (current_bit >= complete_data_len + has_stop_bit)
                         {
                             current_bit = 0xFF;
-                            repetition_counter++;
+                            frame_counter++;
 
-                            if (repetition_counter == n_repetitions)
+                            if (frame_counter == n_frames)
                             {
                                 irsnd_busy = FALSE;
-                                repetition_counter = 0;
+                                frame_counter = 0;
                             }
                             new_frame = TRUE;
                         }
