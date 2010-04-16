@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.12 2010/04/12 10:15:40 fm Exp $
+ * $Id: irmp.h,v 1.13 2010/04/16 09:23:29 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -191,19 +191,19 @@ extern "C"
 #define NUBERT_STOP_BIT                         1                             // has stop bit
 #define NUBERT_LSB                              0                             // MSB?
 
-#define BANG_OLUFSEN_START_BIT1_PULSE_TIME       210.0e-6                     //   210 usec pulse
-#define BANG_OLUFSEN_START_BIT1_PAUSE_TIME      3000.0e-6                     //  3000 usec pause
-#define BANG_OLUFSEN_START_BIT2_PULSE_TIME       210.0e-6                     //   210 usec pulse
-#define BANG_OLUFSEN_START_BIT2_PAUSE_TIME      3000.0e-6                     //  3000 usec pause
-#define BANG_OLUFSEN_START_BIT3_PULSE_TIME       210.0e-6                     //   210 usec pulse
-#define BANG_OLUFSEN_START_BIT3_PAUSE_TIME     15000.0e-6                     // 15000 usec pause
-#define BANG_OLUFSEN_START_BIT4_PULSE_TIME       210.0e-6                     //   210 usec pulse
-#define BANG_OLUFSEN_START_BIT4_PAUSE_TIME      3000.0e-6                     //  3000 usec pause
-#define BANG_OLUFSEN_PULSE_TIME                  210.0e-6                     //   210 usec pulse
-#define BANG_OLUFSEN_1_PAUSE_TIME               9000.0e-6                     //  9000 usec pause
-#define BANG_OLUFSEN_0_PAUSE_TIME               3000.0e-6                     //  3000 usec pause
-#define BANG_OLUFSEN_R_PAUSE_TIME               6000.0e-6                     //  6000 usec pause (repeat last bit)
-#define BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME    12000.0e-6                     // 12000 usec pause (trailer bit)
+#define BANG_OLUFSEN_START_BIT1_PULSE_TIME       200.0e-6                     //   200 usec pulse
+#define BANG_OLUFSEN_START_BIT1_PAUSE_TIME      3125.0e-6                     //  3125 usec pause
+#define BANG_OLUFSEN_START_BIT2_PULSE_TIME       200.0e-6                     //   200 usec pulse
+#define BANG_OLUFSEN_START_BIT2_PAUSE_TIME      3125.0e-6                     //  3125 usec pause
+#define BANG_OLUFSEN_START_BIT3_PULSE_TIME       200.0e-6                     //   200 usec pulse
+#define BANG_OLUFSEN_START_BIT3_PAUSE_TIME     15625.0e-6                     // 15625 usec pause
+#define BANG_OLUFSEN_START_BIT4_PULSE_TIME       200.0e-6                     //   200 usec pulse
+#define BANG_OLUFSEN_START_BIT4_PAUSE_TIME      3125.0e-6                     //  3125 usec pause
+#define BANG_OLUFSEN_PULSE_TIME                  200.0e-6                     //   200 usec pulse
+#define BANG_OLUFSEN_1_PAUSE_TIME               9375.0e-6                     //  9375 usec pause
+#define BANG_OLUFSEN_0_PAUSE_TIME               3125.0e-6                     //  3125 usec pause
+#define BANG_OLUFSEN_R_PAUSE_TIME               6250.0e-6                     //  6250 usec pause (repeat last bit)
+#define BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME    12500.0e-6                     // 12500 usec pause (trailer bit)
 #define BANG_OLUFSEN_ADDRESS_OFFSET             0                             // no address bits
 #define BANG_OLUFSEN_ADDRESS_LEN                0                             // no address bits
 #define BANG_OLUFSEN_COMMAND_OFFSET             3                             // skip startbits 2, 3, 4
