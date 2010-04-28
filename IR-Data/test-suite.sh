@@ -7,6 +7,7 @@ for j in                                    \
             Samsung_DVD_Rec_00062C.txt      \
             Samsung_TV.txt                  \
             Sony-RM-S-310.txt               \
+            sony-rm-s311.txt                \
             Sony-RM-U305C.txt               \
             Sony-RMT-D142P-DVD.txt          \
             Sony-RMT-V406.txt               \

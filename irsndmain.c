@@ -47,6 +47,7 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include "irmp.h"
+#include "irsndconfig.h"
 #include "irsnd.h"
 
 #endif  // CODEVISION

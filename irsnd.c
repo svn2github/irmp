@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.7 2010/04/14 13:21:39 fm Exp $
+ * $Id: irsnd.c,v 1.9 2010/04/28 14:58:59 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,45 +47,9 @@ typedef unsigned short    uint16_t;
 #endif // WIN32
 #endif // unix
 
-#include "irmpconfig.h"
 #include "irmp.h"
+#include "irsndconfig.h"
 #include "irsnd.h"
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change settings from 1 to 0 if you want to disable one or more encoders.
- * This saves program space.
- * 1 enable  decoder
- * 0 disable decoder
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#define IRSND_SUPPORT_SIRCS_PROTOCOL            1       // flag: support SIRCS                  uses ~150 bytes
-#define IRSND_SUPPORT_NEC_PROTOCOL              1       // flag: support NEC                    uses ~100 bytes
-#define IRSND_SUPPORT_SAMSUNG_PROTOCOL          1       // flag: support Samsung + Samsung32    uses ~300 bytes
-#define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // flag: support Matsushita             uses ~150 bytes
-#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         0       // flag: support Kaseikyo               NOT SUPPORTED YET!
-#define IRSND_SUPPORT_RECS80_PROTOCOL           1       // flag: support RECS80                 uses ~100 bytes
-#define IRSND_SUPPORT_RC5_PROTOCOL              1       // flag: support RC5                    uses ~250 bytes
-#define IRSND_SUPPORT_DENON_PROTOCOL            1       // flag: support DENON                  uses ~200 bytes
-#define IRSND_SUPPORT_RC6_PROTOCOL              0       // flag: support RC6                    NOT SUPPORTED YET!
-#define IRSND_SUPPORT_RECS80EXT_PROTOCOL        1       // flag: support RECS80EXT              uses ~100 bytes
-#define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // flag: support NUBERT                 uses ~100 bytes
-#define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // flag: support Bang&Olufsen           uses ~250 bytes
-
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change hardware pin here:
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#if defined (__AVR_ATmega32__) || defined (__AVR_ATmega644P__)
-#define IRSND_PORT          PORTD                       // port D
-#define IRSND_DDR           DDRD                        // ddr D
-#define IRSND_BIT           7                           // OC2A
-#else
-#define IRSND_PORT          PORTB                       // port B
-#define IRSND_DDR           DDRB                        // ddr B
-#define IRSND_BIT           3                           // OC2A
-#endif // __AVR...
-
 
 #define SIRCS_START_BIT_PULSE_LEN               (uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PULSE_TIME + 0.5)
 #define SIRCS_START_BIT_PAUSE_LEN               (uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME + 0.5)
@@ -184,7 +148,7 @@ irsnd_on (void)
         TCCR2 |= (1<<COM20)|(1<<WGM21);                 // = 0x42: toggle OC2A on compare match, clear Timer 2 at compare match OCR2A
 #else
         TCCR2A |= (1<<COM2A0)|(1<<WGM21);               // = 0x42: toggle OC2A on compare match, clear Timer 2 at compare match OCR2A
-#endif	// __AVR...
+#endif  // __AVR...
 #endif // DEBUG
         irsnd_is_on = TRUE;
     }
@@ -205,7 +169,7 @@ irsnd_off (void)
         TCCR2 &= ~(1<<COM20);                                                           // normal port operation, OC2A disconnected.
 #else
         TCCR2A &= ~(1<<COM2A0);                                                         // normal port operation, OC2A disconnected.
-#endif	// __AVR...
+#endif  // __AVR...
         IRSND_PORT  &= ~(1<<IRSND_BIT);                                                 // set IRSND_BIT to low
 #endif // DEBUG
         irsnd_is_on = FALSE;
@@ -225,7 +189,7 @@ irsnd_set_freq (uint8_t freq)
     OCR2 = freq;
 #else
     OCR2A = freq;
-#endif	// __AVR...
+#endif  // __AVR...
 #endif // DEBUG
 }
 
@@ -247,7 +211,7 @@ irsnd_init (void)
 #else
     TCCR2A = (1<<WGM21);                                                            // CTC mode
     TCCR2B |= (1<<CS20);                                                            // 0x01, start Timer 2, no prescaling
-#endif	// __AVR...    
+#endif  // __AVR...    
 
     irsnd_set_freq (IRSND_FREQ_36_KHZ);                                             // default frequency
 #endif // DEBUG
@@ -307,7 +271,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
         {
             command = bitsrevervse (irmp_data_p->command, SIRCS_MINIMUM_DATA_LEN);
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = (command & 0x0FF0) >> 4;                                                         // CCCCCCCC
             irsnd_buffer[1] = (command & 0x000F) << 4;                                                         // CCCC0000
             irsnd_busy      = TRUE;
@@ -316,15 +279,25 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
 #endif
 #if IRSND_SUPPORT_NEC_PROTOCOL == 1
         case IRMP_NEC_PROTOCOL:
+        case IRMP_APPLE_PROTOCOL:
         {
             address = bitsrevervse (irmp_data_p->address, NEC_ADDRESS_LEN);
             command = bitsrevervse (irmp_data_p->command, NEC_COMMAND_LEN);
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
             irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
             irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
-            irsnd_buffer[3] = ~((command & 0xFF00) >> 8);                                                       // cccccccc
+
+            if (irsnd_protocol == IRMP_APPLE_PROTOCOL)
+            {
+                irsnd_protocol = IRMP_NEC_PROTOCOL; // APPLE protocol is NEC with fix bitmask instead of inverted command
+                irsnd_buffer[3] = 0x8B;                                                                         // 10001011
+            }
+            else
+            {
+                irsnd_buffer[3] = ~((command & 0xFF00) >> 8);                                                   // cccccccc
+            }
+
             irsnd_busy      = TRUE;
             break;
         }
@@ -335,7 +308,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
             address = bitsrevervse (irmp_data_p->address, SAMSUNG_ADDRESS_LEN);
             command = bitsrevervse (irmp_data_p->command, SAMSUNG_COMMAND_LEN);
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] =  (address & 0xFF00) >> 8;                                                         // AAAAAAAA
             irsnd_buffer[1] =  (address & 0x00FF);                                                              // AAAAAAAA
             irsnd_buffer[2] =  (command & 0x00F0) | ((command & 0xF000) >> 12);                                 // IIIICCCC
@@ -349,7 +321,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
             address = bitsrevervse (irmp_data_p->address, SAMSUNG_ADDRESS_LEN);
             command = bitsrevervse (irmp_data_p->command, SAMSUNG32_COMMAND_LEN);
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
             irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
             irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
@@ -364,7 +335,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
             address = bitsrevervse (irmp_data_p->address, MATSUSHITA_ADDRESS_LEN);
             command = bitsrevervse (irmp_data_p->command, MATSUSHITA_COMMAND_LEN);
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = (command & 0x0FF0) >> 4;                                                          // CCCCCCCC
             irsnd_buffer[1] = ((command & 0x000F) << 4) | ((address & 0x0F00) >> 8);                            // CCCCAAAA
             irsnd_buffer[2] = (address & 0x00FF);                                                               // AAAAAAAA
@@ -377,7 +347,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
         {
             toggle_bit_recs80 = toggle_bit_recs80 ? 0x00 : 0x40;
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = 0x80 | toggle_bit_recs80 | ((irmp_data_p->address & 0x0007) << 3) |
                               ((irmp_data_p->command & 0x0038) >> 3);                                           // STAAACCC
             irsnd_buffer[1] = (irmp_data_p->command & 0x07) << 5;                                               // CCC00000
@@ -390,7 +359,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
         {
             toggle_bit_recs80ext = toggle_bit_recs80ext ? 0x00 : 0x40;
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = 0x80 | toggle_bit_recs80ext | ((irmp_data_p->address & 0x000F) << 2) |
                                 ((irmp_data_p->command & 0x0030) >> 4);                                         // STAAAACC
             irsnd_buffer[1] = (irmp_data_p->command & 0x0F) << 4;                                               // CCCC0000
@@ -403,7 +371,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
         {
             toggle_bit_rc5 = toggle_bit_rc5 ? 0x00 : 0x40;
 
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = ((irmp_data_p->command & 0x40) ? 0x00 : 0x80) | toggle_bit_rc5 |
                                 ((irmp_data_p->address & 0x001F) << 1) | ((irmp_data_p->command & 0x20) >> 5);  // CTAAAAAC
             irsnd_buffer[1] = (irmp_data_p->command & 0x1F) << 3;                                               // CCCCC000
@@ -414,7 +381,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
 #if IRSND_SUPPORT_DENON_PROTOCOL == 1
         case IRMP_DENON_PROTOCOL:
         {
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = ((irmp_data_p->address & 0x1F) << 3) | ((irmp_data_p->command & 0x0380) >> 7);    // AAAAACCC
             irsnd_buffer[1] = (irmp_data_p->command & 0x7F) << 1;                                               // CCCCCCC0
             irsnd_buffer[2] = ((irmp_data_p->address & 0x1F) << 3) | (((~irmp_data_p->command) & 0x0380) >> 7); // AAAAACCC
@@ -426,7 +392,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
 #if IRSND_SUPPORT_NUBERT_PROTOCOL == 1
         case IRMP_NUBERT_PROTOCOL:
         {
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = irmp_data_p->command >> 2;                                                        // CCCCCCCC
             irsnd_buffer[1] = (irmp_data_p->command & 0x0003) << 6;                                             // CC000000
             irsnd_busy      = TRUE;
@@ -436,7 +401,6 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
 #if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
         case IRMP_BANG_OLUFSEN_PROTOCOL:
         {
-            irsnd_protocol  = irmp_data_p->protocol;
             irsnd_buffer[0] = irmp_data_p->command >> 11;                                                       // SXSCCCCC
             irsnd_buffer[1] = irmp_data_p->command >> 3;                                                        // CCCCCCCC
             irsnd_buffer[2] = (irmp_data_p->command & 0x0007) << 5;                                             // CCC00000

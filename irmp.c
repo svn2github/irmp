@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.17 2010/04/16 09:23:29 fm Exp $
+ * $Id: irmp.c,v 1.20 2010/04/19 13:42:17 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -12,6 +12,7 @@
  * SIRCS      - Sony
  * NEC        - NEC, Yamaha, Canon, Tevion, Harman/Kardon, Hitachi, JVC, Pioneer, Toshiba, Xoro, Orion, and many other Japanese manufacturers
  * SAMSUNG    - Samsung
+ * SAMSUNG32  - Samsung
  * MATSUSHITA - Matsushita
  * KASEIKYO   - Panasonic, Denon & other Japanese manufacturers (members of "Japan's Association for Electric Home Application")
  * RECS80     - Philips, Nokia, Thomson, Nordmende, Telefunken, Saba
@@ -461,8 +462,8 @@ typedef unsigned int16  uint16_t;
 #define AUTO_REPETITION_LEN                     (uint16_t)(F_INTERRUPTS * AUTO_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef DEBUG
-#define DEBUG_PUTCHAR(a)                        { if (! silent) { putchar (a);              } }
-#define DEBUG_PRINTF(...)                       { if (! silent) { printf (__VA_ARGS__);   } }
+#define DEBUG_PUTCHAR(a)                        { if (! silent) { putchar (a);          } }
+#define DEBUG_PRINTF(...)                       { if (! silent) { printf (__VA_ARGS__); } }
 static int silent;
 #else
 #define DEBUG_PUTCHAR(a)
@@ -474,17 +475,17 @@ static int silent;
 #define UART_BAUD                               9600L
 
 // calculate real baud rate:
-#define UBRR_VAL                                ((F_CPU+UART_BAUD*8)/(UART_BAUD*16)-1)      // round
-#define BAUD_REAL                               (F_CPU/(16*(UBRR_VAL+1)))                   // real baudrate
+#define UBRR_VAL                                ((F_CPU + UART_BAUD * 8) / (UART_BAUD * 16) - 1)    // round
+#define BAUD_REAL                               (F_CPU / (16 * (UBRR_VAL + 1)))                     // real baudrate
 
 #ifdef CODEVISION
-#if ((BAUD_REAL*1000)/UART_BAUD-1000) > 10
+#if ((BAUD_REAL * 1000) / UART_BAUD - 1000) > 10
 #  error Error of baud rate of RS232 UARTx is more than 1%. That is too high!
 #endif
 
 #else // not CODEVISION
 
-#define BAUD_ERROR                              ((BAUD_REAL*1000)/UART_BAUD-1000)           // error in promille
+#define BAUD_ERROR                              ((BAUD_REAL * 1000) / UART_BAUD - 1000)             // error in promille
 
 #if ((BAUD_ERROR > 10) || (-BAUD_ERROR < 10))
 #  error Error of baud rate of RS232 UARTx is more than 1%. That is too high!
@@ -500,9 +501,9 @@ static int silent;
 void
 irmp_uart_init (void)
 {
-    UCSR0B |= (1<<TXEN0);                                                         // activate UART0 TX
-    UBRR0H = UBRR_VAL >> 8;                                                       // store baudrate (upper byte)
-    UBRR0L = UBRR_VAL & 0xFF;                                                     // store baudrate (lower byte)
+    UCSR0B |= (1<<TXEN0);                                                                   // activate UART0 TX
+    UBRR0H = UBRR_VAL >> 8;                                                                 // store baudrate (upper byte)
+    UBRR0L = UBRR_VAL & 0xFF;                                                               // store baudrate (lower byte)
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -526,19 +527,19 @@ irmp_uart_putc (unsigned char ch)
  *  Log IR signal
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define c_startcycles                     2                         // min count of zeros before start of logging
-#define c_endBits                      1000                         // log buffer size
-#define c_datalen                       700                         // number of sequenced highbits to detect end
+#define c_startcycles                     2                                 // min count of zeros before start of logging
+#define c_endBits                      1000                                 // log buffer size
+#define c_datalen                       700                                 // number of sequenced highbits to detect end
 
 static void
 irmp_logIr (uint8_t val)
 {
-    static uint8_t  s_data[c_datalen];                                  // logging buffer
-    static uint16_t s_dataIdx;                                          // number of written bits
-    static uint8_t  s_startcycles;                                      // current number of start-zeros
-    static uint16_t s_ctr;                                              // counts sequenced highbits - to detect end
+    static uint8_t  s_data[c_datalen];                                      // logging buffer
+    static uint16_t s_dataIdx;                                              // number of written bits
+    static uint8_t  s_startcycles;                                          // current number of start-zeros
+    static uint16_t s_ctr;                                                  // counts sequenced highbits - to detect end
 
-    if ((val == 0) && (s_startcycles < c_startcycles) && !s_dataIdx)    // prevent that single random zeros init logging
+    if ((val == 0) && (s_startcycles < c_startcycles) && !s_dataIdx)        // prevent that single random zeros init logging
     {
         ++s_startcycles;
     }
@@ -546,11 +547,11 @@ irmp_logIr (uint8_t val)
     {
         s_startcycles = 0;
 
-        if (    (val == 0)                                              // start or continue logging on "0"
-            || ((val == 1) && (s_dataIdx != 0)))                        // "1" cannot init logging
+        if (    (val == 0)                                                  // start or continue logging on "0"
+            || ((val == 1) && (s_dataIdx != 0)))                            // "1" cannot init logging
         {
             if (val)
-            {                                                           // set or clear bit in bitarray
+            {                                                               // set or clear bit in bitarray
                 s_data[(s_dataIdx / 8)] |=  (1<<(s_dataIdx % 8));
             }
             else
@@ -561,19 +562,19 @@ irmp_logIr (uint8_t val)
             ++s_dataIdx;
 
             if (val)
-            {                                                           // if high received then look at log-stop condition
+            {                                                               // if high received then look at log-stop condition
                 ++s_ctr;
 
                 if (s_ctr > c_endBits)
-                {                                                       // if stop condition (200 sequenced ones) meets, output on uart
+                {                                                           // if stop condition (200 sequenced ones) meets, output on uart
                     uint16_t i;
 
                     for (i = 0; i < c_startcycles; ++i)
                     {
-                        irmp_uart_putc ('0');                                   // the ignored starting zeros
+                        irmp_uart_putc ('0');                               // the ignored starting zeros
                     }
 
-                    for (i = 0;i < (s_dataIdx - c_endBits + 20) / 8; ++i)       // transform bitset into uart chars
+                    for (i = 0;i < (s_dataIdx - c_endBits + 20) / 8; ++i)   // transform bitset into uart chars
                     {
                         uint8_t d = s_data[i];
                         uint8_t j;
@@ -663,6 +664,26 @@ static PROGMEM IRMP_PARAMETER nec_param =
     NEC_COMMAND_OFFSET,
     NEC_COMMAND_OFFSET + NEC_COMMAND_LEN,
     NEC_COMPLETE_DATA_LEN,
+    NEC_STOP_BIT,
+    NEC_LSB
+};
+
+static PROGMEM IRMP_PARAMETER nec_rep_param =
+{
+    IRMP_NEC_PROTOCOL,
+    NEC_PULSE_LEN_MIN,
+    NEC_PULSE_LEN_MAX,
+    NEC_1_PAUSE_LEN_MIN,
+    NEC_1_PAUSE_LEN_MAX,
+    NEC_PULSE_LEN_MIN,
+    NEC_PULSE_LEN_MAX,
+    NEC_0_PAUSE_LEN_MIN,
+    NEC_0_PAUSE_LEN_MAX,
+    0,
+    0,
+    0,
+    0,
+    0,
     NEC_STOP_BIT,
     NEC_LSB
 };
@@ -1137,48 +1158,39 @@ irmp_ISR (void)
                 }
                 else
                 {                                                               // receiving first data pulse!
+                    IRMP_PARAMETER * irmp_param_p = (IRMP_PARAMETER *) 0;
+
                     DEBUG_PRINTF ("start-bit: pulse = %d, pause = %d\n", irmp_pulse_time, irmp_pause_time);
 
 #if IRMP_SUPPORT_SIRCS_PROTOCOL == 1
                     if (irmp_pulse_time >= SIRCS_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SIRCS_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= SIRCS_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= SIRCS_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                                   // it's SIRCS
+                    {                                                           // it's SIRCS
                         DEBUG_PRINTF ("protocol = SIRCS, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         SIRCS_START_BIT_PULSE_LEN_MIN, SIRCS_START_BIT_PULSE_LEN_MAX,
                                         SIRCS_START_BIT_PAUSE_LEN_MIN, SIRCS_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &sircs_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) (IRMP_PARAMETER *) &sircs_param;
                     }
                     else
 #endif // IRMP_SUPPORT_SIRCS_PROTOCOL == 1
 
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
                     if (irmp_pulse_time >= NEC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NEC_START_BIT_PULSE_LEN_MAX &&
-                        ((irmp_pause_time >= NEC_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_START_BIT_PAUSE_LEN_MAX) ||
-                         (irmp_pause_time >= NEC_REPEAT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_REPEAT_START_BIT_PAUSE_LEN_MAX)))
-                    {                                                                 // it's NEC
-                        if (irmp_pause_time <= NEC_REPEAT_START_BIT_PAUSE_LEN_MAX)
-                        {
-                            DEBUG_PRINTF ("protocol = NEC (repetition frame), start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
-                                            NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX);
-                        }
-                        else
-                        {
-                            DEBUG_PRINTF ("protocol = NEC, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
-                                            NEC_START_BIT_PAUSE_LEN_MIN, NEC_START_BIT_PAUSE_LEN_MAX);
-                        }
+                        irmp_pause_time >= NEC_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        DEBUG_PRINTF ("protocol = NEC, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
+                                        NEC_START_BIT_PAUSE_LEN_MIN, NEC_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &nec_param;
+                    }
+                    else if (irmp_pulse_time >= NEC_START_BIT_PULSE_LEN_MIN        && irmp_pulse_time <= NEC_START_BIT_PULSE_LEN_MAX &&
+                             irmp_pause_time >= NEC_REPEAT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_REPEAT_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's NEC
+                        DEBUG_PRINTF ("protocol = NEC (repetition frame), start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
+                                        NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX);
 
-                        memcpy_P (&irmp_param, &nec_param, sizeof (IRMP_PARAMETER));
-
-                        if (irmp_pause_time <= NEC_REPEAT_START_BIT_PAUSE_LEN_MAX)
-                        {
-                            irmp_param.address_offset  = 0;
-                            irmp_param.address_end     = 0;
-                            irmp_param.command_offset  = 0;
-                            irmp_param.command_end     = 0;
-                            irmp_param.complete_len    = 0;
-                        }
+                        irmp_param_p = (IRMP_PARAMETER *) &nec_rep_param;
                     }
                     else
 #endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
@@ -1186,11 +1198,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
                     if (irmp_pulse_time >= SAMSUNG_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SAMSUNG_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= SAMSUNG_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= SAMSUNG_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                 // it's SAMSUNG
+                    {                                                           // it's SAMSUNG
                         DEBUG_PRINTF ("protocol = SAMSUNG, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         SAMSUNG_START_BIT_PULSE_LEN_MIN, SAMSUNG_START_BIT_PULSE_LEN_MAX,
                                         SAMSUNG_START_BIT_PAUSE_LEN_MIN, SAMSUNG_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &samsung_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &samsung_param;
                     }
                     else
 #endif // IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
@@ -1198,11 +1210,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_MATSUSHITA_PROTOCOL == 1
                     if (irmp_pulse_time >= MATSUSHITA_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MATSUSHITA_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= MATSUSHITA_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= MATSUSHITA_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                 // it's MATSUSHITA
+                    {                                                           // it's MATSUSHITA
                         DEBUG_PRINTF ("protocol = MATSUSHITA, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         MATSUSHITA_START_BIT_PULSE_LEN_MIN, MATSUSHITA_START_BIT_PULSE_LEN_MAX,
                                         MATSUSHITA_START_BIT_PAUSE_LEN_MIN, MATSUSHITA_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &matsushita_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &matsushita_param;
                     }
                     else
 #endif // IRMP_SUPPORT_MATSUSHITA_PROTOCOL == 1
@@ -1210,11 +1222,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
                     if (irmp_pulse_time >= KASEIKYO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= KASEIKYO_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= KASEIKYO_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= KASEIKYO_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                 // it's KASEIKYO
+                    {                                                           // it's KASEIKYO
                         DEBUG_PRINTF ("protocol = KASEIKYO, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         KASEIKYO_START_BIT_PULSE_LEN_MIN, KASEIKYO_START_BIT_PULSE_LEN_MAX,
                                         KASEIKYO_START_BIT_PAUSE_LEN_MIN, KASEIKYO_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &kaseikyo_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &kaseikyo_param;
                     }
                     else
 #endif // IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
@@ -1222,11 +1234,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_RECS80_PROTOCOL == 1
                     if (irmp_pulse_time >= RECS80_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RECS80_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= RECS80_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RECS80_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                 // it's RECS80
+                    {                                                           // it's RECS80
                         DEBUG_PRINTF ("protocol = RECS80, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         RECS80_START_BIT_PULSE_LEN_MIN, RECS80_START_BIT_PULSE_LEN_MAX,
                                         RECS80_START_BIT_PAUSE_LEN_MIN, RECS80_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &recs80_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &recs80_param;
                     }
                     else
 #endif // IRMP_SUPPORT_RECS80_PROTOCOL == 1
@@ -1236,11 +1248,11 @@ irmp_ISR (void)
                          (irmp_pulse_time >= 2 * RC5_START_BIT_LEN_MIN && irmp_pulse_time <= 2 * RC5_START_BIT_LEN_MAX)) &&
                         ((irmp_pause_time >= RC5_START_BIT_LEN_MIN && irmp_pause_time <= RC5_START_BIT_LEN_MAX) ||
                          (irmp_pause_time >= 2 * RC5_START_BIT_LEN_MIN && irmp_pause_time <= 2 * RC5_START_BIT_LEN_MAX)))
-                    {                                                                 // it's RC5
+                    {                                                           // it's RC5
                         DEBUG_PRINTF ("protocol = RC5, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX,
                                         RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX);
-                        memcpy_P (&irmp_param, &rc5_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &rc5_param;
                         last_pause = irmp_pause_time;
 
                         if ((irmp_pulse_time > RC5_START_BIT_LEN_MAX && irmp_pulse_time <= 2 * RC5_START_BIT_LEN_MAX) ||
@@ -1266,7 +1278,7 @@ irmp_ISR (void)
                                         DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX,
                                         DENON_1_PAUSE_LEN_MIN, DENON_1_PAUSE_LEN_MAX,
                                         DENON_0_PAUSE_LEN_MIN, DENON_0_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &denon_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &denon_param;
                     }
                     else
 #endif // IRMP_SUPPORT_DENON_PROTOCOL == 1
@@ -1278,7 +1290,7 @@ irmp_ISR (void)
                         DEBUG_PRINTF ("protocol = RC6, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         RC6_START_BIT_PULSE_LEN_MIN, RC6_START_BIT_PULSE_LEN_MAX,
                                         RC6_START_BIT_PAUSE_LEN_MIN, RC6_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &rc6_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &rc6_param;
                         last_pause = 0;
                         last_value = 0;
                     }
@@ -1288,11 +1300,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_RECS80EXT_PROTOCOL == 1
                     if (irmp_pulse_time >= RECS80EXT_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RECS80EXT_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= RECS80EXT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RECS80EXT_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                 // it's RECS80EXT
+                    {                                                           // it's RECS80EXT
                         DEBUG_PRINTF ("protocol = RECS80EXT, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         RECS80EXT_START_BIT_PULSE_LEN_MIN, RECS80EXT_START_BIT_PULSE_LEN_MAX,
                                         RECS80EXT_START_BIT_PAUSE_LEN_MIN, RECS80EXT_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &recs80ext_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &recs80ext_param;
                     }
                     else
 #endif // IRMP_SUPPORT_RECS80EXT_PROTOCOL == 1
@@ -1300,11 +1312,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_NUBERT_PROTOCOL == 1
                     if (irmp_pulse_time >= NUBERT_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NUBERT_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= NUBERT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NUBERT_START_BIT_PAUSE_LEN_MAX)
-                    {                                                                 // it's NUBERT
+                    {                                                           // it's NUBERT
                         DEBUG_PRINTF ("protocol = NUBERT, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         NUBERT_START_BIT_PULSE_LEN_MIN, NUBERT_START_BIT_PULSE_LEN_MAX,
                                         NUBERT_START_BIT_PAUSE_LEN_MIN, NUBERT_START_BIT_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &nubert_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &nubert_param;
                     }
                     else
 #endif // IRMP_SUPPORT_NUBERT_PROTOCOL == 1
@@ -1312,7 +1324,7 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
                     if (irmp_pulse_time >= BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN && irmp_pulse_time <= BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX &&
                         irmp_pause_time >= BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MAX)
-                    {                                                                 // it's BANG_OLUFSEN
+                    {                                                           // it's BANG_OLUFSEN
                         DEBUG_PRINTF ("protocol = BANG_OLUFSEN\n");
                         DEBUG_PRINTF ("start bit 1 timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX,
@@ -1326,7 +1338,7 @@ irmp_ISR (void)
                         DEBUG_PRINTF ("start bit 4 timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         BANG_OLUFSEN_START_BIT4_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PULSE_LEN_MAX,
                                         BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MAX);
-                        memcpy_P (&irmp_param, &bang_olufsen_param, sizeof (IRMP_PARAMETER));
+                        irmp_param_p = (IRMP_PARAMETER *) &bang_olufsen_param;
                         last_value = 0;
                     }
                     else
@@ -1339,8 +1351,11 @@ irmp_ISR (void)
 
                     if (irmp_start_bit_detected)
                     {
+                        memcpy_P (&irmp_param, irmp_param_p, sizeof (IRMP_PARAMETER));
+
                         DEBUG_PRINTF ("pulse_1: %3d - %3d\n", irmp_param.pulse_1_len_min, irmp_param.pulse_1_len_max);
                         DEBUG_PRINTF ("pause_1: %3d - %3d\n", irmp_param.pause_1_len_min, irmp_param.pause_1_len_max);
+
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_RC6_PROTOCOL)
                         {
@@ -1349,6 +1364,7 @@ irmp_ISR (void)
 #endif
                         DEBUG_PRINTF ("pulse_0: %3d - %3d\n", irmp_param.pulse_0_len_min, irmp_param.pulse_0_len_max);
                         DEBUG_PRINTF ("pause_0: %3d - %3d\n", irmp_param.pause_0_len_min, irmp_param.pause_0_len_max);
+
 #if IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_BANG_OLUFSEN_PROTOCOL)
                         {
@@ -1358,9 +1374,9 @@ irmp_ISR (void)
 #endif
 
                         DEBUG_PRINTF ("command_offset: %2d\n", irmp_param.command_offset);
-                        DEBUG_PRINTF ("command_len:   %3d\n", irmp_param.command_end - irmp_param.command_offset);
-                        DEBUG_PRINTF ("complete_len:  %3d\n", irmp_param.complete_len);
-                        DEBUG_PRINTF ("stop_bit:      %3d\n", irmp_param.stop_bit);
+                        DEBUG_PRINTF ("command_len:    %3d\n", irmp_param.command_end - irmp_param.command_offset);
+                        DEBUG_PRINTF ("complete_len:   %3d\n", irmp_param.complete_len);
+                        DEBUG_PRINTF ("stop_bit:       %3d\n", irmp_param.stop_bit);
                     }
 
                     irmp_bit = 0;
@@ -1447,7 +1463,7 @@ irmp_ISR (void)
                             irmp_pause_time > SIRCS_PAUSE_LEN_MAX &&            // minimum is 12
                             irmp_bit >= 12 - 1)                                 // pause too long?
                         {                                                       // yes, break and close this frame
-                            irmp_param.complete_len = irmp_bit + 1;                        // set new complete length
+                            irmp_param.complete_len = irmp_bit + 1;             // set new complete length
                             got_light = TRUE;                                   // this is a lie, but helps (generates stop bit)
                             irmp_param.command_end = irmp_param.command_offset + irmp_bit + 1;        // correct command length
                             irmp_pause_time = SIRCS_PAUSE_LEN_MAX - 1;          // correct pause length
@@ -1459,7 +1475,7 @@ irmp_ISR (void)
                             irmp_pause_time > 2 * RC5_BIT_LEN_MAX && irmp_bit >= RC5_COMPLETE_DATA_LEN - 2 && !irmp_param.stop_bit)
                         {                                                       // special rc5 decoder
                             got_light = TRUE;                                   // this is a lie, but generates a stop bit ;-)
-                            irmp_param.stop_bit = TRUE;                                    // set flag
+                            irmp_param.stop_bit = TRUE;                         // set flag
                         }
                         else
 #endif
@@ -1468,7 +1484,7 @@ irmp_ISR (void)
                             irmp_pause_time > 2 * RC6_BIT_LEN_MAX && irmp_bit >= irmp_param.complete_len - 2 && !irmp_param.stop_bit)
                         {                                                       // special rc6 decoder
                             got_light = TRUE;                                   // this is a lie, but generates a stop bit ;-)
-                            irmp_param.stop_bit = TRUE;                                    // set flag
+                            irmp_param.stop_bit = TRUE;                         // set flag
                         }
                         else
 #endif
@@ -1499,7 +1515,7 @@ irmp_ISR (void)
                     DEBUG_PRINTF ("[bit %2d: pulse = %3d, pause = %3d] ", irmp_bit, irmp_pulse_time, irmp_pause_time);
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
-                    if (irmp_param.protocol == IRMP_RC5_PROTOCOL)                 // special rc5 decoder
+                    if (irmp_param.protocol == IRMP_RC5_PROTOCOL)               // special rc5 decoder
                     {
                         if (irmp_pulse_time > RC5_BIT_LEN_MAX && irmp_pulse_time <= 2 * RC5_BIT_LEN_MAX)
                         {
@@ -1597,7 +1613,7 @@ irmp_ISR (void)
                         wait_for_space = 0;
                     }
                     else
-#endif
+#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
 
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_SAMSUNG_PROTOCOL && irmp_bit == 16)       // Samsung: 16th bit
@@ -1640,8 +1656,6 @@ irmp_ISR (void)
                             irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                             irmp_pause_time         = 0;
                         }
-
-                        irmp_pulse_time = 1;                                        // set counter to 1, not 0
                     }
                     else
 #endif // IRMP_SUPPORT_SAMSUNG_PROTOCOL
@@ -1651,7 +1665,7 @@ irmp_ISR (void)
                     {
                         if (irmp_pulse_time >= BANG_OLUFSEN_PULSE_LEN_MIN && irmp_pulse_time <= BANG_OLUFSEN_PULSE_LEN_MAX)
                         {
-                            if (irmp_bit == 1)                                          // Bang & Olufsen: 3rd bit
+                            if (irmp_bit == 1)                                      // Bang & Olufsen: 3rd bit
                             {
                                 if (irmp_pause_time >= BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MAX)
                                 {
@@ -1663,13 +1677,11 @@ irmp_ISR (void)
                                 else
                                 {                                                       // timing incorrect!
                                     DEBUG_PRINTF ("error 3a B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
-                                    irmp_start_bit_detected = 0;                        // reset flags and wait for next start bit
+                                    irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
-
-                                irmp_pulse_time = 1;                                    // set counter to 1, not 0
                             }
-                            else if (irmp_bit == 19)                                    // Bang & Olufsen: trailer bit
+                            else if (irmp_bit == 19)                                // Bang & Olufsen: trailer bit
                             {
                                 if (irmp_pause_time >= BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MAX)
                                 {
@@ -1679,26 +1691,24 @@ irmp_ISR (void)
                                     irmp_bit++;
                                 }
                                 else
-                                {                                                       // timing incorrect!
+                                {                                                   // timing incorrect!
                                     DEBUG_PRINTF ("error 3b B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
-                                    irmp_start_bit_detected = 0;                          // reset flags and wait for next start bit
+                                    irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
-
-                                irmp_pulse_time = 1;                                    // set counter to 1, not 0
                             }
                             else
                             {
-                                if (irmp_pause_time >= irmp_param.pause_1_len_min && irmp_pause_time <= irmp_param.pause_1_len_max)
-                                {                                                       // pulse & pause timings correct for "1"?
+                                if (irmp_pause_time >= BANG_OLUFSEN_1_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_1_PAUSE_LEN_MAX)
+                                {                                                   // pulse & pause timings correct for "1"?
                                     DEBUG_PUTCHAR ('1');
                                     DEBUG_PUTCHAR ('\n');
                                     irmp_store_bit (1);
                                     last_value = 1;
                                     wait_for_space = 0;
                                 }
-                                else if (irmp_pause_time >= irmp_param.pause_0_len_min && irmp_pause_time <= irmp_param.pause_0_len_max)
-                                {                                                       // pulse & pause timings correct for "0"?
+                                else if (irmp_pause_time >= BANG_OLUFSEN_0_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_0_PAUSE_LEN_MAX)
+                                {                                                   // pulse & pause timings correct for "0"?
                                     DEBUG_PUTCHAR ('0');
                                     DEBUG_PUTCHAR ('\n');
                                     irmp_store_bit (0);
@@ -1713,17 +1723,17 @@ irmp_ISR (void)
                                     wait_for_space = 0;
                                 }
                                 else
-                                {                                                       // timing incorrect!
+                                {                                                   // timing incorrect!
                                     DEBUG_PRINTF ("error 3c B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
-                                    irmp_start_bit_detected = 0;                          // reset flags and wait for next start bit
+                                    irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
                             }
                         }
                         else
-                        {                                                               // timing incorrect!
+                        {                                                           // timing incorrect!
                             DEBUG_PRINTF ("error 3d B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
-                            irmp_start_bit_detected = 0;                                // reset flags and wait for next start bit
+                            irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                             irmp_pause_time         = 0;
                         }
                     }
