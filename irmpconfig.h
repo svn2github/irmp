@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.3 2010/04/12 13:26:46 fm Exp $
+ * $Id: irmpconfig.h,v 1.5 2010/05/15 17:56:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -42,6 +42,7 @@
 #define IRMP_SUPPORT_RECS80EXT_PROTOCOL         1       // flag: support RECS80EXT                  uses  ~50 bytes
 #define IRMP_SUPPORT_NUBERT_PROTOCOL            1       // flag: support NUBERT                     uses  ~50 bytes
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen             uses ~200 bytes
+#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig                    uses ~150 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:

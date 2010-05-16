@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.20 2010/04/19 13:42:17 fm Exp $
+ * $Id: irmp.c,v 1.24 2010/05/16 21:58:13 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -23,6 +23,7 @@
  * NUBERT     - Nubert Subwoofer System
  * B&O        - Bang & Olufsen
  * PANASONIC  - Panasonic (older, yet not implemented)
+ * Grundig    - Grundig
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
@@ -205,6 +206,21 @@
  *   data "0":       data "1":           data "repeat bit":   trailer bit:         stop bit:
  *   -----________   -----_____________  -----___________     -----_____________   -----____...
  *   210us 3000us    210us   9000us      210us   6000us       210us   12000us      210us
+ *
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ *
+ *   Grundig
+ *   -------
+ *
+ *   frame:  1 start packet + n info packets + 1 stop packet
+ *   packet: 1 pre bit + 1 start bit + 9 data bits + no stop bit
+ *   data of start packet:   9 x 1
+ *   data of info  packet:   9 command bits
+ *   data of stop  packet:   9 x 1
+ *
+ *   pre bit:              start bit           data "0":            data "1":
+ *   ------____________    ------______        ______------         ------______             
+ *   528us  2639us         528us  528us        528us  528us         528us  528us
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
@@ -459,12 +475,20 @@ typedef unsigned int16  uint16_t;
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MIN  ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MAX  ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
 
+#define GRUNDIG_START_BIT_LEN_MIN               ((uint8_t)(F_INTERRUPTS * GRUNDIG_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_START_BIT_LEN_MAX               ((uint8_t)(F_INTERRUPTS * GRUNDIG_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_BIT_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * GRUNDIG_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_BIT_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * GRUNDIG_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_PRE_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * GRUNDIG_PRE_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_PRE_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * GRUNDIG_PRE_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
 #define AUTO_REPETITION_LEN                     (uint16_t)(F_INTERRUPTS * AUTO_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef DEBUG
 #define DEBUG_PUTCHAR(a)                        { if (! silent) { putchar (a);          } }
 #define DEBUG_PRINTF(...)                       { if (! silent) { printf (__VA_ARGS__); } }
 static int silent;
+static int time_counter;
 #else
 #define DEBUG_PUTCHAR(a)
 #define DEBUG_PRINTF(...)
@@ -930,6 +954,30 @@ static PROGMEM IRMP_PARAMETER bang_olufsen_param =
 
 #endif
 
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER grundig_param =
+{
+    IRMP_GRUNDIG_PROTOCOL,
+    GRUNDIG_BIT_LEN_MIN,
+    GRUNDIG_BIT_LEN_MAX,
+    GRUNDIG_BIT_LEN_MIN,
+    GRUNDIG_BIT_LEN_MAX,
+    1,                                // tricky: use this as stop bit length
+    1,
+    1,
+    1,
+    GRUNDIG_ADDRESS_OFFSET,
+    GRUNDIG_ADDRESS_OFFSET + GRUNDIG_ADDRESS_LEN,
+    GRUNDIG_COMMAND_OFFSET,
+    GRUNDIG_COMMAND_OFFSET + GRUNDIG_COMMAND_LEN,
+    GRUNDIG_COMPLETE_DATA_LEN,
+    GRUNDIG_STOP_BIT,
+    GRUNDIG_LSB
+};
+
+#endif
+
 static uint8_t                              irmp_bit;                                           // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
@@ -1093,6 +1141,7 @@ irmp_ISR (void)
     static uint16_t   last_irmp_address = 0xFFFF;                               // save last irmp address to recognize key repetition
     static uint16_t   last_irmp_command = 0xFFFF;                               // save last irmp command to recognize key repetition
     static uint16_t   repetition_counter;                                       // SIRCS repeats frame 2-5 times with 45 ms pause
+    static uint8_t    repetition_frame_number;
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
     static uint16_t   last_irmp_denon_command;                                  // save last irmp command to recognize DENON frame repetition
 #endif
@@ -1106,6 +1155,10 @@ irmp_ISR (void)
     static uint8_t    last_value;                                               // last bit value
 #endif
     uint8_t           irmp_input;                                               // input value
+
+#ifdef DEBUG
+    time_counter++;
+#endif
 
     irmp_input = input(IRMP_PIN);
 
@@ -1344,6 +1397,20 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
 
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+                    if (irmp_pulse_time >= GRUNDIG_START_BIT_LEN_MIN && irmp_pulse_time <= GRUNDIG_START_BIT_LEN_MAX &&
+                        irmp_pause_time >= GRUNDIG_PRE_PAUSE_LEN_MIN && irmp_pause_time <= GRUNDIG_PRE_PAUSE_LEN_MAX)
+                    {                                                           // it's GRUNDIG
+                        DEBUG_PRINTF ("protocol = GRUNDIG, pre bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        GRUNDIG_START_BIT_LEN_MIN, GRUNDIG_START_BIT_LEN_MAX,
+                                        GRUNDIG_PRE_PAUSE_LEN_MIN, GRUNDIG_PRE_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &grundig_param;
+                        last_pause = irmp_pause_time;
+                        last_value  = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+
                     {
                         DEBUG_PRINTF ("protocol = UNKNOWN\n");
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
@@ -1386,14 +1453,14 @@ irmp_ISR (void)
                     {
                         if (irmp_pause_time > RC5_START_BIT_LEN_MAX && irmp_pause_time <= 2 * RC5_START_BIT_LEN_MAX)
                         {
-                          DEBUG_PRINTF ("[bit %2d: pulse = %3d, pause = %3d] ", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                          DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('1');
                           DEBUG_PUTCHAR ('\n');
                           irmp_store_bit (1);
                         }
                         else if (! last_value)
                         {
-                          DEBUG_PRINTF ("[bit %2d: pulse = %3d, pause = %3d] ", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                          DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('0');
                           DEBUG_PUTCHAR ('\n');
                           irmp_store_bit (0);
@@ -1402,10 +1469,31 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_RC5_PROTOCOL == 1
 
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL)
+                    {
+                        if (irmp_pause_time > GRUNDIG_START_BIT_LEN_MAX && irmp_pause_time <= 2 * GRUNDIG_START_BIT_LEN_MAX)
+                        {
+                          DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
+                          DEBUG_PUTCHAR ('0');
+                          DEBUG_PUTCHAR ('\n');
+                          irmp_store_bit (0);
+                        }
+                        else if (! last_value)
+                        {
+                          DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
+                          DEBUG_PUTCHAR ('1');
+                          DEBUG_PUTCHAR ('\n');
+                          irmp_store_bit (1);
+                        }
+                    }
+                    else
+#endif // IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_DENON_PROTOCOL)
                     {
-                        DEBUG_PRINTF ("[bit %2d: pulse = %3d, pause = %3d] ", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                        DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
 
                         if (irmp_pause_time >= DENON_1_PAUSE_LEN_MIN && irmp_pause_time <= DENON_1_PAUSE_LEN_MAX)
                         {                                                       // pause timings correct for "1"?
@@ -1488,6 +1576,15 @@ irmp_ISR (void)
                         }
                         else
 #endif
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL &&
+                            irmp_pause_time > 2 * GRUNDIG_BIT_LEN_MAX && irmp_bit >= GRUNDIG_COMPLETE_DATA_LEN - 2 && !irmp_param.stop_bit)
+                        {                                                       // special rc5 decoder
+                            got_light = TRUE;                                   // this is a lie, but generates a stop bit ;-)
+                            irmp_param.stop_bit = TRUE;                         // set flag
+                        }
+                        else
+#endif
                         if (irmp_pause_time > IRMP_TIMEOUT_LEN)                 // timeout?
                         {                                                       // yes...
                             if (irmp_bit == irmp_param.complete_len - 1 && irmp_param.stop_bit == 0)
@@ -1512,7 +1609,7 @@ irmp_ISR (void)
 
                 if (got_light)
                 {
-                    DEBUG_PRINTF ("[bit %2d: pulse = %3d, pause = %3d] ", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                    DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_RC5_PROTOCOL)               // special rc5 decoder
@@ -1544,6 +1641,44 @@ irmp_ISR (void)
                             DEBUG_PUTCHAR (rc5_value + '0');
                             DEBUG_PUTCHAR ('\n');
                             irmp_store_bit (rc5_value);
+                        }
+
+                        last_pause = irmp_pause_time;
+                        wait_for_space = 0;
+                    }
+                    else
+#endif
+
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL)               // special Grundig decoder
+                    {
+                        if (irmp_pulse_time > GRUNDIG_BIT_LEN_MAX && irmp_pulse_time <= 2 * GRUNDIG_BIT_LEN_MAX)
+                        {
+                            DEBUG_PUTCHAR ('0');
+                            irmp_store_bit (0);
+                            DEBUG_PUTCHAR ('1');
+                            DEBUG_PUTCHAR ('\n');
+                            irmp_store_bit (1);
+                            last_value = 1;
+                        }
+
+                        else // if (irmp_pulse_time >= GRUNDIG_BIT_LEN_MIN && irmp_pulse_time <= GRUNDIG_BIT_LEN_MAX)
+                        {
+                            uint8_t grundig_value;
+
+                            if (last_pause > GRUNDIG_BIT_LEN_MAX && last_pause <= 2 * GRUNDIG_BIT_LEN_MAX)
+                            {
+                                grundig_value = last_value ? 0 : 1;
+                                last_value  = grundig_value;
+                            }
+                            else
+                            {
+                                grundig_value = last_value;
+                            }
+
+                            DEBUG_PUTCHAR (grundig_value + '0');
+                            DEBUG_PUTCHAR ('\n');
+                            irmp_store_bit (grundig_value);
                         }
 
                         last_pause = irmp_pause_time;
@@ -1781,17 +1916,48 @@ irmp_ISR (void)
 
             if (irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 0)    // enough bits received?
             {
-                // if SIRCS/SAMSUNG32 protocol and the code will be repeated within 50 ms, we will ignore it.
-                if ((irmp_param.protocol == IRMP_SIRCS_PROTOCOL ||
-                     irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL ||
-                     irmp_param.protocol == IRMP_NUBERT_PROTOCOL) &&
-                    last_irmp_command == irmp_tmp_command && repetition_counter < AUTO_REPETITION_LEN)
+                if (last_irmp_command == irmp_tmp_command && repetition_counter < AUTO_REPETITION_LEN)
                 {
-                    DEBUG_PRINTF ("code skipped, recognized SIRCS, SAMSUNG32 or NUBERT repetition, counter = %d, auto repetition len = %d\n",
-                                    repetition_counter, AUTO_REPETITION_LEN);
+                    repetition_frame_number++;
+                }
+                else
+                {
+                    repetition_frame_number = 0;
+                }
+
+#if IRMP_SUPPORT_SIRCS_PROTOCOL == 1
+                // if SIRCS protocol and the code will be repeated within 50 ms, we will ignore 2nd and 3rd repetition frame
+                if (irmp_param.protocol == IRMP_SIRCS_PROTOCOL && (repetition_frame_number == 1 || repetition_frame_number == 2))
+                {
+                    DEBUG_PRINTF ("code skipped: SIRCS auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                                    repetition_frame_number + 1, repetition_counter, AUTO_REPETITION_LEN);
                     repetition_counter = 0;
                 }
                 else
+#endif
+
+#if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
+                // if SAMSUNG32 protocol and the code will be repeated within 50 ms, we will ignore every 2nd frame
+                if (irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL && (repetition_frame_number & 0x01))
+                {
+                    DEBUG_PRINTF ("code skipped: SAMSUNG32 auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                                    repetition_frame_number + 1, repetition_counter, AUTO_REPETITION_LEN);
+                    repetition_counter = 0;
+                }
+                else
+#endif
+
+#if IRMP_SUPPORT_NUBERT_PROTOCOL == 1
+                // if NUBERT protocol and the code will be repeated within 50 ms, we will ignore it.
+                if (irmp_param.protocol == IRMP_NUBERT_PROTOCOL && (repetition_frame_number & 0x01))
+                {
+                    DEBUG_PRINTF ("code skipped: NUBERT auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                                    repetition_frame_number + 1, repetition_counter, AUTO_REPETITION_LEN);
+                    repetition_counter = 0;
+                }
+                else
+#endif
+
                 {
                     DEBUG_PRINTF ("code detected, length = %d\n", irmp_bit);
                     irmp_ir_detected = TRUE;
@@ -1813,6 +1979,16 @@ irmp_ISR (void)
                             irmp_ir_detected = FALSE;
                             last_irmp_denon_command = irmp_tmp_command;
                         }
+                    }
+                    else
+#endif // IRMP_SUPPORT_DENON_PROTOCOL
+
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL && irmp_tmp_command == 0x01ff)     // only start frame?
+                    {
+                        DEBUG_PRINTF ("Detected start frame, ignoring it\n");
+                        irmp_ir_detected = FALSE;
+                        // last_irmp_grundig_command = irmp_tmp_command;
                     }
                     else
 #endif // IRMP_SUPPORT_DENON_PROTOCOL
@@ -1912,6 +2088,8 @@ print_timings (void)
             BANG_OLUFSEN_START_BIT3_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MAX);
     printf ("BANG_OLUFSEN   4               %3d - %3d           %3d - %3d\n",
             BANG_OLUFSEN_START_BIT4_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MAX);
+    printf ("GRUNDIG        1               %3d - %3d           %3d - %3d\n",
+            GRUNDIG_START_BIT_LEN_MIN, GRUNDIG_START_BIT_LEN_MAX, GRUNDIG_PRE_PAUSE_LEN_MIN, GRUNDIG_PRE_PAUSE_LEN_MAX);
 }
 
 int

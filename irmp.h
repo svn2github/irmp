@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.13 2010/04/16 09:23:29 fm Exp $
+ * $Id: irmp.h,v 1.14 2010/05/15 17:13:07 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -40,6 +40,7 @@ extern "C"
 #define IRMP_RECS80EXT_PROTOCOL                 12                            // Philips, Technisat, Thomson, Nordmende, Telefunken, Saba
 #define IRMP_NUBERT_PROTOCOL                    13                            // Nubert
 #define IRMP_BANG_OLUFSEN_PROTOCOL              14                            // Bang & Olufsen
+#define IRMP_GRUNDIG_PROTOCOL                   15                            // Grundig
 
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                     // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                     //  600 usec pause
@@ -211,6 +212,16 @@ extern "C"
 #define BANG_OLUFSEN_COMPLETE_DATA_LEN          20                            // complete length: startbits 2, 3, 4 + 16 data bits + trailer bit
 #define BANG_OLUFSEN_STOP_BIT                   1                             // has stop bit
 #define BANG_OLUFSEN_LSB                        0                             // MSB...LSB
+
+#define GRUNDIG_BIT_TIME                        528.0e-6                      // 528 usec pulse/pause
+#define GRUNDIG_PRE_PAUSE_TIME                  2639.0e-6                     // 2639 usec pause after pre bit
+#define GRUNDIG_ADDRESS_OFFSET                  0                             // skip 2 bits (2nd start + 1 toggle)
+#define GRUNDIG_ADDRESS_LEN                     0                             // read 5 address bits
+#define GRUNDIG_COMMAND_OFFSET                  1                             // skip 2 bits (1 start bit)
+#define GRUNDIG_COMMAND_LEN                     9                             // read 9 command bits
+#define GRUNDIG_COMPLETE_DATA_LEN               10                            // complete length: 1 start bit + 9 data bits
+#define GRUNDIG_STOP_BIT                        0                             // has no stop bit
+#define GRUNDIG_LSB                             1                             // MSB...LSB
 
 #define AUTO_REPETITION_TIME                    50.0e-3                       // SIRCS or SAMSUNG32: automatic repetition after 45-50ms
 
