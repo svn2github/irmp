@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id$
+ * $Id: irsndconfig.h,v 1.2 2010/05/17 10:31:43 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -33,6 +33,7 @@
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        1       // flag: support RECS80EXT              uses ~100 bytes
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // flag: support NUBERT                 uses ~100 bytes
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // flag: support Bang&Olufsen           uses ~250 bytes
+#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // flag: support Grundig                uses ~250 bytes
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
