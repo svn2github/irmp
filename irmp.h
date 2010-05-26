@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.15 2010/05/17 10:31:43 fm Exp $
+ * $Id: irmp.h,v 1.18 2010/05/26 08:34:30 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -41,14 +41,15 @@ extern "C"
 #define IRMP_NUBERT_PROTOCOL                    13                            // Nubert
 #define IRMP_BANG_OLUFSEN_PROTOCOL              14                            // Bang & Olufsen
 #define IRMP_GRUNDIG_PROTOCOL                   15                            // Grundig
+#define IRMP_NOKIA_PROTOCOL                     16                            // Nokia
 
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                     // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                     //  600 usec pause
 #define SIRCS_1_PULSE_TIME                      1200.0e-6                     // 1200 usec pulse
 #define SIRCS_0_PULSE_TIME                       600.0e-6                     //  600 usec pulse
 #define SIRCS_PAUSE_TIME                         600.0e-6                     //  600 usec pause
-#define SIRCS_REPETITION_CNT                    3                             // SIRCS sends each frame 3 times
-#define SIRCS_REPETITION_TIME                     25.0e-3                     // repetition after 25ms
+#define SIRCS_FRAMES                            3                             // SIRCS sends each frame 3 times
+#define SIRCS_FRAME_REPETITION_TIME               25.0e-3                     // repetition after 25ms
 #define SIRCS_ADDRESS_OFFSET                    15                            // skip 15 bits
 #define SIRCS_ADDRESS_LEN                       5                             // read up to 5 address bits
 #define SIRCS_COMMAND_OFFSET                    0                             // skip 0 bits
@@ -90,8 +91,8 @@ extern "C"
 #define SAMSUNG32_COMMAND_OFFSET                16                            // skip 16 bits
 #define SAMSUNG32_COMMAND_LEN                   16                            // read 16 command bits
 #define SAMSUNG32_COMPLETE_DATA_LEN             32                            // complete length
-#define SAMSUNG32_REPETITION_CNT                2                             // SAMSUNG32 sends each frame 2 times
-#define SAMSUNG32_REPETITION_TIME               47.0e-3                       // repetition after 47 ms
+#define SAMSUNG32_FRAMES                        2                             // SAMSUNG32 sends each frame 2 times
+#define SAMSUNG32_FRAME_REPETITION_TIME         47.0e-3                       // repetition after 47 ms
 
 #define MATSUSHITA_START_BIT_PULSE_TIME         3488.0e-6                     // 3488 usec pulse
 #define MATSUSHITA_START_BIT_PAUSE_TIME         3488.0e-6                     // 3488 usec pause
@@ -144,8 +145,8 @@ extern "C"
 #define DENON_PULSE_TIME                        275.0e-6                      //  275 usec pulse
 #define DENON_1_PAUSE_TIME                      1900.0e-6                     // 1900 usec pause
 #define DENON_0_PAUSE_TIME                      1050.0e-6                     // 1050 usec pause
-#define DENON_REPETITION_CNT                    2                             // DENON sends each frame 2 times
-#define DENON_REPETITION_TIME                     65.0e-3                     // inverted repetition after 65ms
+#define DENON_FRAMES                            2                             // DENON sends each frame 2 times
+#define DENON_FRAME_REPETITION_TIME               65.0e-3                     // inverted repetition after 65ms
 #define DENON_ADDRESS_OFFSET                    0                             // skip 0 bits
 #define DENON_ADDRESS_LEN                       5                             // read 5 address bits
 #define DENON_COMMAND_OFFSET                    5                             // skip 5
@@ -186,8 +187,8 @@ extern "C"
 #define NUBERT_1_PAUSE_TIME                      340.0e-6                     //  340 usec pause
 #define NUBERT_0_PULSE_TIME                      500.0e-6                     //  500 usec pulse
 #define NUBERT_0_PAUSE_TIME                     1300.0e-6                     // 1300 usec pause
-#define NUBERT_REPETITION_CNT                   2                             // Nubert sends 2 frames
-#define NUBERT_REPETITION_TIME                  35.0e-3                       // repetition after 35ms
+#define NUBERT_FRAMES                           2                             // Nubert sends 2 frames
+#define NUBERT_FRAME_REPETITION_TIME            35.0e-3                       // repetition after 35ms
 #define NUBERT_ADDRESS_OFFSET                   0                             // skip 0 bits
 #define NUBERT_ADDRESS_LEN                      0                             // read 0 address bits
 #define NUBERT_COMMAND_OFFSET                   0                             // skip 0 bits
@@ -217,19 +218,28 @@ extern "C"
 #define BANG_OLUFSEN_STOP_BIT                   1                             // has stop bit
 #define BANG_OLUFSEN_LSB                        0                             // MSB...LSB
 
-#define GRUNDIG_BIT_TIME                        528.0e-6                      // 528 usec pulse/pause
-#define GRUNDIG_PRE_PAUSE_TIME                  2639.0e-6                     // 2639 usec pause after pre bit
-#define GRUNDIG_REPETITION_CNT                  2                             // SIRCS sends each frame 3 times
-#define GRUNDIG_REPETITION_TIME                   20.0e-3                     // repetition after 20ms
-#define GRUNDIG_ADDRESS_OFFSET                  0                             // skip 2 bits (2nd start + 1 toggle)
-#define GRUNDIG_ADDRESS_LEN                     0                             // read 5 address bits
-#define GRUNDIG_COMMAND_OFFSET                  1                             // skip 2 bits (1 start bit)
+#define GRUNDIG_OR_NOKIA_BIT_TIME               528.0e-6                      // 528 usec pulse/pause
+#define GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME         2639.0e-6                     // 2639 usec pause after pre bit
+#define GRUNDIG_OR_NOKIA_STOP_BIT               0                             // has no stop bit
+#define GRUNDIG_OR_NOKIA_LSB                    1                             // MSB...LSB
+
+#define GRUNDIG_FRAMES                          2                             // GRUNDIG sends each frame 1+1 times
+#define GRUNDIG_FRAME_REPETITION_TIME             20.0e-3                     // repetition after 20ms
+#define GRUNDIG_ADDRESS_OFFSET                  0                             // no address
+#define GRUNDIG_ADDRESS_LEN                     0                             // no address
+#define GRUNDIG_COMMAND_OFFSET                  1                             // skip 1 start bit
 #define GRUNDIG_COMMAND_LEN                     9                             // read 9 command bits
 #define GRUNDIG_COMPLETE_DATA_LEN               10                            // complete length: 1 start bit + 9 data bits
-#define GRUNDIG_STOP_BIT                        0                             // has no stop bit
-#define GRUNDIG_LSB                             1                             // MSB...LSB
 
-#define AUTO_REPETITION_TIME                    50.0e-3                       // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 45-50ms
+#define NOKIA_FRAMES                            3                             // NOKIA sends each frame 1 + 1 + 1 times
+#define NOKIA_FRAME_REPETITION_TIME               20.0e-3                     // repetition after 20ms
+#define NOKIA_ADDRESS_OFFSET                    9                             // skip 9 bits (1 start bit + 8 data bits)
+#define NOKIA_ADDRESS_LEN                       8                             // 7 address bits
+#define NOKIA_COMMAND_OFFSET                    1                             // skip 1 bit (1 start bit)
+#define NOKIA_COMMAND_LEN                       8                             // read 8 command bits
+#define NOKIA_COMPLETE_DATA_LEN                 17                            // complete length: 1 start bit + 8 address bits + 8 command bits
+
+#define AUTO_FRAME_REPETITION_TIME              50.0e-3                       // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
 
 #define TRUE                                    1
 #define FALSE                                   0

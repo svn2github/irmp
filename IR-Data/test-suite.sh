@@ -1,10 +1,24 @@
 #! /bin/sh
+#----------------------------------------------------------------------------
+# test suite for IRMP
+#
+# usage:
+#
+#        ./test-suite.sh
+#
+# Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
+#
+# $Id: test-suite.sh,v 1.6 2010/05/25 14:44:41 fm Exp $
+#----------------------------------------------------------------------------
+
 for j in                            \
+    Dbox.txt                        \
     DK_Digital.txt                  \
     Grundig_TP715.txt               \
     Grundig_TP715_SatTV.txt         \
     Grundig_TP715_Video.txt         \
     Matsushita.txt                  \
+    Nokia.txt                       \
     Panasonic-Blue-Ray.txt          \
     RC5-Taste.txt                   \
     Samsung_DVD_Rec_00062C.txt      \
