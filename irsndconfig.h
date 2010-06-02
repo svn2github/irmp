@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.3 2010/05/26 08:34:30 fm Exp $
+ * $Id: irsndconfig.h,v 1.5 2010/06/02 13:25:22 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -27,15 +27,15 @@
 #define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // flag: support Matsushita             uses ~150 bytes
 #define IRSND_SUPPORT_KASEIKYO_PROTOCOL         0       // flag: support Kaseikyo               NOT SUPPORTED YET!
 #define IRSND_SUPPORT_RECS80_PROTOCOL           1       // flag: support RECS80                 uses ~100 bytes
-#define IRSND_SUPPORT_RC5_PROTOCOL              1       // flag: support RC5                    uses ~250 bytes
+#define IRSND_SUPPORT_RC5_PROTOCOL              1       // flag: support RC5                    uses ~150 bytes
 #define IRSND_SUPPORT_DENON_PROTOCOL            1       // flag: support DENON                  uses ~200 bytes
 #define IRSND_SUPPORT_RC6_PROTOCOL              0       // flag: support RC6                    NOT SUPPORTED YET!
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        1       // flag: support RECS80EXT              uses ~100 bytes
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // flag: support NUBERT                 uses ~100 bytes
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // flag: support Bang&Olufsen           uses ~250 bytes
-#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // flag: support Grundig                uses ~250 bytes
-#define IRSND_SUPPORT_NOKIA_PROTOCOL            1       // flag: support Nokia                  uses ~150 bytes
-
+#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // flag: support Grundig                uses ~300 bytes
+#define IRSND_SUPPORT_NOKIA_PROTOCOL            1       // flag: support Nokia                  uses ~400 bytes
+#define IRSND_SUPPORT_SIEMENS_PROTOCOL          1       // flag: support Siemens, e.g. Gigaset  uses ~150 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:

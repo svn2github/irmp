@@ -8,7 +8,7 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: test-suite.sh,v 1.6 2010/05/25 14:44:41 fm Exp $
+# $Id: test-suite.sh,v 1.7 2010/05/28 08:26:13 fm Exp $
 #----------------------------------------------------------------------------
 
 for j in                            \
@@ -23,6 +23,7 @@ for j in                            \
     RC5-Taste.txt                   \
     Samsung_DVD_Rec_00062C.txt      \
     Samsung_TV.txt                  \
+    Siemens-Gigaset-M740AV.txt      \
     Sony-RM-S-310.txt               \
     sony-rm-s311.txt                \
     Sony-RM-U305C.txt               \

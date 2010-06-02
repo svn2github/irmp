@@ -115,8 +115,9 @@ main (void)
   for (;;)
   {
     irmp_data.protocol = IRMP_NEC_PROTOCOL;
-    irmp_data.address = 0x00FF;
-    irmp_data.command = 0x0001;
+    irmp_data.address  = 0x00FF;
+    irmp_data.command  = 0x0001;
+    irmp_data.flags    = 0;
 
     irsnd_send_data (&irmp_data);
     _delay_ms (1000);
@@ -138,8 +139,9 @@ main (void)
   for (;;)
   {
     irmp_data.protocol = IRMP_NEC_PROTOCOL;
-    irmp_data.address = 0x00FF;
-    irmp_data.command = 0x0001;
+    irmp_data.address  = 0x00FF;
+    irmp_data.command  = 0x0001;
+    irmp_data.flags    = 0;
 
     irsnd_send_data (&irmp_data);
     _delay_ms (1000);

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.31 2010/05/26 08:34:30 fm Exp $
+ * $Id: irmp.c,v 1.33 2010/06/02 13:18:03 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -25,6 +25,7 @@
  * PANASONIC  - Panasonic (older, yet not implemented)
  * GRUNDIG    - Grundig
  * NOKIA      - Nokia
+ * SIEMENS    - Siemens, e.g. Gigaset M740AV
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
@@ -492,12 +493,17 @@ typedef unsigned int16  uint16_t;
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MIN  ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MAX  ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
 
-#define GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN               ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX               ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_BIT_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define GRUNDIG_OR_NOKIA_BIT_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_OR_NOKIA_BIT_LEN_MIN            ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_OR_NOKIA_BIT_LEN_MAX            ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
+#define SIEMENS_START_BIT_LEN_MIN               ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) - 1)
+#define SIEMENS_START_BIT_LEN_MAX               ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) + 1)
+#define SIEMENS_BIT_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) - 1)
+#define SIEMENS_BIT_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) + 1)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -987,6 +993,30 @@ static PROGMEM IRMP_PARAMETER grundig_param =
 
 #endif
 
+#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER siemens_param =
+{
+    IRMP_SIEMENS_PROTOCOL,                                              // protocol:        ir protocol
+    SIEMENS_BIT_LEN_MIN,                                                // pulse_1_len_min: minimum length of pulse with bit value 1
+    SIEMENS_BIT_LEN_MAX,                                                // pulse_1_len_max: maximum length of pulse with bit value 1
+    SIEMENS_BIT_LEN_MIN,                                                // pause_1_len_min: minimum length of pause with bit value 1
+    SIEMENS_BIT_LEN_MAX,                                                // pause_1_len_max: maximum length of pause with bit value 1
+    1,  // tricky: use this as stop bit length                          // pulse_0_len_min: minimum length of pulse with bit value 0
+    1,                                                                  // pulse_0_len_max: maximum length of pulse with bit value 0
+    1,                                                                  // pause_0_len_min: minimum length of pause with bit value 0
+    1,                                                                  // pause_0_len_max: maximum length of pause with bit value 0
+    SIEMENS_ADDRESS_OFFSET,                                             // address_offset:  address offset
+    SIEMENS_ADDRESS_OFFSET + SIEMENS_ADDRESS_LEN,                       // address_end:     end of address
+    SIEMENS_COMMAND_OFFSET,                                             // command_offset:  command offset
+    SIEMENS_COMMAND_OFFSET + SIEMENS_COMMAND_LEN,                       // command_end:     end of command
+    SIEMENS_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame
+    SIEMENS_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
+    SIEMENS_LSB                                                         // lsb_first:       flag: LSB first
+};
+
+#endif
+
 static uint8_t                              irmp_bit;                   // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
@@ -1157,10 +1187,11 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
     static uint8_t    rc5_cmd_bit6;                                             // bit 6 of RC5 command is the inverted 2nd start bit
 #endif
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_RC6_PROTOCOL == 1
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_RC6_PROTOCOL == 1 || IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
     static uint8_t    last_pause;                                               // last pause value
 #endif
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_RC6_PROTOCOL == 1 || IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_RC6_PROTOCOL == 1 || IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || \
+    IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1 || IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 
     static uint8_t    last_value;                                               // last bit value
 #endif
     uint8_t           irmp_input;                                               // input value
@@ -1218,7 +1249,7 @@ irmp_ISR (void)
 
                     if (irmp_pause_time > IRMP_TIMEOUT_LEN)                     // timeout?
                     {                                                           // yes...
-                        DEBUG_PRINTF ("error 1: pause after start bit %d too long: %d\n", irmp_pulse_time, irmp_pause_time);
+                        DEBUG_PRINTF ("error 1: pause after start bit pulse %d too long: %d\n", irmp_pulse_time, irmp_pause_time);
                         irmp_start_bit_detected = 0;                            // reset flags, let's wait for another start bit
                         irmp_pulse_time         = 0;
                         irmp_pause_time         = 0;
@@ -1426,6 +1457,22 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
 
+#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+                    if (((irmp_pulse_time >= SIEMENS_START_BIT_LEN_MIN && irmp_pulse_time <= SIEMENS_START_BIT_LEN_MAX) ||
+                         (irmp_pulse_time >= 2 * SIEMENS_START_BIT_LEN_MIN && irmp_pulse_time <= 2 * SIEMENS_START_BIT_LEN_MAX)) &&
+                        ((irmp_pause_time >= SIEMENS_START_BIT_LEN_MIN && irmp_pause_time <= SIEMENS_START_BIT_LEN_MAX) ||
+                         (irmp_pause_time >= 2 * SIEMENS_START_BIT_LEN_MIN && irmp_pause_time <= 2 * SIEMENS_START_BIT_LEN_MAX)))
+                    {                                                           // it's SIEMENS
+                        DEBUG_PRINTF ("protocol = SIEMENS, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX,
+                                        SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &siemens_param;
+                        last_pause = irmp_pause_time;
+                        last_value  = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+
                     {
                         DEBUG_PRINTF ("protocol = UNKNOWN\n");
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
@@ -1505,6 +1552,27 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
 
+#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_SIEMENS_PROTOCOL)
+                    {
+                        if (irmp_pause_time > SIEMENS_START_BIT_LEN_MAX && irmp_pause_time <= 2 * SIEMENS_START_BIT_LEN_MAX)
+                        {
+                          DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
+                          DEBUG_PUTCHAR ('0');
+                          DEBUG_PUTCHAR ('\n');
+                          irmp_store_bit (0);
+                        }
+                        else if (! last_value)
+                        {
+                          DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
+                          DEBUG_PUTCHAR ('1');
+                          DEBUG_PUTCHAR ('\n');
+                          irmp_store_bit (1);
+                        }
+                    }
+                    else
+#endif // IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_DENON_PROTOCOL)
                     {
@@ -1544,7 +1612,8 @@ irmp_ISR (void)
                             if (irmp_param.protocol != IRMP_RC5_PROTOCOL &&
                                 irmp_param.protocol != IRMP_RC6_PROTOCOL &&
                                 irmp_param.protocol != IRMP_GRUNDIG_PROTOCOL &&
-                                irmp_param.protocol != IRMP_NOKIA_PROTOCOL)
+                                irmp_param.protocol != IRMP_NOKIA_PROTOCOL &&
+                                irmp_param.protocol != IRMP_SIEMENS_PROTOCOL)
                             {
                                 DEBUG_PRINTF ("stop bit detected\n");
                             }
@@ -1629,6 +1698,15 @@ irmp_ISR (void)
                         {                                                           // special Grundig/Nokia decoder
                             got_light = TRUE;                                       // this is a lie, but generates a stop bit ;-)
                             irmp_param.stop_bit = TRUE;                             // set flag
+                        }
+                        else
+#endif
+#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_SIEMENS_PROTOCOL &&
+                            irmp_pause_time > 2 * SIEMENS_BIT_LEN_MAX && irmp_bit >= SIEMENS_COMPLETE_DATA_LEN - 2 && !irmp_param.stop_bit)
+                        {                                                       // special rc5 decoder
+                            got_light = TRUE;                                   // this is a lie, but generates a stop bit ;-)
+                            irmp_param.stop_bit = TRUE;                         // set flag
                         }
                         else
 #endif
@@ -1797,6 +1875,44 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
+
+#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_SIEMENS_PROTOCOL)               // special siemens decoder
+                    {
+                        if (irmp_pulse_time > SIEMENS_BIT_LEN_MAX && irmp_pulse_time <= 2 * SIEMENS_BIT_LEN_MAX)
+                        {
+                            DEBUG_PUTCHAR ('0');
+                            irmp_store_bit (0);
+                            DEBUG_PUTCHAR ('1');
+                            DEBUG_PUTCHAR ('\n');
+                            irmp_store_bit (1);
+                            last_value = 1;
+                        }
+
+                        else // if (irmp_pulse_time >= SIEMENS_BIT_LEN_MIN && irmp_pulse_time <= SIEMENS_BIT_LEN_MAX)
+                        {
+                            uint8_t siemens_value;
+
+                            if (last_pause > SIEMENS_BIT_LEN_MAX && last_pause <= 2 * SIEMENS_BIT_LEN_MAX)
+                            {
+                                siemens_value = last_value ? 0 : 1;
+                                last_value  = siemens_value;
+                            }
+                            else
+                            {
+                                siemens_value = last_value;
+                            }
+
+                            DEBUG_PUTCHAR (siemens_value + '0');
+                            DEBUG_PUTCHAR ('\n');
+                            irmp_store_bit (siemens_value);
+                        }
+
+                        last_pause = irmp_pause_time;
+                        wait_for_space = 0;
+                    }
+                    else
+#endif
 
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_SAMSUNG_PROTOCOL && irmp_bit == 16)       // Samsung: 16th bit
@@ -2146,6 +2262,8 @@ print_timings (void)
             BANG_OLUFSEN_START_BIT4_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MAX);
     printf ("GRUNDIG/NOKIA  1               %3d - %3d           %3d - %3d\n",
             GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX);
+    printf ("SIEMENS        1               %3d - %3d           %3d - %3d\n",
+            SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX, SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX);
 }
 
 int
