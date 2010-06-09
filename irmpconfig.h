@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.8 2010/05/28 11:23:19 fm Exp $
+ * $Id: irmpconfig.h,v 1.11 2010/06/08 23:34:14 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -21,7 +21,9 @@
  * Change F_INTERRUPTS if you change the number of interrupts per second, F_INTERRUPTS should be in the range from 10000 to 15000
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+#ifndef F_INTERRUPTS
 #define F_INTERRUPTS                            10000   // interrupts per second
+#endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change settings from 1 to 0 if you want to disable one or more decoders.
@@ -30,21 +32,32 @@
  * 0 disable decoder
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // flag: support SIRCS                      uses ~100 bytes
-#define IRMP_SUPPORT_NEC_PROTOCOL               1       // flag: support NEC + APPLE                uses ~250 bytes
-#define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // flag: support Samsung + Samsung32        uses ~250 bytes
-#define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // flag: support Matsushita                 uses  ~50 bytes
-#define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // flag: support Kaseikyo                   uses  ~50 bytes
-#define IRMP_SUPPORT_RECS80_PROTOCOL            1       // flag: support RECS80                     uses  ~50 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               1       // flag: support RC5                        uses ~250 bytes
-#define IRMP_SUPPORT_DENON_PROTOCOL             1       // flag: support DENON                      uses ~250 bytes
-#define IRMP_SUPPORT_RC6_PROTOCOL               1       // flag: support RC6                        uses ~200 bytes
-#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         1       // flag: support RECS80EXT                  uses  ~50 bytes
-#define IRMP_SUPPORT_NUBERT_PROTOCOL            1       // flag: support NUBERT                     uses  ~50 bytes
-#define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen             uses ~200 bytes
-#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig                    uses ~150 bytes
-#define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // flag: support Nokia                      uses ~150 bytes
-#define IRMP_SUPPORT_SIEMENS_PROTOCOL           1       // flag: support Siemens Gigaset            uses ~150 bytes
+#define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // flag: support SIRCS                 uses ~100 bytes
+#define IRMP_SUPPORT_NEC_PROTOCOL               1       // flag: support NEC + APPLE           uses ~250 bytes
+#define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // flag: support Samsung + Samsung32   uses ~250 bytes
+#define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // flag: support Matsushita            uses  ~50 bytes
+#define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // flag: support Kaseikyo              uses  ~50 bytes
+#define IRMP_SUPPORT_RECS80_PROTOCOL            1       // flag: support RECS80                uses  ~50 bytes
+#define IRMP_SUPPORT_RC5_PROTOCOL               1       // flag: support RC5                   uses ~250 bytes
+#define IRMP_SUPPORT_DENON_PROTOCOL             1       // flag: support DENON                 uses ~250 bytes
+#define IRMP_SUPPORT_RC6_PROTOCOL               1       // flag: support RC6                   uses ~200 bytes
+#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         1       // flag: support RECS80EXT             uses  ~50 bytes
+#define IRMP_SUPPORT_NUBERT_PROTOCOL            1       // flag: support NUBERT                uses  ~50 bytes
+#define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen        uses ~200 bytes
+#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig               uses ~150 bytes
+#define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // flag: support Nokia                 uses ~150 bytes
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * THE FOLLOWING DECODERS WORK ONLY FOR F_INTERRUPTS > 14500!
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#if F_INTERRUPTS >= 14500
+#define IRMP_SUPPORT_SIEMENS_PROTOCOL           1       // flag: support Siemens Gigaset       uses ~150 bytes
+#define IRMP_SUPPORT_FDC_PROTOCOL               1       // flag: support FDC keyboard          uses ~150 bytes
+#else
+#define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#define IRMP_SUPPORT_FDC_PROTOCOL               0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:

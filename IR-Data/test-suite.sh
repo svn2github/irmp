@@ -8,7 +8,7 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: test-suite.sh,v 1.7 2010/05/28 08:26:13 fm Exp $
+# $Id: test-suite.sh,v 1.9 2010/06/08 22:22:13 fm Exp $
 #----------------------------------------------------------------------------
 
 for j in                            \
@@ -23,7 +23,6 @@ for j in                            \
     RC5-Taste.txt                   \
     Samsung_DVD_Rec_00062C.txt      \
     Samsung_TV.txt                  \
-    Siemens-Gigaset-M740AV.txt      \
     Sony-RM-S-310.txt               \
     sony-rm-s311.txt                \
     Sony-RM-U305C.txt               \
@@ -37,6 +36,7 @@ for j in                            \
     denon.txt                       \
     elta_radio.txt                  \
     nec-repetition.txt              \
+    nec-skymaster-dt500.txt	    \
     nec.txt                         \
     nubert-subwoofer.txt            \
     orion_vcr_07660BM070.txt        \
@@ -52,10 +52,26 @@ do
     echo "testing $j ..."
     if ../irmp < $j | grep -q error
     then
-        ../irmp < $j | grep error
-        echo "test failed"
-        exit 1
+	../irmp < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
+
+for j in                            	\
+    Siemens-Gigaset-M740AV-15kHz.txt	\
+    bo_beolink1000-15kHz.txt		\
+    denon-15kHz.txt			\
+    fdc-15kHz.txt
+do
+    echo "testing $j ..."
+    if ../irmp-15kHz < $j | grep -q error
+    then
+	../irmp-15kHz < $j | grep error
+	echo "test failed"
+	exit 1
+    fi
+done
+
 echo "all tests successful"
 exit 0

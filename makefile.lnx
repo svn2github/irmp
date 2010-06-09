@@ -7,12 +7,21 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: makefile.lnx,v 1.3 2010/05/26 08:34:30 fm Exp $
+# $Id: makefile.lnx,v 1.5 2010/06/08 23:34:14 fm Exp $
 #----------------------------------------------------------------------------
-all:	irmp irsnd
+all:	irmp irmp-15kHz irsnd irsnd-15kHz
 
 irmp: irmp.c irmp.h irmpconfig.h
-	cc -Wall irmp.c -o irmp
+	cc -Wall -DF_INTERRUPTS=10000 irmp.c -o irmp
+
+irmp-15kHz: irmp.c irmp.h irmpconfig.h
+	cc -Wall -DF_INTERRUPTS=15000 irmp.c -o irmp-15kHz
 
 irsnd: irsnd.c irsnd.h irmp.h irsndconfig.h
-	cc -Wall irsnd.c -o irsnd
+	cc -Wall -DF_INTERRUPTS=10000 irsnd.c -o irsnd
+
+irsnd-15kHz: irsnd.c irsnd.h irmp.h irsndconfig.h
+	cc -Wall -DF_INTERRUPTS=15000 irsnd.c -o irsnd-15kHz
+
+clean:
+	rm -f irmp irmp-15kHz irsnd irsnd-15kHz
