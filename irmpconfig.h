@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.12 2010/06/10 10:09:47 fm Exp $
+ * $Id: irmpconfig.h,v 1.13 2010/06/10 21:24:50 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -53,10 +53,12 @@
  */
 #if F_INTERRUPTS >= 14500
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           1       // flag: support Siemens Gigaset       uses ~150 bytes
-#define IRMP_SUPPORT_FDC_PROTOCOL               1       // flag: support FDC keyboard          uses ~150 bytes
+#define IRMP_SUPPORT_FDC1_PROTOCOL              1       // flag: support FDC1 keyboard         uses ~150 bytes
+#define IRMP_SUPPORT_FDC2_PROTOCOL              1       // flag: support FDC2 keyboard         uses ~150 bytes
 #else
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#define IRMP_SUPPORT_FDC_PROTOCOL               0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#define IRMP_SUPPORT_FDC1_PROTOCOL              0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#define IRMP_SUPPORT_FDC2_PROTOCOL              0       // DO NOT CHANGE! F_INTERRUPTS too low!
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

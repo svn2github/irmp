@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.27 2010/06/10 10:05:56 fm Exp $
+ * $Id: irmp.h,v 1.28 2010/06/10 21:24:50 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -43,7 +43,8 @@ extern "C"
 #define IRMP_GRUNDIG_PROTOCOL                   15                              // Grundig
 #define IRMP_NOKIA_PROTOCOL                     16                              // Nokia
 #define IRMP_SIEMENS_PROTOCOL                   17                              // Siemens, e.g. Gigaset
-#define IRMP_FDC_PROTOCOL                       18                              // FDC keyboard
+#define IRMP_FDC1_PROTOCOL                      18                              // FDC keyboard - protocol 1
+#define IRMP_FDC2_PROTOCOL                      19                              // FDC keyboard - protocol 2
 
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                       // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                       //  600 usec pause
@@ -265,19 +266,33 @@ extern "C"
 #define SIEMENS_STOP_BIT                        0                               // has no stop bit
 #define SIEMENS_LSB                             0                               // MSB...LSB
 
-#define FDC_START_BIT_PULSE_TIME                1390.0e-6                       // 1390 usec pulse
-#define FDC_START_BIT_PAUSE_TIME                 640.0e-6                       //  640 usec pause
-#define FDC_PULSE_TIME                           200.0e-6                       //  200 usec pulse
-#define FDC_1_PAUSE_TIME                         475.0e-6                       //  475 usec pause
-#define FDC_0_PAUSE_TIME                         145.0e-6                       //  145 usec pause
-#define FDC_FRAME_REPEAT_PAUSE_TIME               40.0e-3                       // frame repeat after 40ms
-#define FDC_ADDRESS_OFFSET                       0                              // skip 0 bits
-#define FDC_ADDRESS_LEN                         16                              // read 16 address bits
-#define FDC_COMMAND_OFFSET                      25                              // skip 25 bits (16 address + 9 0-bits)
-#define FDC_COMMAND_LEN                         12                              // read 12 bits
-#define FDC_COMPLETE_DATA_LEN                   40                              // complete length
-#define FDC_STOP_BIT                            1                               // has stop bit
-#define FDC_LSB                                 1                               // LSB...MSB
+#define FDC1_START_BIT_PULSE_TIME                1390.0e-6                       // 1390 usec pulse
+#define FDC1_START_BIT_PAUSE_TIME                 640.0e-6                       //  640 usec pause
+#define FDC1_PULSE_TIME                           200.0e-6                       //  200 usec pulse
+#define FDC1_1_PAUSE_TIME                         475.0e-6                       //  475 usec pause
+#define FDC1_0_PAUSE_TIME                         145.0e-6                       //  145 usec pause
+#define FDC1_FRAME_REPEAT_PAUSE_TIME               40.0e-3                       // frame repeat after 40ms
+#define FDC1_ADDRESS_OFFSET                       0                              // skip 0 bits
+#define FDC1_ADDRESS_LEN                          8                              // read 8 address bits
+#define FDC1_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
+#define FDC1_COMMAND_LEN                          8                              // read 8 bits
+#define FDC1_COMPLETE_DATA_LEN                   40                              // complete length
+#define FDC1_STOP_BIT                            1                               // has stop bit
+#define FDC1_LSB                                 1                               // LSB...MSB
+
+#define FDC2_START_BIT_PULSE_TIME                2120.0e-6                       // 2120 usec pulse
+#define FDC2_START_BIT_PAUSE_TIME                 920.0e-6                       //  920 usec pause
+#define FDC2_PULSE_TIME                           400.0e-6                       //  400 usec pulse
+#define FDC2_1_PAUSE_TIME                         660.0e-6                       //  660 usec pause
+#define FDC2_0_PAUSE_TIME                         145.0e-6                       //  140 usec pause
+#define FDC2_FRAME_REPEAT_PAUSE_TIME               40.0e-3                       // frame repeat after 40ms
+#define FDC2_ADDRESS_OFFSET                       0                              // skip 0 bits
+#define FDC2_ADDRESS_LEN                          8                              // read 8 address bits
+#define FDC2_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
+#define FDC2_COMMAND_LEN                          8                              // read 8 bits
+#define FDC2_COMPLETE_DATA_LEN                   40                              // complete length
+#define FDC2_STOP_BIT                            1                               // has stop bit
+#define FDC2_LSB                                 1                               // LSB...MSB
 
 #define AUTO_FRAME_REPETITION_TIME              50.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
 

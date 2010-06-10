@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.39 2010/06/10 10:09:47 fm Exp $
+ * $Id: irmp.c,v 1.41 2010/06/10 21:24:50 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -421,10 +421,10 @@ typedef unsigned int16  uint16_t;
 #define RECS80_0_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RECS80_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RECS80_0_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RECS80_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
-#define RC5_START_BIT_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RC5_START_BIT_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define RC5_BIT_LEN_MIN                         ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RC5_BIT_LEN_MAX                         ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RC5_START_BIT_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_00 + 0.5) - 1)
+#define RC5_START_BIT_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_00 + 0.5) + 1)
+#define RC5_BIT_LEN_MIN                         ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_00 + 0.5) - 1)
+#define RC5_BIT_LEN_MAX                         ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_00 + 0.5) + 1)
 
 #define DENON_PULSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define DENON_PULSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -505,18 +505,31 @@ typedef unsigned int16  uint16_t;
 #define SIEMENS_BIT_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) - 1)
 #define SIEMENS_BIT_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) + 1)
 
-#define FDC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define FDC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define FDC_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * FDC_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * FDC_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define FDC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define FDC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define FDC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FDC1_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC1_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FDC1_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC1_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FDC1_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * FDC1_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC1_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * FDC1_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FDC1_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC1_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC1_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC1_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FDC1_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC1_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC1_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC1_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FDC1_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC1_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC1_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC1_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
+#define FDC2_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define FDC2_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define FDC2_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define FDC2_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define FDC2_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * FDC2_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define FDC2_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * FDC2_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define FDC2_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC2_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define FDC2_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC2_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define FDC2_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC2_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define FDC2_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC2_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define FDC2_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC2_0_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define FDC2_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC2_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -1073,26 +1086,50 @@ static PROGMEM IRMP_PARAMETER siemens_param =
 
 #endif
 
-#if IRMP_SUPPORT_FDC_PROTOCOL == 1
+#if IRMP_SUPPORT_FDC1_PROTOCOL == 1
 
-static PROGMEM IRMP_PARAMETER fdc_param =
+static PROGMEM IRMP_PARAMETER fdc1_param =
 {
-    IRMP_FDC_PROTOCOL,                                                  // protocol:        ir protocol
-    FDC_PULSE_LEN_MIN,                                                  // pulse_1_len_min: minimum length of pulse with bit value 1
-    FDC_PULSE_LEN_MAX,                                                  // pulse_1_len_max: maximum length of pulse with bit value 1
-    FDC_1_PAUSE_LEN_MIN,                                                // pause_1_len_min: minimum length of pause with bit value 1
-    FDC_1_PAUSE_LEN_MAX,                                                // pause_1_len_max: maximum length of pause with bit value 1
-    FDC_PULSE_LEN_MIN,                                                  // pulse_0_len_min: minimum length of pulse with bit value 0
-    FDC_PULSE_LEN_MAX,                                                  // pulse_0_len_max: maximum length of pulse with bit value 0
-    FDC_0_PAUSE_LEN_MIN,                                                // pause_0_len_min: minimum length of pause with bit value 0
-    FDC_0_PAUSE_LEN_MAX,                                                // pause_0_len_max: maximum length of pause with bit value 0
-    FDC_ADDRESS_OFFSET,                                                 // address_offset:  address offset
-    FDC_ADDRESS_OFFSET + FDC_ADDRESS_LEN,                               // address_end:     end of address
-    FDC_COMMAND_OFFSET,                                                 // command_offset:  command offset
-    FDC_COMMAND_OFFSET + FDC_COMMAND_LEN,                               // command_end:     end of command
-    FDC_COMPLETE_DATA_LEN,                                              // complete_len:    complete length of frame
-    FDC_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
-    FDC_LSB                                                             // lsb_first:       flag: LSB first
+    IRMP_FDC1_PROTOCOL,                                                  // protocol:        ir protocol
+    FDC1_PULSE_LEN_MIN,                                                  // pulse_1_len_min: minimum length of pulse with bit value 1
+    FDC1_PULSE_LEN_MAX,                                                  // pulse_1_len_max: maximum length of pulse with bit value 1
+    FDC1_1_PAUSE_LEN_MIN,                                                // pause_1_len_min: minimum length of pause with bit value 1
+    FDC1_1_PAUSE_LEN_MAX,                                                // pause_1_len_max: maximum length of pause with bit value 1
+    FDC1_PULSE_LEN_MIN,                                                  // pulse_0_len_min: minimum length of pulse with bit value 0
+    FDC1_PULSE_LEN_MAX,                                                  // pulse_0_len_max: maximum length of pulse with bit value 0
+    FDC1_0_PAUSE_LEN_MIN,                                                // pause_0_len_min: minimum length of pause with bit value 0
+    FDC1_0_PAUSE_LEN_MAX,                                                // pause_0_len_max: maximum length of pause with bit value 0
+    FDC1_ADDRESS_OFFSET,                                                 // address_offset:  address offset
+    FDC1_ADDRESS_OFFSET + FDC1_ADDRESS_LEN,                               // address_end:     end of address
+    FDC1_COMMAND_OFFSET,                                                 // command_offset:  command offset
+    FDC1_COMMAND_OFFSET + FDC1_COMMAND_LEN,                               // command_end:     end of command
+    FDC1_COMPLETE_DATA_LEN,                                              // complete_len:    complete length of frame
+    FDC1_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
+    FDC1_LSB                                                             // lsb_first:       flag: LSB first
+};
+
+#endif
+
+#if IRMP_SUPPORT_FDC2_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER fdc2_param =
+{
+    IRMP_FDC2_PROTOCOL,                                                  // protocol:        ir protocol
+    FDC2_PULSE_LEN_MIN,                                                  // pulse_1_len_min: minimum length of pulse with bit value 1
+    FDC2_PULSE_LEN_MAX,                                                  // pulse_1_len_max: maximum length of pulse with bit value 1
+    FDC2_1_PAUSE_LEN_MIN,                                                // pause_1_len_min: minimum length of pause with bit value 1
+    FDC2_1_PAUSE_LEN_MAX,                                                // pause_1_len_max: maximum length of pause with bit value 1
+    FDC2_PULSE_LEN_MIN,                                                  // pulse_0_len_min: minimum length of pulse with bit value 0
+    FDC2_PULSE_LEN_MAX,                                                  // pulse_0_len_max: maximum length of pulse with bit value 0
+    FDC2_0_PAUSE_LEN_MIN,                                                // pause_0_len_min: minimum length of pause with bit value 0
+    FDC2_0_PAUSE_LEN_MAX,                                                // pause_0_len_max: maximum length of pause with bit value 0
+    FDC2_ADDRESS_OFFSET,                                                 // address_offset:  address offset
+    FDC2_ADDRESS_OFFSET + FDC2_ADDRESS_LEN,                               // address_end:     end of address
+    FDC2_COMMAND_OFFSET,                                                 // command_offset:  command offset
+    FDC2_COMMAND_OFFSET + FDC2_COMMAND_LEN,                               // command_end:     end of command
+    FDC2_COMPLETE_DATA_LEN,                                              // complete_len:    complete length of frame
+    FDC2_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
+    FDC2_LSB                                                             // lsb_first:       flag: LSB first
 };
 
 #endif
@@ -1553,18 +1590,28 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
-#if IRMP_SUPPORT_FDC_PROTOCOL == 1
-                    if (irmp_pulse_time >= FDC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= FDC_START_BIT_PULSE_LEN_MAX &&
-                        irmp_pause_time >= FDC_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= FDC_START_BIT_PAUSE_LEN_MAX)
+#if IRMP_SUPPORT_FDC1_PROTOCOL == 1
+                    if (irmp_pulse_time >= FDC1_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= FDC1_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= FDC1_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= FDC1_START_BIT_PAUSE_LEN_MAX)
                     {
-                        DEBUG_PRINTF ("protocol = FDC, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX,
-                                        FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX);
-                        irmp_param_p = (IRMP_PARAMETER *) &fdc_param;
+                        DEBUG_PRINTF ("protocol = FDC1, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        FDC1_START_BIT_PULSE_LEN_MIN, FDC1_START_BIT_PULSE_LEN_MAX,
+                                        FDC1_START_BIT_PAUSE_LEN_MIN, FDC1_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &fdc1_param;
                     }
                     else
-#endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
-
+#endif // IRMP_SUPPORT_FDC1_PROTOCOL == 1
+#if IRMP_SUPPORT_FDC2_PROTOCOL == 1
+                    if (irmp_pulse_time >= FDC2_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= FDC2_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= FDC2_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= FDC2_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        DEBUG_PRINTF ("protocol = FDC2, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        FDC2_START_BIT_PULSE_LEN_MIN, FDC2_START_BIT_PULSE_LEN_MAX,
+                                        FDC2_START_BIT_PAUSE_LEN_MIN, FDC2_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &fdc2_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_FDC2_PROTOCOL == 1
                     {
                         DEBUG_PRINTF ("protocol = UNKNOWN\n");
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
@@ -2368,8 +2415,10 @@ print_timings (void)
             GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX);
     printf ("SIEMENS        1               %3d - %3d           %3d - %3d\n",
             SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX, SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX);
-    printf ("FDC            1               %3d - %3d           %3d - %3d\n",
-            FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX, FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX);
+    printf ("FDC1           1               %3d - %3d           %3d - %3d\n",
+            FDC1_START_BIT_PULSE_LEN_MIN, FDC1_START_BIT_PULSE_LEN_MAX, FDC1_START_BIT_PAUSE_LEN_MIN, FDC1_START_BIT_PAUSE_LEN_MAX);
+    printf ("FDC2           1               %3d - %3d           %3d - %3d\n",
+            FDC2_START_BIT_PULSE_LEN_MIN, FDC2_START_BIT_PULSE_LEN_MAX, FDC2_START_BIT_PAUSE_LEN_MIN, FDC2_START_BIT_PAUSE_LEN_MAX);
 }
 
 int
@@ -2576,7 +2625,7 @@ main (int argc, char ** argv)
 
             if (! analyze)
             {
-                for (i = 0; i < 8000; i++)                                              // newline: long pause of 800 msec
+                for (i = 0; i < (int) ((8000.0 * F_INTERRUPTS) / 10000); i++)                                  // newline: long pause of 800 msec
                 {
                     (void) irmp_ISR ();
                 }

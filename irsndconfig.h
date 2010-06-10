@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.6 2010/06/08 23:34:14 fm Exp $
+ * $Id: irsndconfig.h,v 1.7 2010/06/10 21:24:50 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -50,10 +50,12 @@
  */
 #if F_INTERRUPTS >= 14500
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          1       // flag: support Siemens, e.g. Gigaset  uses ~150 bytes
-#define IRSND_SUPPORT_FDC_PROTOCOL              1       // flag: support FDC infrared keyboard  uses ~150 bytes
+#define IRSND_SUPPORT_FDC1_PROTOCOL             1       // flag: support FDC1 infrared keyboard uses ~150 bytes
+#define IRSND_SUPPORT_FDC2_PROTOCOL             1       // flag: support FDC2 infrared keyboard uses ~150 bytes
 #else
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#define IRSND_SUPPORT_FDC_PROTOCOL              0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#define IRSND_SUPPORT_FDC1_PROTOCOL             0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#define IRSND_SUPPORT_FDC2_PROTOCOL             0       // DO NOT CHANGE! F_INTERRUPTS too low!
 #endif
 
 
