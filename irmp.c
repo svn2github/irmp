@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.35 2010/06/08 22:22:36 fm Exp $
+ * $Id: irmp.c,v 1.39 2010/06/10 10:09:47 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -521,25 +521,60 @@ typedef unsigned int16  uint16_t;
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef DEBUG
-#define DEBUG_PUTCHAR(a)                        { if (! silent) { putchar (a);          } }
-#define DEBUG_PRINTF(...)                       { if (! silent) { printf (__VA_ARGS__); } }
+#define DEBUG_PUTCHAR(a)                        { if (! silent)             { putchar (a);          } }
+#define DEBUG_ONLY_NORMAL_PUTCHAR(a)            { if (! silent && !verbose) { putchar (a);          } }
+#define DEBUG_PRINTF(...)                       { if (verbose)              { printf (__VA_ARGS__); } }
+#define DEBUG_NEWLINE()                         { if (verbose)              { putchar ('\n');       } }
 static int      silent;
 static int      time_counter;
+static int      verbose;
 #else
 #define DEBUG_PUTCHAR(a)
+#define DEBUG_ONLY_NORMAL_PUTCHAR(a)
 #define DEBUG_PRINTF(...)
+#define DEBUG_NEWLINE()
 #endif
 
 #if IRMP_LOGGING == 1
-#define UART_BAUD                               9600L
+#define BAUD                                    9600L
+#include <util/setbaud.h>
 
-// calculate real baud rate:
-#define UBRR_VAL                                ((F_CPU + UART_BAUD * 8) / (UART_BAUD * 16) - 1)    // round
-#define BAUD_REAL                               (F_CPU / (16 * (UBRR_VAL + 1)))                     // real baudrate
-#define BAUD_ERROR                              ((BAUD_REAL * 1000) / UART_BAUD)                    // error in promille
+#ifdef UBRR0H
 
-#if ((BAUD_ERROR < 990) || (BAUD_ERROR > 1010))
-#  error Error of baud rate of RS232 UARTx is more than 1%. That is too high!
+#define UART0_UBRRH                             UBRR0H
+#define UART0_UBRRL                             UBRR0L
+#define UART0_UCSRA                             UCSR0A
+#define UART0_UCSRB                             UCSR0B
+#define UART0_UCSRC                             UCSR0C
+#define UART0_UDRE_BIT_VALUE                    (1<<UDRE0)
+#define UART0_UCSZ1_BIT_VALUE                   (1<<UCSZ01)
+#define UART0_UCSZ0_BIT_VALUE                   (1<<UCSZ00)
+#ifdef URSEL0
+#define UART0_URSEL_BIT_VALUE                   (1<<URSEL0)
+#else
+#define UART0_URSEL_BIT_VALUE                   (0)
+#endif
+#define UART0_TXEN_BIT_VALUE                    (1<<TXEN0)
+#define UART0_UDR_BIT_VALUE                     (1<<UDR0)
+
+#else
+
+#define UART0_UBRRH                             UBRRH
+#define UART0_UBRRL                             UBRRL
+#define UART0_UCSRA                             UCSRA
+#define UART0_UCSRB                             UCSRB
+#define UART0_UCSRC                             UCSRC
+#define UART0_UDRE_BIT_VALUE                    (1<<UDRE)
+#define UART0_UCSZ1_BIT_VALUE                   (1<<UCSZ1)
+#define UART0_UCSZ0_BIT_VALUE                   (1<<UCSZ0)
+#ifdef URSEL
+#define UART0_URSEL_BIT_VALUE                   (1<<URSEL)
+#else
+#define UART0_URSEL_BIT_VALUE                   (0)
+#endif
+#define UART0_TXEN_BIT_VALUE                    (1<<TXEN)
+#define UART0_UDR_BIT_VALUE                     (1<<UDR)
+
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -550,9 +585,17 @@ static int      time_counter;
 void
 irmp_uart_init (void)
 {
-    UCSR0B |= (1<<TXEN0);                                                                   // activate UART0 TX
-    UBRR0H = UBRR_VAL >> 8;                                                                 // store baudrate (upper byte)
-    UBRR0L = UBRR_VAL & 0xFF;                                                               // store baudrate (lower byte)
+    UART0_UBRRH = UBRRH_VALUE;                                                                      // set baud rate
+    UART0_UBRRL = UBRRL_VALUE;
+
+#if USE_2X
+    UART0_UCSRA = (1<<U2X);
+#else
+    UART0_UCSRA = 0;
+#endif
+
+    UART0_UCSRC = UART0_UCSZ1_BIT_VALUE | UART0_UCSZ0_BIT_VALUE | UART0_URSEL_BIT_VALUE;
+    UART0_UCSRB |= UART0_TXEN_BIT_VALUE;                                                            // enable UART TX
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -564,12 +607,12 @@ irmp_uart_init (void)
 void
 irmp_uart_putc (unsigned char ch)
 {
-    while (!(UCSR0A & (1<<UDRE0)))
+    while (!(UART0_UCSRA & UART0_UDRE_BIT_VALUE))
     {
         ;
     }
 
-    UDR0 = ch;
+    UART0_UDR = ch;
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1206,7 +1249,7 @@ irmp_store_bit (uint8_t value)
  *  @details  ISR routine, called 10000 times per second
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-void
+uint8_t
 irmp_ISR (void)
 {
     static uint8_t    irmp_start_bit_detected;                                  // flag: start bit detected
@@ -1287,6 +1330,7 @@ irmp_ISR (void)
                     if (irmp_pause_time > IRMP_TIMEOUT_LEN)                     // timeout?
                     {                                                           // yes...
                         DEBUG_PRINTF ("error 1: pause after start bit pulse %d too long: %d\n", irmp_pulse_time, irmp_pause_time);
+                        DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                         irmp_start_bit_detected = 0;                            // reset flags, let's wait for another start bit
                         irmp_pulse_time         = 0;
                         irmp_pause_time         = 0;
@@ -1565,14 +1609,14 @@ irmp_ISR (void)
                         {
                           DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('1');
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (1);
                         }
                         else if (! last_value)
                         {
                           DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('0');
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (0);
                         }
                     }
@@ -1586,14 +1630,14 @@ irmp_ISR (void)
                         {
                           DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('0');
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (0);
                         }
                         else if (! last_value)
                         {
                           DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('1');
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (1);
                         }
                     }
@@ -1607,14 +1651,14 @@ irmp_ISR (void)
                         {
                           DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('0');
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (0);
                         }
                         else if (! last_value)
                         {
                           DEBUG_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                           DEBUG_PUTCHAR ('1');
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (1);
                         }
                     }
@@ -1629,13 +1673,13 @@ irmp_ISR (void)
                         if (irmp_pause_time >= DENON_1_PAUSE_LEN_MIN && irmp_pause_time <= DENON_1_PAUSE_LEN_MAX)
                         {                                                       // pause timings correct for "1"?
                           DEBUG_PUTCHAR ('1');                                  // yes, store 1
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (1);
                         }
                         else // if (irmp_pause_time >= DENON_0_PAUSE_LEN_MIN && irmp_pause_time <= DENON_0_PAUSE_LEN_MAX)
                         {                                                       // pause timings correct for "0"?
                           DEBUG_PUTCHAR ('0');                                  // yes, store 0
-                          DEBUG_PUTCHAR ('\n');
+                          DEBUG_NEWLINE ();
                           irmp_store_bit (0);
                         }
                     }
@@ -1767,6 +1811,7 @@ irmp_ISR (void)
                             else
                             {
                                 DEBUG_PRINTF ("error 2: pause %d after data bit %d too long\n", irmp_pause_time, irmp_bit);
+                                DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
 
                                 irmp_start_bit_detected = 0;                    // wait for another start bit...
                                 irmp_pulse_time         = 0;
@@ -1792,7 +1837,7 @@ irmp_ISR (void)
                             DEBUG_PUTCHAR ('1');
                             irmp_store_bit (1);
                             DEBUG_PUTCHAR ('0');
-                            DEBUG_PUTCHAR ('\n');
+                            DEBUG_NEWLINE ();
                             irmp_store_bit (0);
                             last_value = 0;
                         }
@@ -1812,7 +1857,7 @@ irmp_ISR (void)
                             }
 
                             DEBUG_PUTCHAR (rc5_value + '0');
-                            DEBUG_PUTCHAR ('\n');
+                            DEBUG_NEWLINE ();
                             irmp_store_bit (rc5_value);
                         }
 
@@ -1831,7 +1876,7 @@ irmp_ISR (void)
                             DEBUG_PUTCHAR ('0');
                             irmp_store_bit (0);
                             DEBUG_PUTCHAR ('1');
-                            DEBUG_PUTCHAR ('\n');
+                            DEBUG_NEWLINE ();
                             irmp_store_bit (1);
                             last_value = 1;
                         }
@@ -1851,7 +1896,7 @@ irmp_ISR (void)
                             }
 
                             DEBUG_PUTCHAR (grundig_value + '0');
-                            DEBUG_PUTCHAR ('\n');
+                            DEBUG_NEWLINE ();
                             irmp_store_bit (grundig_value);
                         }
 
@@ -1878,7 +1923,7 @@ irmp_ISR (void)
                                 DEBUG_PUTCHAR ('0');
                                 irmp_store_bit (0);
                                 last_value = 0;
-                                DEBUG_PUTCHAR ('\n');
+                                DEBUG_NEWLINE ();
                                 break;
 
                             default:
@@ -1887,7 +1932,7 @@ irmp_ISR (void)
                                     DEBUG_PUTCHAR ('0');
                                     irmp_store_bit (0);
                                     DEBUG_PUTCHAR ('1');
-                                    DEBUG_PUTCHAR ('\n');
+                                    DEBUG_NEWLINE ();
                                     irmp_store_bit (1);
                                     last_value = 1;
                                 }
@@ -1911,7 +1956,7 @@ irmp_ISR (void)
                                     }
 
                                     DEBUG_PUTCHAR (rc5_value + '0');
-                                    DEBUG_PUTCHAR ('\n');
+                                    DEBUG_NEWLINE ();
                                     irmp_store_bit (rc5_value);
                                 }
 
@@ -1932,7 +1977,7 @@ irmp_ISR (void)
                             DEBUG_PUTCHAR ('0');
                             irmp_store_bit (0);
                             DEBUG_PUTCHAR ('1');
-                            DEBUG_PUTCHAR ('\n');
+                            DEBUG_NEWLINE ();
                             irmp_store_bit (1);
                             last_value = 1;
                         }
@@ -1952,7 +1997,7 @@ irmp_ISR (void)
                             }
 
                             DEBUG_PUTCHAR (siemens_value + '0');
-                            DEBUG_PUTCHAR ('\n');
+                            DEBUG_NEWLINE ();
                             irmp_store_bit (siemens_value);
                         }
 
@@ -1983,14 +2028,14 @@ irmp_ISR (void)
                             if (irmp_pause_time >= SAMSUNG_1_PAUSE_LEN_MIN && irmp_pause_time <= SAMSUNG_1_PAUSE_LEN_MAX)
                             {
                                 DEBUG_PUTCHAR ('1');
-                                DEBUG_PUTCHAR ('\n');
+                                DEBUG_NEWLINE ();
                                 irmp_store_bit (1);
                                 wait_for_space = 0;
                             }
                             else
                             {
                                 DEBUG_PUTCHAR ('0');
-                                DEBUG_PUTCHAR ('\n');
+                                DEBUG_NEWLINE ();
                                 irmp_store_bit (0);
                                 wait_for_space = 0;
                             }
@@ -2000,6 +2045,7 @@ irmp_ISR (void)
                         else
                         {                                                           // timing incorrect!
                             DEBUG_PRINTF ("error 3 Samsung: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                            DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                             irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                             irmp_pause_time         = 0;
                         }
@@ -2024,6 +2070,7 @@ irmp_ISR (void)
                                 else
                                 {                                                   // timing incorrect!
                                     DEBUG_PRINTF ("error 3a B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                                    DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                                     irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
@@ -2040,6 +2087,7 @@ irmp_ISR (void)
                                 else
                                 {                                                   // timing incorrect!
                                     DEBUG_PRINTF ("error 3b B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                                    DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                                     irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
@@ -2049,7 +2097,7 @@ irmp_ISR (void)
                                 if (irmp_pause_time >= BANG_OLUFSEN_1_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_1_PAUSE_LEN_MAX)
                                 {                                                   // pulse & pause timings correct for "1"?
                                     DEBUG_PUTCHAR ('1');
-                                    DEBUG_PUTCHAR ('\n');
+                                    DEBUG_NEWLINE ();
                                     irmp_store_bit (1);
                                     last_value = 1;
                                     wait_for_space = 0;
@@ -2057,7 +2105,7 @@ irmp_ISR (void)
                                 else if (irmp_pause_time >= BANG_OLUFSEN_0_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_0_PAUSE_LEN_MAX)
                                 {                                                   // pulse & pause timings correct for "0"?
                                     DEBUG_PUTCHAR ('0');
-                                    DEBUG_PUTCHAR ('\n');
+                                    DEBUG_NEWLINE ();
                                     irmp_store_bit (0);
                                     last_value = 0;
                                     wait_for_space = 0;
@@ -2065,13 +2113,14 @@ irmp_ISR (void)
                                 else if (irmp_pause_time >= BANG_OLUFSEN_R_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_R_PAUSE_LEN_MAX)
                                 {
                                     DEBUG_PUTCHAR (last_value + '0');
-                                    DEBUG_PUTCHAR ('\n');
+                                    DEBUG_NEWLINE ();
                                     irmp_store_bit (last_value);
                                     wait_for_space = 0;
                                 }
                                 else
                                 {                                                   // timing incorrect!
                                     DEBUG_PRINTF ("error 3c B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                                    DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                                     irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
@@ -2080,6 +2129,7 @@ irmp_ISR (void)
                         else
                         {                                                           // timing incorrect!
                             DEBUG_PRINTF ("error 3d B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                            DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                             irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                             irmp_pause_time         = 0;
                         }
@@ -2091,7 +2141,7 @@ irmp_ISR (void)
                         irmp_pause_time >= irmp_param.pause_1_len_min && irmp_pause_time <= irmp_param.pause_1_len_max)
                     {                                                               // pulse & pause timings correct for "1"?
                         DEBUG_PUTCHAR ('1');
-                        DEBUG_PUTCHAR ('\n');
+                        DEBUG_NEWLINE ();
                         irmp_store_bit (1);
                         wait_for_space = 0;
                     }
@@ -2099,13 +2149,14 @@ irmp_ISR (void)
                              irmp_pause_time >= irmp_param.pause_0_len_min && irmp_pause_time <= irmp_param.pause_0_len_max)
                     {                                                               // pulse & pause timings correct for "0"?
                         DEBUG_PUTCHAR ('0');
-                        DEBUG_PUTCHAR ('\n');
+                        DEBUG_NEWLINE ();
                         irmp_store_bit (0);
                         wait_for_space = 0;
                     }
                     else
                     {                                                               // timing incorrect!
                         DEBUG_PRINTF ("error 3: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                        DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
                         irmp_start_bit_detected = 0;                                // reset flags and wait for next start bit
                         irmp_pause_time         = 0;
                     }
@@ -2252,6 +2303,10 @@ irmp_ISR (void)
 
                     repetition_counter = 0;
                 }
+                else
+                {
+                    DEBUG_ONLY_NORMAL_PUTCHAR ('\n');
+                }
 
                 irmp_start_bit_detected = 0;                                        // and wait for next start bit
                 irmp_tmp_command        = 0;
@@ -2260,6 +2315,7 @@ irmp_ISR (void)
             }
         }
     }
+    return (irmp_ir_detected);
 }
 
 #ifdef DEBUG
@@ -2320,7 +2376,6 @@ int
 main (int argc, char ** argv)
 {
     int         i;
-    int         verbose = FALSE;
     int         analyze = FALSE;
     int         ch;
     int         last_ch = 0;
@@ -2371,7 +2426,6 @@ main (int argc, char ** argv)
         else if (! strcmp (argv[1], "-a"))
         {
             analyze = TRUE;
-            verbose = TRUE;
         }
         else if (! strcmp (argv[1], "-s"))
         {
@@ -2392,7 +2446,7 @@ main (int argc, char ** argv)
         {
             if (last_ch != ch)
             {
-                if (verbose && pause > 0)
+                if (analyze && pause > 0)
                 {
                     printf ("pause: %d\n", pause);
 
@@ -2457,7 +2511,7 @@ main (int argc, char ** argv)
         {
             if (last_ch != ch)
             {
-                if (verbose)
+                if (analyze)
                 {
                     printf ("pulse: %d ", pulse);
 
@@ -2514,7 +2568,7 @@ main (int argc, char ** argv)
         {
             IRMP_PIN = 0xff;
 
-            if (verbose && pause > 0)
+            if (analyze && pause > 0)
             {
                 printf ("pause: %d\n", pause);
             }
@@ -2524,7 +2578,7 @@ main (int argc, char ** argv)
             {
                 for (i = 0; i < 8000; i++)                                              // newline: long pause of 800 msec
                 {
-                    irmp_ISR ();
+                    (void) irmp_ISR ();
                 }
             }
             first_pulse = TRUE;
@@ -2549,12 +2603,13 @@ main (int argc, char ** argv)
 
         if (! analyze)
         {
-            irmp_ISR ();
+            (void) irmp_ISR ();
         }
 
         if (irmp_get_data (&irmp_data))
         {
-            printf ("protcol = %d, address = 0x%04x, code = 0x%04x, flags = 0x%02x\n",
+            DEBUG_ONLY_NORMAL_PUTCHAR (' ');
+            printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x\n",
                     irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags);
         }
     }

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.11 2010/06/08 23:34:14 fm Exp $
+ * $Id: irmpconfig.h,v 1.12 2010/06/10 10:09:47 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -22,7 +22,7 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef F_INTERRUPTS
-#define F_INTERRUPTS                            10000   // interrupts per second
+#define F_INTERRUPTS                            10000   // interrupts per second, min: 10000, max: 15000
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,6 +81,8 @@
  * Set IRMP_LOGGING to 1 if want to log data to UART with 9600Bd
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRMP_LOGGING                            0                             // 1: log IR signal (scan), 0: do not (default)
+#ifndef IRMP_LOGGING
+#define IRMP_LOGGING                            0       // 1: log IR signal (scan), 0: do not (default)
+#endif
 
 #endif /* _WC_IRMPCONFIG_H_ */

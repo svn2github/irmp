@@ -8,7 +8,7 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: test-suite.sh,v 1.9 2010/06/08 22:22:13 fm Exp $
+# $Id: test-suite.sh,v 1.10 2010/06/09 12:04:04 fm Exp $
 #----------------------------------------------------------------------------
 
 for j in                            \
@@ -50,9 +50,9 @@ for j in                            \
     sharp-denon2.txt
 do
     echo "testing $j ..."
-    if ../irmp < $j | grep -q error
+    if ../irmp -v < $j | grep -q error
     then
-	../irmp < $j | grep error
+	../irmp -v < $j | grep error
 	echo "test failed"
 	exit 1
     fi
@@ -65,9 +65,9 @@ for j in                            	\
     fdc-15kHz.txt
 do
     echo "testing $j ..."
-    if ../irmp-15kHz < $j | grep -q error
+    if ../irmp-15kHz -v < $j | grep -q error
     then
-	../irmp-15kHz < $j | grep error
+	../irmp-15kHz -v < $j | grep error
 	echo "test failed"
 	exit 1
     fi

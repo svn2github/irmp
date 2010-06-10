@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.26 2010/06/08 23:34:14 fm Exp $
+ * $Id: irmp.h,v 1.27 2010/06/10 10:05:56 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -313,7 +313,7 @@ extern uint8_t                        irmp_get_data (IRMP_DATA *);
  *  ISR routine
  *  @details  ISR routine, called 10000 times per second
  */
-extern void                           irmp_ISR (void);
+extern uint8_t                        irmp_ISR (void);
 
 #ifdef __cplusplus
 }

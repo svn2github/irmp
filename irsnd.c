@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.16 2010/06/08 23:34:14 fm Exp $
+ * $Id: irsnd.c,v 1.17 2010/06/10 10:05:56 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -276,7 +276,7 @@ bitsrevervse (uint16_t x, uint8_t len)
 
 
 uint8_t
-irsnd_send_data (IRMP_DATA * irmp_data_p)
+irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 {
 #if IRSND_SUPPORT_RECS80_PROTOCOL == 1
     static uint8_t  toggle_bit_recs80;
@@ -290,9 +290,16 @@ irsnd_send_data (IRMP_DATA * irmp_data_p)
     uint16_t        address;
     uint16_t        command;
 
-    while (irsnd_busy)
+    if (do_wait)
     {
-        ;
+        while (irsnd_busy)
+        {
+            // do nothing;
+        }
+    }
+    else if (irsnd_busy)
+    {
+        return (FALSE);
     }
 
     irsnd_protocol  = irmp_data_p->protocol;
@@ -1305,7 +1312,7 @@ main (int argc, char ** argv)
 
         irsnd_init ();
 
-        (void) irsnd_send_data (&irmp_data);
+        (void) irsnd_send_data (&irmp_data, TRUE);
 
         while (irsnd_busy)
         {

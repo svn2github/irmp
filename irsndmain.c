@@ -143,7 +143,7 @@ main (void)
     irmp_data.command  = 0x0001;
     irmp_data.flags    = 0;
 
-    irsnd_send_data (&irmp_data);
+    irsnd_send_data (&irmp_data, TRUE);
     _delay_ms (1000);
   }
 }

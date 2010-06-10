@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.2 2010/04/14 13:21:39 fm Exp $
+ * $Id: irsnd.h,v 1.3 2010/06/10 10:05:56 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -36,7 +36,7 @@ extern uint8_t                      irsnd_is_busy (void);
  *  @param    pointer to IRMP data structure
  *  @return    TRUE: successful, FALSE: failed
  */
-extern uint8_t                      irsnd_send_data (IRMP_DATA *);
+extern uint8_t                      irsnd_send_data (IRMP_DATA *, uint8_t);
 
 /**
  *  ISR routine

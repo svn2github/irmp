@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.5 2010/03/29 09:33:29 fm Exp $
+ * $Id: main.c,v 1.6 2010/06/10 10:09:47 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -86,7 +86,7 @@ interrupt [TIM1_COMPA] void timer1_compa_isr(void)
 ISR(TIMER1_COMPA_vect)
 #endif  // CODEVISION
 {
-  irmp_ISR();                                                           // call irmp ISR
+  (void) irmp_ISR();                                                        // call irmp ISR
   // call other timer interrupt routines...
 }
 
