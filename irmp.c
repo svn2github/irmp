@@ -555,7 +555,7 @@ static int      verbose;
 #define UART0_URSEL_BIT_VALUE                   (0)
 #endif
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN0)
-#define UART0_UDR_BIT_VALUE                     (1<<UDR0)
+#define UART0_UDR                               UDR0
 
 #else
 
@@ -573,7 +573,7 @@ static int      verbose;
 #define UART0_URSEL_BIT_VALUE                   (0)
 #endif
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN)
-#define UART0_UDR_BIT_VALUE                     (1<<UDR)
+#define UART0_UDR                               UDR
 
 #endif
 
