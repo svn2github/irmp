@@ -61,6 +61,11 @@
 #define IRMP_SUPPORT_FDC2_PROTOCOL              0       // DO NOT CHANGE! F_INTERRUPTS too low!
 #endif
 
+
+#if IRMP_SUPPORT_FDC2_PROTOCOL == 1 && IRMP_SUPPORT_RC5_PROTOCOL == 1
+#error Protocols RC5 and FDC2 may not be enabled both at the same time. Please disable one of them in irmpconfig.h.
+#endif
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
