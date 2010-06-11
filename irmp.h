@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.28 2010/06/10 21:24:50 fm Exp $
+ * $Id: irmp.h,v 1.30 2010/06/11 14:47:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -46,6 +46,10 @@ extern "C"
 #define IRMP_FDC1_PROTOCOL                      18                              // FDC keyboard - protocol 1
 #define IRMP_FDC2_PROTOCOL                      19                              // FDC keyboard - protocol 2
 
+// some flags of struct IRMP_PARAMETER:
+#define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
+#define IRMP_PARAM_FLAG_1ST_PULSE_IS_1          0x02
+
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                       // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                       //  600 usec pause
 #define SIRCS_1_PULSE_TIME                      1200.0e-6                       // 1200 usec pulse
@@ -62,6 +66,7 @@ extern "C"
 #define SIRCS_COMPLETE_DATA_LEN                 20                              // complete length - may be up to 20
 #define SIRCS_STOP_BIT                          0                               // has no stop bit
 #define SIRCS_LSB                               1                               // LSB...MSB
+#define SIRCS_FLAGS                             0                               // flags
 
 #define NEC_START_BIT_PULSE_TIME                9000.0e-6                       // 9000 usec pulse
 #define NEC_START_BIT_PAUSE_TIME                4500.0e-6                       // 4500 usec pause
@@ -77,6 +82,7 @@ extern "C"
 #define NEC_COMPLETE_DATA_LEN                   32                              // complete length
 #define NEC_STOP_BIT                            1                               // has stop bit
 #define NEC_LSB                                 1                               // LSB...MSB
+#define NEC_FLAGS                               0                               // flags
 
 #define SAMSUNG_START_BIT_PULSE_TIME            4500.0e-6                       // 4500 usec pulse
 #define SAMSUNG_START_BIT_PAUSE_TIME            4500.0e-6                       // 4500 usec pause
@@ -93,6 +99,7 @@ extern "C"
 #define SAMSUNG_COMPLETE_DATA_LEN               37                              // complete length
 #define SAMSUNG_STOP_BIT                        1                               // has stop bit
 #define SAMSUNG_LSB                             1                               // LSB...MSB?
+#define SAMSUNG_FLAGS                           0                               // flags
 
 #define SAMSUNG32_COMMAND_OFFSET                16                              // skip 16 bits
 #define SAMSUNG32_COMMAND_LEN                   16                              // read 16 command bits
@@ -114,6 +121,7 @@ extern "C"
 #define MATSUSHITA_COMPLETE_DATA_LEN            24                              // complete length
 #define MATSUSHITA_STOP_BIT                     1                               // has stop bit
 #define MATSUSHITA_LSB                          1                               // LSB...MSB?
+#define MATSUSHITA_FLAGS                        0                               // flags
 
 #define KASEIKYO_START_BIT_PULSE_TIME           3380.0e-6                       // 3380 usec pulse
 #define KASEIKYO_START_BIT_PAUSE_TIME           1690.0e-6                       // 1690 usec pause
@@ -128,6 +136,7 @@ extern "C"
 #define KASEIKYO_COMPLETE_DATA_LEN              48                              // complete length
 #define KASEIKYO_STOP_BIT                       1                               // has stop bit
 #define KASEIKYO_LSB                            1                               // LSB...MSB?
+#define KASEIKYO_FLAGS                          0                               // flags
 
 #define RECS80_START_BIT_PULSE_TIME              158.0e-6                       //  158 usec pulse
 #define RECS80_START_BIT_PAUSE_TIME             7432.0e-6                       // 7432 usec pause
@@ -142,6 +151,7 @@ extern "C"
 #define RECS80_COMPLETE_DATA_LEN                11                              // complete length
 #define RECS80_STOP_BIT                         1                               // has stop bit
 #define RECS80_LSB                              0                               // MSB...LSB
+#define RECS80_FLAGS                            0                               // flags
 
 #define RC5_BIT_TIME                             889.0e-6                       // 889 usec pulse/pause
 #define RC5_FRAME_REPEAT_PAUSE_TIME               45.0e-3                       // frame repeat after 45ms
@@ -152,6 +162,7 @@ extern "C"
 #define RC5_COMPLETE_DATA_LEN                   13                              // complete length
 #define RC5_STOP_BIT                            0                               // has no stop bit
 #define RC5_LSB                                 0                               // MSB...LSB
+#define RC5_FLAGS                               IRMP_PARAM_FLAG_IS_MANCHESTER   // flags
 
 #define DENON_PULSE_TIME                        275.0e-6                        //  275 usec pulse
 #define DENON_1_PAUSE_TIME                      1900.0e-6                       // 1900 usec pause
@@ -166,6 +177,7 @@ extern "C"
 #define DENON_COMPLETE_DATA_LEN                 15                              // complete length
 #define DENON_STOP_BIT                          1                               // has stop bit
 #define DENON_LSB                               0                               // MSB...LSB
+#define DENON_FLAGS                             0                               // flags
 
 #define RC6_START_BIT_PULSE_TIME                2666.0e-6                       // 2.666 msec pulse
 #define RC6_START_BIT_PAUSE_TIME                 889.0e-6                       // 889 usec pause
@@ -180,6 +192,7 @@ extern "C"
 #define RC6_COMPLETE_DATA_LEN_LONG              36                              // complete length
 #define RC6_STOP_BIT                            0                               // has no stop bit
 #define RC6_LSB                                 0                               // MSB...LSB
+#define RC6_FLAGS                               (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)   // flags
 
 #define RECS80EXT_START_BIT_PULSE_TIME           158.0e-6                       //  158 usec pulse
 #define RECS80EXT_START_BIT_PAUSE_TIME          3637.0e-6                       // 3637 usec pause
@@ -194,6 +207,7 @@ extern "C"
 #define RECS80EXT_COMPLETE_DATA_LEN             12                              // complete length
 #define RECS80EXT_STOP_BIT                      1                               // has stop bit
 #define RECS80EXT_LSB                           0                               // MSB...LSB
+#define RECS80EXT_FLAGS                         0                               // flags
 
 #define NUBERT_START_BIT_PULSE_TIME             1340.0e-6                       // 1340 usec pulse
 #define NUBERT_START_BIT_PAUSE_TIME              340.0e-6                       //  340 usec pause
@@ -211,6 +225,7 @@ extern "C"
 #define NUBERT_COMPLETE_DATA_LEN                10                              // complete length
 #define NUBERT_STOP_BIT                         1                               // has stop bit
 #define NUBERT_LSB                              0                               // MSB?
+#define NUBERT_FLAGS                            0                               // flags
 
 #define BANG_OLUFSEN_START_BIT1_PULSE_TIME       200.0e-6                       //   200 usec pulse
 #define BANG_OLUFSEN_START_BIT1_PAUSE_TIME      3125.0e-6                       //  3125 usec pause
@@ -233,12 +248,14 @@ extern "C"
 #define BANG_OLUFSEN_COMPLETE_DATA_LEN          20                              // complete length: startbits 2, 3, 4 + 16 data bits + trailer bit
 #define BANG_OLUFSEN_STOP_BIT                   1                               // has stop bit
 #define BANG_OLUFSEN_LSB                        0                               // MSB...LSB
+#define BANG_OLUFSEN_FLAGS                      0                               // flags
 
 #define GRUNDIG_OR_NOKIA_BIT_TIME               528.0e-6                        // 528 usec pulse/pause
 #define GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME         2639.0e-6                       // 2639 usec pause after pre bit
 #define GRUNDIG_OR_NOKIA_FRAME_REPEAT_PAUSE_TIME  117.76e-3                     // info frame repeat after 117.76 ms
 #define GRUNDIG_OR_NOKIA_STOP_BIT               0                               // has no stop bit
 #define GRUNDIG_OR_NOKIA_LSB                    1                               // MSB...LSB
+#define GRUNDIG_OR_NOKIA_FLAGS                  (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
 #define GRUNDIG_FRAMES                          2                               // GRUNDIG sends each frame 1+1 times
 #define GRUNDIG_AUTO_REPETITION_PAUSE_TIME        20.0e-3                       // repetition after 20ms
@@ -265,34 +282,37 @@ extern "C"
 #define SIEMENS_COMPLETE_DATA_LEN               23                              // complete length
 #define SIEMENS_STOP_BIT                        0                               // has no stop bit
 #define SIEMENS_LSB                             0                               // MSB...LSB
+#define SIEMENS_FLAGS                           (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
-#define FDC1_START_BIT_PULSE_TIME                1390.0e-6                       // 1390 usec pulse
-#define FDC1_START_BIT_PAUSE_TIME                 640.0e-6                       //  640 usec pause
-#define FDC1_PULSE_TIME                           200.0e-6                       //  200 usec pulse
-#define FDC1_1_PAUSE_TIME                         475.0e-6                       //  475 usec pause
-#define FDC1_0_PAUSE_TIME                         145.0e-6                       //  145 usec pause
-#define FDC1_FRAME_REPEAT_PAUSE_TIME               40.0e-3                       // frame repeat after 40ms
-#define FDC1_ADDRESS_OFFSET                       0                              // skip 0 bits
-#define FDC1_ADDRESS_LEN                          8                              // read 8 address bits
-#define FDC1_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
-#define FDC1_COMMAND_LEN                          8                              // read 8 bits
-#define FDC1_COMPLETE_DATA_LEN                   40                              // complete length
-#define FDC1_STOP_BIT                            1                               // has stop bit
-#define FDC1_LSB                                 1                               // LSB...MSB
+#define FDC1_START_BIT_PULSE_TIME                1390.0e-6                      // 1390 usec pulse
+#define FDC1_START_BIT_PAUSE_TIME                 640.0e-6                      //  640 usec pause
+#define FDC1_PULSE_TIME                           200.0e-6                      //  200 usec pulse
+#define FDC1_1_PAUSE_TIME                         475.0e-6                      //  475 usec pause
+#define FDC1_0_PAUSE_TIME                         145.0e-6                      //  145 usec pause
+#define FDC1_FRAME_REPEAT_PAUSE_TIME               40.0e-3                      // frame repeat after 40ms
+#define FDC1_ADDRESS_OFFSET                      0                              // skip 0 bits
+#define FDC1_ADDRESS_LEN                         8                              // read 8 address bits
+#define FDC1_COMMAND_OFFSET                     24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
+#define FDC1_COMMAND_LEN                         8                              // read 8 bits
+#define FDC1_COMPLETE_DATA_LEN                  40                              // complete length
+#define FDC1_STOP_BIT                           1                               // has stop bit
+#define FDC1_LSB                                1                               // LSB...MSB
+#define FDC1_FLAGS                              0                               // flags
 
-#define FDC2_START_BIT_PULSE_TIME                2120.0e-6                       // 2120 usec pulse
-#define FDC2_START_BIT_PAUSE_TIME                 920.0e-6                       //  920 usec pause
-#define FDC2_PULSE_TIME                           400.0e-6                       //  400 usec pulse
-#define FDC2_1_PAUSE_TIME                         660.0e-6                       //  660 usec pause
-#define FDC2_0_PAUSE_TIME                         145.0e-6                       //  140 usec pause
-#define FDC2_FRAME_REPEAT_PAUSE_TIME               40.0e-3                       // frame repeat after 40ms
-#define FDC2_ADDRESS_OFFSET                       0                              // skip 0 bits
-#define FDC2_ADDRESS_LEN                          8                              // read 8 address bits
-#define FDC2_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
-#define FDC2_COMMAND_LEN                          8                              // read 8 bits
-#define FDC2_COMPLETE_DATA_LEN                   40                              // complete length
-#define FDC2_STOP_BIT                            1                               // has stop bit
-#define FDC2_LSB                                 1                               // LSB...MSB
+#define FDC2_START_BIT_PULSE_TIME                2120.0e-6                      // 2120 usec pulse
+#define FDC2_START_BIT_PAUSE_TIME                 900.0e-6                      //  900 usec pause
+#define FDC2_PULSE_TIME                           360.0e-6                      //  360 usec pulse
+#define FDC2_1_PAUSE_TIME                         650.0e-6                      //  650 usec pause
+#define FDC2_0_PAUSE_TIME                         180.0e-6                      //  180 usec pause
+#define FDC2_FRAME_REPEAT_PAUSE_TIME               40.0e-3                      // frame repeat after 40ms
+#define FDC2_ADDRESS_OFFSET                      0                              // skip 0 bits
+#define FDC2_ADDRESS_LEN                         8                              // read 8 address bits
+#define FDC2_COMMAND_OFFSET                     24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
+#define FDC2_COMMAND_LEN                         8                              // read 8 bits
+#define FDC2_COMPLETE_DATA_LEN                  40                              // complete length
+#define FDC2_STOP_BIT                           1                               // has stop bit
+#define FDC2_LSB                                1                               // LSB...MSB
+#define FDC2_FLAGS                              0                               // flags
 
 #define AUTO_FRAME_REPETITION_TIME              50.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
 

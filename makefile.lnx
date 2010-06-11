@@ -7,7 +7,7 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: makefile.lnx,v 1.5 2010/06/08 23:34:14 fm Exp $
+# $Id: makefile.lnx,v 1.6 2010/06/11 14:47:24 fm Exp $
 #----------------------------------------------------------------------------
 all:	irmp irmp-15kHz irsnd irsnd-15kHz
 
@@ -22,6 +22,9 @@ irsnd: irsnd.c irsnd.h irmp.h irsndconfig.h
 
 irsnd-15kHz: irsnd.c irsnd.h irmp.h irsndconfig.h
 	cc -Wall -DF_INTERRUPTS=15000 irsnd.c -o irsnd-15kHz
+
+test: all
+	cd IR-Data && ./test-suite.sh
 
 clean:
 	rm -f irmp irmp-15kHz irsnd irsnd-15kHz
