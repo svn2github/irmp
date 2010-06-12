@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.45 2010/06/11 14:47:24 fm Exp $
+ * $Id: irmp.c,v 1.46 2010/06/12 20:29:43 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -515,8 +515,6 @@ typedef unsigned int16  uint16_t;
 #define FDC1_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define FDC1_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define FDC1_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC1_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define FDC1_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * FDC1_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define FDC1_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * FDC1_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define FDC1_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC1_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define FDC1_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC1_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define FDC1_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC1_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
@@ -528,14 +526,23 @@ typedef unsigned int16  uint16_t;
 #define FDC2_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define FDC2_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define FDC2_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC2_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define FDC2_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * FDC2_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define FDC2_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * FDC2_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define FDC2_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC2_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define FDC2_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC2_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define FDC2_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC2_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define FDC2_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC2_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define FDC2_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC2_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define FDC2_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC2_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+
+#define RCCAR_START_BIT_PULSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RCCAR_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RCCAR_START_BIT_PAUSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RCCAR_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RCCAR_PULSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * RCCAR_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RCCAR_PULSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * RCCAR_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RCCAR_1_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RCCAR_1_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RCCAR_1_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RCCAR_1_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RCCAR_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RCCAR_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RCCAR_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RCCAR_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -1158,6 +1165,31 @@ static PROGMEM IRMP_PARAMETER fdc2_param =
 
 #endif
 
+#if IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER rccar_param =
+{
+    IRMP_RCCAR_PROTOCOL,                                                // protocol:        ir protocol
+    RCCAR_PULSE_LEN_MIN,                                                // pulse_1_len_min: minimum length of pulse with bit value 1
+    RCCAR_PULSE_LEN_MAX,                                                // pulse_1_len_max: maximum length of pulse with bit value 1
+    RCCAR_1_PAUSE_LEN_MIN,                                              // pause_1_len_min: minimum length of pause with bit value 1
+    RCCAR_1_PAUSE_LEN_MAX,                                              // pause_1_len_max: maximum length of pause with bit value 1
+    RCCAR_PULSE_LEN_MIN,                                                // pulse_0_len_min: minimum length of pulse with bit value 0
+    RCCAR_PULSE_LEN_MAX,                                                // pulse_0_len_max: maximum length of pulse with bit value 0
+    RCCAR_0_PAUSE_LEN_MIN,                                              // pause_0_len_min: minimum length of pause with bit value 0
+    RCCAR_0_PAUSE_LEN_MAX,                                              // pause_0_len_max: maximum length of pause with bit value 0
+    RCCAR_ADDRESS_OFFSET,                                               // address_offset:  address offset
+    RCCAR_ADDRESS_OFFSET + RCCAR_ADDRESS_LEN,                           // address_end:     end of address
+    RCCAR_COMMAND_OFFSET,                                               // command_offset:  command offset
+    RCCAR_COMMAND_OFFSET + RCCAR_COMMAND_LEN,                           // command_end:     end of command
+    RCCAR_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame
+    RCCAR_STOP_BIT,                                                     // stop_bit:        flag: frame has stop bit
+    RCCAR_LSB,                                                          // lsb_first:       flag: LSB first
+    RCCAR_FLAGS                                                         // flags:           some flags
+};
+
+#endif
+
 static uint8_t                              irmp_bit;                   // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
@@ -1635,6 +1667,17 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_FDC2_PROTOCOL == 1
+#if IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+                    if (irmp_pulse_time >= RCCAR_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RCCAR_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= RCCAR_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        DEBUG_PRINTF ("protocol = RCCAR, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        RCCAR_START_BIT_PULSE_LEN_MIN, RCCAR_START_BIT_PULSE_LEN_MAX,
+                                        RCCAR_START_BIT_PAUSE_LEN_MIN, RCCAR_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &rccar_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
                     {
                         DEBUG_PRINTF ("protocol = UNKNOWN\n");
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
@@ -2275,6 +2318,8 @@ print_timings (void)
             FDC1_START_BIT_PULSE_LEN_MIN, FDC1_START_BIT_PULSE_LEN_MAX, FDC1_START_BIT_PAUSE_LEN_MIN, FDC1_START_BIT_PAUSE_LEN_MAX);
     printf ("FDC2           1               %3d - %3d           %3d - %3d\n",
             FDC2_START_BIT_PULSE_LEN_MIN, FDC2_START_BIT_PULSE_LEN_MAX, FDC2_START_BIT_PAUSE_LEN_MIN, FDC2_START_BIT_PAUSE_LEN_MAX);
+    printf ("RCCAR          1               %3d - %3d           %3d - %3d\n",
+            RCCAR_START_BIT_PULSE_LEN_MIN, RCCAR_START_BIT_PULSE_LEN_MAX, RCCAR_START_BIT_PAUSE_LEN_MIN, RCCAR_START_BIT_PAUSE_LEN_MAX);
 }
 
 void

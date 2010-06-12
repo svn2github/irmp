@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.30 2010/06/11 14:47:24 fm Exp $
+ * $Id: irmp.h,v 1.31 2010/06/12 20:29:44 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -45,6 +45,7 @@ extern "C"
 #define IRMP_SIEMENS_PROTOCOL                   17                              // Siemens, e.g. Gigaset
 #define IRMP_FDC1_PROTOCOL                      18                              // FDC keyboard - protocol 1
 #define IRMP_FDC2_PROTOCOL                      19                              // FDC keyboard - protocol 2
+#define IRMP_RCCAR_PROTOCOL                     20                              // RC Car
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -313,6 +314,21 @@ extern "C"
 #define FDC2_STOP_BIT                           1                               // has stop bit
 #define FDC2_LSB                                1                               // LSB...MSB
 #define FDC2_FLAGS                              0                               // flags
+
+#define RCCAR_START_BIT_PULSE_TIME               2000.0e-6                      // 2000 usec pulse
+#define RCCAR_START_BIT_PAUSE_TIME               2000.0e-6                      // 2000 usec pause
+#define RCCAR_PULSE_TIME                          600.0e-6                      //  360 usec pulse
+#define RCCAR_1_PAUSE_TIME                        450.0e-6                      //  650 usec pause
+#define RCCAR_0_PAUSE_TIME                        900.0e-6                      //  180 usec pause
+#define RCCAR_FRAME_REPEAT_PAUSE_TIME              40.0e-3                      // frame repeat after 40ms
+#define RCCAR_ADDRESS_OFFSET                     0                              // skip 0 bits
+#define RCCAR_ADDRESS_LEN                        0                              // read 8 address bits
+#define RCCAR_COMMAND_OFFSET                     0                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
+#define RCCAR_COMMAND_LEN                       13                              // read 8 bits
+#define RCCAR_COMPLETE_DATA_LEN                 13                              // complete length
+#define RCCAR_STOP_BIT                          1                               // has stop bit
+#define RCCAR_LSB                               0                               // LSB...MSB
+#define RCCAR_FLAGS                             0                               // flags
 
 #define AUTO_FRAME_REPETITION_TIME              50.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
 

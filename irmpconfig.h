@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.15 2010/06/11 14:47:24 fm Exp $
+ * $Id: irmpconfig.h,v 1.16 2010/06/12 20:29:44 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -38,7 +38,7 @@
 #define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // flag: support Matsushita            uses  ~50 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // flag: support Kaseikyo              uses  ~50 bytes
 #define IRMP_SUPPORT_RECS80_PROTOCOL            1       // flag: support RECS80                uses  ~50 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               1       // flag: support RC5                   uses ~250 bytes
+#define IRMP_SUPPORT_RC5_PROTOCOL               0       // flag: support RC5                   uses ~250 bytes
 #define IRMP_SUPPORT_DENON_PROTOCOL             1       // flag: support DENON                 uses ~250 bytes
 #define IRMP_SUPPORT_RC6_PROTOCOL               1       // flag: support RC6                   uses ~200 bytes
 #define IRMP_SUPPORT_RECS80EXT_PROTOCOL         1       // flag: support RECS80EXT             uses  ~50 bytes
@@ -46,6 +46,7 @@
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen        uses ~200 bytes
 #define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig               uses ~150 bytes
 #define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // flag: support Nokia                 uses ~150 bytes
+#define IRMP_SUPPORT_RCCAR_PROTOCOL             1       // flag: support RC car                uses ~150 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * THE FOLLOWING DECODERS WORK ONLY FOR F_INTERRUPTS > 14500!
