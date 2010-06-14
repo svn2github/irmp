@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.31 2010/06/12 20:29:44 fm Exp $
+ * $Id: irmp.h,v 1.33 2010/06/14 15:55:11 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -43,9 +43,8 @@ extern "C"
 #define IRMP_GRUNDIG_PROTOCOL                   15                              // Grundig
 #define IRMP_NOKIA_PROTOCOL                     16                              // Nokia
 #define IRMP_SIEMENS_PROTOCOL                   17                              // Siemens, e.g. Gigaset
-#define IRMP_FDC1_PROTOCOL                      18                              // FDC keyboard - protocol 1
-#define IRMP_FDC2_PROTOCOL                      19                              // FDC keyboard - protocol 2
-#define IRMP_RCCAR_PROTOCOL                     20                              // RC Car
+#define IRMP_FDC_PROTOCOL                       18                              // FDC keyboard - protocol 2
+#define IRMP_RCCAR_PROTOCOL                     19                              // RC Car
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -285,35 +284,20 @@ extern "C"
 #define SIEMENS_LSB                             0                               // MSB...LSB
 #define SIEMENS_FLAGS                           (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
-#define FDC1_START_BIT_PULSE_TIME                1390.0e-6                      // 1390 usec pulse
-#define FDC1_START_BIT_PAUSE_TIME                 640.0e-6                      //  640 usec pause
-#define FDC1_PULSE_TIME                           200.0e-6                      //  200 usec pulse
-#define FDC1_1_PAUSE_TIME                         475.0e-6                      //  475 usec pause
-#define FDC1_0_PAUSE_TIME                         145.0e-6                      //  145 usec pause
-#define FDC1_FRAME_REPEAT_PAUSE_TIME               40.0e-3                      // frame repeat after 40ms
-#define FDC1_ADDRESS_OFFSET                      0                              // skip 0 bits
-#define FDC1_ADDRESS_LEN                         8                              // read 8 address bits
-#define FDC1_COMMAND_OFFSET                     24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
-#define FDC1_COMMAND_LEN                         8                              // read 8 bits
-#define FDC1_COMPLETE_DATA_LEN                  40                              // complete length
-#define FDC1_STOP_BIT                           1                               // has stop bit
-#define FDC1_LSB                                1                               // LSB...MSB
-#define FDC1_FLAGS                              0                               // flags
-
-#define FDC2_START_BIT_PULSE_TIME                2120.0e-6                      // 2120 usec pulse
-#define FDC2_START_BIT_PAUSE_TIME                 900.0e-6                      //  900 usec pause
-#define FDC2_PULSE_TIME                           360.0e-6                      //  360 usec pulse
-#define FDC2_1_PAUSE_TIME                         650.0e-6                      //  650 usec pause
-#define FDC2_0_PAUSE_TIME                         180.0e-6                      //  180 usec pause
-#define FDC2_FRAME_REPEAT_PAUSE_TIME               40.0e-3                      // frame repeat after 40ms
-#define FDC2_ADDRESS_OFFSET                      0                              // skip 0 bits
-#define FDC2_ADDRESS_LEN                         8                              // read 8 address bits
-#define FDC2_COMMAND_OFFSET                     24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
-#define FDC2_COMMAND_LEN                         8                              // read 8 bits
-#define FDC2_COMPLETE_DATA_LEN                  40                              // complete length
-#define FDC2_STOP_BIT                           1                               // has stop bit
-#define FDC2_LSB                                1                               // LSB...MSB
-#define FDC2_FLAGS                              0                               // flags
+#define FDC_START_BIT_PULSE_TIME                 2120.0e-6                      // 2120 usec pulse
+#define FDC_START_BIT_PAUSE_TIME                  900.0e-6                      //  900 usec pause
+#define FDC_PULSE_TIME                            360.0e-6                      //  360 usec pulse
+#define FDC_1_PAUSE_TIME                          650.0e-6                      //  650 usec pause
+#define FDC_0_PAUSE_TIME                          180.0e-6                      //  180 usec pause
+#define FDC_FRAME_REPEAT_PAUSE_TIME                40.0e-3                      // frame repeat after 40ms
+#define FDC_ADDRESS_OFFSET                       0                              // skip 0 bits
+#define FDC_ADDRESS_LEN                          8                              // read 8 address bits
+#define FDC_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
+#define FDC_COMMAND_LEN                          8                              // read 8 bits
+#define FDC_COMPLETE_DATA_LEN                   40                              // complete length
+#define FDC_STOP_BIT                            1                               // has stop bit
+#define FDC_LSB                                 1                               // LSB...MSB
+#define FDC_FLAGS                               0                               // flags
 
 #define RCCAR_START_BIT_PULSE_TIME               2000.0e-6                      // 2000 usec pulse
 #define RCCAR_START_BIT_PAUSE_TIME               2000.0e-6                      // 2000 usec pause
@@ -327,7 +311,7 @@ extern "C"
 #define RCCAR_COMMAND_LEN                       13                              // read 8 bits
 #define RCCAR_COMPLETE_DATA_LEN                 13                              // complete length
 #define RCCAR_STOP_BIT                          1                               // has stop bit
-#define RCCAR_LSB                               0                               // LSB...MSB
+#define RCCAR_LSB                               1                               // LSB...MSB
 #define RCCAR_FLAGS                             0                               // flags
 
 #define AUTO_FRAME_REPETITION_TIME              50.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
