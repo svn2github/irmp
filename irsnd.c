@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.19 2010/06/14 15:55:11 fm Exp $
+ * $Id: irsnd.c,v 1.20 2010/06/15 15:47:21 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -159,6 +159,13 @@ typedef unsigned short    uint16_t;
 #define FDC_1_PAUSE_LEN                         (uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME + 0.5)
 #define FDC_0_PAUSE_LEN                         (uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME + 0.5)
 #define FDC_FRAME_REPEAT_PAUSE_LEN              (uint16_t)(F_INTERRUPTS * FDC_FRAME_REPEAT_PAUSE_TIME + 0.5)                // use uint16_t!
+
+#define RCCAR_START_BIT_PULSE_LEN               (uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PULSE_TIME + 0.5)
+#define RCCAR_START_BIT_PAUSE_LEN               (uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PAUSE_TIME + 0.5)
+#define RCCAR_PULSE_LEN                         (uint8_t)(F_INTERRUPTS * RCCAR_PULSE_TIME + 0.5)
+#define RCCAR_1_PAUSE_LEN                       (uint8_t)(F_INTERRUPTS * RCCAR_1_PAUSE_TIME + 0.5)
+#define RCCAR_0_PAUSE_LEN                       (uint8_t)(F_INTERRUPTS * RCCAR_0_PAUSE_TIME + 0.5)
+#define RCCAR_FRAME_REPEAT_PAUSE_LEN            (uint16_t)(F_INTERRUPTS * RCCAR_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
 
 static volatile uint8_t                         irsnd_busy;
 static volatile uint8_t                         irsnd_protocol;
@@ -496,11 +503,24 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             address = bitsrevervse (irmp_data_p->address, FDC_ADDRESS_LEN);
             command = bitsrevervse (irmp_data_p->command, FDC_COMMAND_LEN);
 
-            irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
-            irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
-            irsnd_buffer[2] = 0;                                                                                // 00000000
-            irsnd_buffer[3] = (command &  0x0FE0) >> 5;                                                         // 0CCCCCCC
-            irsnd_buffer[4] = ((command & 0x001F) << 3) | 0x07;                                                 // CCCCC111
+            irsnd_buffer[0] = (address & 0xFF);                                                                 // AAAAAAAA
+            irsnd_buffer[1] = 0;                                                                                // 00000000
+            irsnd_buffer[2] = 0;                                                                                // 0000RRRR
+            irsnd_buffer[3] = (command & 0xFF);                                                                 // CCCCCCCC
+            irsnd_buffer[4] = ~(command & 0xFF);                                                                // cccccccc
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_RCCAR_PROTOCOL == 1
+        case IRMP_RCCAR_PROTOCOL:
+        {
+            address = bitsrevervse (irmp_data_p->address, 2);                                                   //                            A0 A1
+            command = bitsrevervse (irmp_data_p->command, RCCAR_COMMAND_LEN - 2);                               // D0 D1 D2 D3 D4 D5 D6 D7 C0 C1 V
+
+            irsnd_buffer[0] = ((command & 0x06) << 5) | ((address & 0x0003) << 4) | ((command & 0x0780) >> 7);  //          C0 C1 A0 A1 D0 D1 D2 D3
+            irsnd_buffer[1] = ((command & 0x78) << 1) | ((command & 0x0001) << 3);                              //          D4 D5 D6 D7 V  0  0  0
+                                                                                                                
             irsnd_busy      = TRUE;
             break;
         }
@@ -897,6 +917,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_RCCAR_PROTOCOL == 1
+                    case IRMP_RCCAR_PROTOCOL:
+                    {
+                        startbit_pulse_len          = RCCAR_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = RCCAR_START_BIT_PAUSE_LEN;
+                        complete_data_len           = RCCAR_COMPLETE_DATA_LEN;
+                        pulse_1_len                 = RCCAR_PULSE_LEN;
+                        pause_1_len                 = RCCAR_1_PAUSE_LEN;
+                        pulse_0_len                 = RCCAR_PULSE_LEN;
+                        pause_0_len                 = RCCAR_0_PAUSE_LEN;
+                        has_stop_bit                = RCCAR_STOP_BIT;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = RCCAR_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
                     default:
                     {
                         irsnd_busy = FALSE;
@@ -940,14 +978,17 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
                 case IRMP_BANG_OLUFSEN_PROTOCOL:
 #endif
-#if IRSND_SUPPORT_NEC_PROTOCOL == 1
+#if IRSND_SUPPORT_FDC_PROTOCOL == 1
                 case IRMP_FDC_PROTOCOL:
+#endif
+#if IRSND_SUPPORT_RCCAR_PROTOCOL == 1
+                case IRMP_RCCAR_PROTOCOL:
 #endif
 
 
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 || \
     IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || \
-    IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1
+    IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1
                 {
                     if (pulse_counter == 0)
                     {
@@ -1244,6 +1285,12 @@ irsnd_ISR (void)
         {
             if (repeat_counter < n_repeat_frames)
             {
+#if IRSND_SUPPORT_FDC_PROTOCOL == 1
+                if (irsnd_protocol == IRMP_FDC_PROTOCOL)
+                {
+                    irsnd_buffer[2] |= 0x0F;
+                }
+#endif
                 repeat_counter++;
                 irsnd_busy = TRUE;
             }

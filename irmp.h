@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.33 2010/06/14 15:55:11 fm Exp $
+ * $Id: irmp.h,v 1.34 2010/06/15 15:47:21 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -43,7 +43,7 @@ extern "C"
 #define IRMP_GRUNDIG_PROTOCOL                   15                              // Grundig
 #define IRMP_NOKIA_PROTOCOL                     16                              // Nokia
 #define IRMP_SIEMENS_PROTOCOL                   17                              // Siemens, e.g. Gigaset
-#define IRMP_FDC_PROTOCOL                       18                              // FDC keyboard - protocol 2
+#define IRMP_FDC_PROTOCOL                       18                              // FDC keyboard
 #define IRMP_RCCAR_PROTOCOL                     19                              // RC Car
 
 // some flags of struct IRMP_PARAMETER:
@@ -289,7 +289,7 @@ extern "C"
 #define FDC_PULSE_TIME                            360.0e-6                      //  360 usec pulse
 #define FDC_1_PAUSE_TIME                          650.0e-6                      //  650 usec pause
 #define FDC_0_PAUSE_TIME                          180.0e-6                      //  180 usec pause
-#define FDC_FRAME_REPEAT_PAUSE_TIME                40.0e-3                      // frame repeat after 40ms
+#define FDC_FRAME_REPEAT_PAUSE_TIME                60.0e-3                      // frame repeat after 60ms
 #define FDC_ADDRESS_OFFSET                       0                              // skip 0 bits
 #define FDC_ADDRESS_LEN                          8                              // read 8 address bits
 #define FDC_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
@@ -306,9 +306,9 @@ extern "C"
 #define RCCAR_0_PAUSE_TIME                        900.0e-6                      //  180 usec pause
 #define RCCAR_FRAME_REPEAT_PAUSE_TIME              40.0e-3                      // frame repeat after 40ms
 #define RCCAR_ADDRESS_OFFSET                     0                              // skip 0 bits
-#define RCCAR_ADDRESS_LEN                        0                              // read 8 address bits
-#define RCCAR_COMMAND_OFFSET                     0                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
-#define RCCAR_COMMAND_LEN                       13                              // read 8 bits
+#define RCCAR_ADDRESS_LEN                        0                              // read 0 address bits
+#define RCCAR_COMMAND_OFFSET                     0                              // skip 0 bits
+#define RCCAR_COMMAND_LEN                       13                              // read 13 bits
 #define RCCAR_COMPLETE_DATA_LEN                 13                              // complete length
 #define RCCAR_STOP_BIT                          1                               // has stop bit
 #define RCCAR_LSB                               1                               // LSB...MSB

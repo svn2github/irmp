@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.7 2010/06/10 21:24:50 fm Exp $
+ * $Id: irsndconfig.h,v 1.8 2010/06/15 15:47:21 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -43,6 +43,8 @@
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // flag: support Bang&Olufsen           uses ~250 bytes
 #define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // flag: support Grundig                uses ~300 bytes
 #define IRSND_SUPPORT_NOKIA_PROTOCOL            1       // flag: support Nokia                  uses ~400 bytes
+#define IRSND_SUPPORT_FDC_PROTOCOL              1       // flag: support FDC infrared keyboard  uses ~150 bytes
+#define IRSND_SUPPORT_RCCAR_PROTOCOL            1       // flag: support RC CAR                 uses ~150 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * THE FOLLOWING ENCODERS WORK ONLY FOR F_INTERRUPTS > 14500!
@@ -50,12 +52,8 @@
  */
 #if F_INTERRUPTS >= 14500
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          1       // flag: support Siemens, e.g. Gigaset  uses ~150 bytes
-#define IRSND_SUPPORT_FDC1_PROTOCOL             1       // flag: support FDC1 infrared keyboard uses ~150 bytes
-#define IRSND_SUPPORT_FDC2_PROTOCOL             1       // flag: support FDC2 infrared keyboard uses ~150 bytes
 #else
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#define IRSND_SUPPORT_FDC1_PROTOCOL             0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#define IRSND_SUPPORT_FDC2_PROTOCOL             0       // DO NOT CHANGE! F_INTERRUPTS too low!
 #endif
 
 
@@ -64,11 +62,11 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if defined (__AVR_ATmega32__) || defined (__AVR_ATmega644P__)
-#define IRSND_PORT          PORTD                       // port D
-#define IRSND_DDR           DDRD                        // ddr D
-#define IRSND_BIT           7                           // OC2A
+#define IRSND_PORT                              PORTD   // port D
+#define IRSND_DDR                               DDRD    // ddr D
+#define IRSND_BIT                               7       // OC2A
 #else
-#define IRSND_PORT          PORTB                       // port B
-#define IRSND_DDR           DDRB                        // ddr B
-#define IRSND_BIT           3                           // OC2A
+#define IRSND_PORT                              PORTB   // port B
+#define IRSND_DDR                               DDRB    // ddr B
+#define IRSND_BIT                               3       // OC2A
 #endif // __AVR...

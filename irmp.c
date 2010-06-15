@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.51 2010/06/15 12:01:20 fm Exp $
+ * $Id: irmp.c,v 1.52 2010/06/15 15:47:21 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1244,10 +1244,12 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 // Bit 12 11 10 9  8  7  6  5  4  3  2  1  0
                 //     V  D7 D6 D5 D4 D3 D2 D1 D0 A1 A0 C1 C0   //         10 9  8  7  6  5  4  3  2  1  0
                 irmp_address = (irmp_command & 0x000C) >> 2;    // addr:   0  0  0  0  0  0  0  0  0  A1 A0
+printf ("\n! %04x ", irmp_command);
                 irmp_command = ((irmp_command & 0x1000) >> 2) | // V-Bit:  V  0  0  0  0  0  0  0  0  0  0
                                ((irmp_command & 0x0003) << 8) | // C-Bits: 0  C1 C0 0  0  0  0  0  0  0  0
                                ((irmp_command & 0x0FF0) >> 4);  // D-Bits:          D7 D6 D5 D4 D3 D2 D1 D0
                 rtc = TRUE;                                     // Summe:  V  C1 C0 D7 D6 D5 D4 D3 D2 D1 D0
+printf ("%04x\n", irmp_command);
                 break;
 #endif
             default:

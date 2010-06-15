@@ -8,8 +8,10 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: test-suite.sh,v 1.10 2010/06/09 12:04:04 fm Exp $
+# $Id: test-suite.sh,v 1.11 2010/06/15 12:21:06 fm Exp $
 #----------------------------------------------------------------------------
+
+cd `dirname $0`
 
 for j in                            \
     Dbox.txt                        \
@@ -36,7 +38,7 @@ for j in                            \
     denon.txt                       \
     elta_radio.txt                  \
     nec-repetition.txt              \
-    nec-skymaster-dt500.txt	    \
+    nec-skymaster-dt500.txt         \
     nec.txt                         \
     nubert-subwoofer.txt            \
     orion_vcr_07660BM070.txt        \
@@ -52,26 +54,38 @@ do
     echo "testing $j ..."
     if ../irmp -v < $j | grep -q error
     then
-	../irmp -v < $j | grep error
-	echo "test failed"
-	exit 1
+        ../irmp -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 
-for j in                            	\
-    Siemens-Gigaset-M740AV-15kHz.txt	\
-    bo_beolink1000-15kHz.txt		\
-    denon-15kHz.txt			\
-    fdc-15kHz.txt
+for j in                                \
+    Siemens-Gigaset-M740AV-15kHz.txt    \
+    bo_beolink1000-15kHz.txt            \
+    denon-15kHz.txt
 do
     echo "testing $j ..."
     if ../irmp-15kHz -v < $j | grep -q error
     then
-	../irmp-15kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        ../irmp-15kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
+
+# for j in                                \
+#     fdc-20kHz.txt
+# do
+#     echo "testing $j ..."
+#     if ../irmp-20kHz -v < $j | grep -q error
+#     then
+#         ../irmp-20kHz -v < $j | grep error
+#         echo "test failed"
+#         exit 1
+#     fi
+# done
+
 
 echo "all tests successful"
 exit 0
