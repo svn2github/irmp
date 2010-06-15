@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.21 2010/06/14 22:01:49 fm Exp $
+ * $Id: irmpconfig.h,v 1.22 2010/06/15 12:02:52 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -46,7 +46,7 @@
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen        uses ~200 bytes
 #define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig               uses ~150 bytes
 #define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // flag: support Nokia                 uses ~150 bytes
-#define IRMP_SUPPORT_FDC_PROTOCOL               0       // flag: support FDC3402 keyboard      uses ~100 bytes
+#define IRMP_SUPPORT_FDC_PROTOCOL               0       // flag: support FDC3402 keyboard      uses  ~50 bytes
 #define IRMP_SUPPORT_RCCAR_PROTOCOL             0       // flag: support RC car                uses ~150 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

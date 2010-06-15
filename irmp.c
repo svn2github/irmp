@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.50 2010/06/14 22:00:51 fm Exp $
+ * $Id: irmp.c,v 1.51 2010/06/15 12:01:20 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -328,10 +328,10 @@ typedef unsigned int16  uint16_t;
 #define IRMP_SUPPORT_MANCHESTER                 0
 #endif
 
-#define IRMP_TIMEOUT_TIME                       16000.0e-6                  // timeout after 16 ms darkness
-#define IRMP_TIMEOUT_TIME_MS                    16L                         // timeout after 16 ms darkness
+#define IRMP_TIMEOUT_TIME                       16500.0e-6                  // timeout after 16.5 ms darkness
+#define IRMP_TIMEOUT_TIME_MS                    16500L                      // timeout after 16.5 ms darkness
 
-#if (F_INTERRUPTS * IRMP_TIMEOUT_TIME_MS) / 1000 >= 255
+#if (F_INTERRUPTS * IRMP_TIMEOUT_TIME_MS) / 1000000 >= 254
 #define IRMP_TIMEOUT_LEN                        (uint16_t)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
 typedef uint16_t    PAUSE_LEN;
 #else
