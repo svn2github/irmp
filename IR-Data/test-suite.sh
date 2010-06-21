@@ -8,7 +8,7 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: test-suite.sh,v 1.11 2010/06/15 12:21:06 fm Exp $
+# $Id: test-suite.sh,v 1.10 2010/06/09 12:04:04 fm Exp $
 #----------------------------------------------------------------------------
 
 cd `dirname $0`

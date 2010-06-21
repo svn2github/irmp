@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.52 2010/06/15 15:47:21 fm Exp $
+ * $Id: irmp.c,v 1.53 2010/06/21 08:27:09 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1747,7 +1747,11 @@ irmp_ISR (void)
                           irmp_store_bit (0);
                         }
                     }
+                    else
 #endif // IRMP_SUPPORT_DENON_PROTOCOL == 1
+                    {
+                        ;                                                       // else do nothing
+                    }
 
                     irmp_pulse_time = 1;                                        // set counter to 1, not 0
                     irmp_pause_time = 0;
@@ -1980,7 +1984,6 @@ irmp_ISR (void)
                                 {
                                     ANALYZE_PRINTF ("3rd start bit\n");
                                     wait_for_space = 0;
-                                    irmp_tmp_id = 0;
                                     irmp_bit++;
                                 }
                                 else
@@ -1997,7 +2000,6 @@ irmp_ISR (void)
                                 {
                                     ANALYZE_PRINTF ("trailer bit\n");
                                     wait_for_space = 0;
-                                    irmp_tmp_id = 0;
                                     irmp_bit++;
                                 }
                                 else
@@ -2093,7 +2095,7 @@ irmp_ISR (void)
                 }
             }
 
-            if (irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 0)    // enough bits received?
+            if (irmp_start_bit_detected && irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 0)    // enough bits received?
             {
                 if (last_irmp_command == irmp_tmp_command && repetition_counter < AUTO_FRAME_REPETITION_LEN)
                 {

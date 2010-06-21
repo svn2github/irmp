@@ -7,7 +7,7 @@
 #
 # Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
 #
-# $Id: makefile.lnx,v 1.7 2010/06/14 15:55:11 fm Exp $
+# $Id: makefile.lnx,v 1.6 2010/06/11 14:47:24 fm Exp $
 #----------------------------------------------------------------------------
 all:	irmp irmp-15kHz irmp-20kHz irsnd irsnd-15kHz irsnd-20kHz
 
