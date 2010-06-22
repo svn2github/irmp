@@ -71,7 +71,7 @@ timer_init (void)
   TIMSK  = 1 << OCIE1A;                                                     // OCIE1A: Interrupt by timer compare (use TIMSK for ATMEGA162)
 #else
   TIMSK1  = 1 << OCIE1A;                                                    // OCIE1A: Interrupt by timer compare (use TIMSK for ATMEGA162)
-#endif	// __AVR...
+#endif  // __AVR...
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

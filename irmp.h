@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.34 2010/06/15 15:47:21 fm Exp $
+ * $Id: irmp.h,v 1.37 2010/06/22 11:55:45 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -284,11 +284,11 @@ extern "C"
 #define SIEMENS_LSB                             0                               // MSB...LSB
 #define SIEMENS_FLAGS                           (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
-#define FDC_START_BIT_PULSE_TIME                 2120.0e-6                      // 2120 usec pulse
-#define FDC_START_BIT_PAUSE_TIME                  900.0e-6                      //  900 usec pause
-#define FDC_PULSE_TIME                            360.0e-6                      //  360 usec pulse
-#define FDC_1_PAUSE_TIME                          650.0e-6                      //  650 usec pause
-#define FDC_0_PAUSE_TIME                          180.0e-6                      //  180 usec pause
+#define FDC_START_BIT_PULSE_TIME                 2085.0e-6                      // 2085 usec pulse
+#define FDC_START_BIT_PAUSE_TIME                  966.0e-6                      //  966 usec pause
+#define FDC_PULSE_TIME                            300.0e-6                      //  300 usec pulse
+#define FDC_1_PAUSE_TIME                          715.0e-6                      //  715 usec pause
+#define FDC_0_PAUSE_TIME                          220.0e-6                      //  220 usec pause
 #define FDC_FRAME_REPEAT_PAUSE_TIME                60.0e-3                      // frame repeat after 60ms
 #define FDC_ADDRESS_OFFSET                       0                              // skip 0 bits
 #define FDC_ADDRESS_LEN                          8                              // read 8 address bits

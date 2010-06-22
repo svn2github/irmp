@@ -11,7 +11,16 @@
 # $Id: test-suite.sh,v 1.10 2010/06/09 12:04:04 fm Exp $
 #----------------------------------------------------------------------------
 
+set -e                              # exit on error
 cd `dirname $0`
+mkdir -p tmpsrc
+cp ../irmp.[ch] ../irmpconfig.h ../irsnd.[ch] ../irsndconfig.h ../makefile.lnx tmpsrc
+cd tmpsrc
+sed 's/#define \(IRMP_SUPPORT_[A-Z_0-9]*  *\)[01]/#define \1 1/g' <irmpconfig.h >irmpconfig.new
+mv irmpconfig.new irmpconfig.h
+make -f makefile.lnx clean
+make -f makefile.lnx all
+cd ..
 
 for j in                            \
     Dbox.txt                        \
@@ -37,12 +46,14 @@ for j in                            \
     bo_beolink1000-10kHz.txt        \
     denon.txt                       \
     elta_radio.txt                  \
+    fdc.txt                         \
     nec-repetition.txt              \
     nec-skymaster-dt500.txt         \
     nec.txt                         \
     nubert-subwoofer.txt            \
     orion_vcr_07660BM070.txt        \
     panasonic-scan.txt              \
+    rc-car.txt                      \
     rc5.txt                         \
     rc5x-79.txt                     \
     rc5x.txt                        \
@@ -52,9 +63,9 @@ for j in                            \
     sharp-denon2.txt
 do
     echo "testing $j ..."
-    if ../irmp -v < $j | grep -q error
+    if tmpsrc/irmp -v < $j | grep -q error
     then
-        ../irmp -v < $j | grep error
+        tmpsrc/irmp -v < $j | grep error
         echo "test failed"
         exit 1
     fi
@@ -66,26 +77,29 @@ for j in                                \
     denon-15kHz.txt
 do
     echo "testing $j ..."
-    if ../irmp-15kHz -v < $j | grep -q error
+    if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-        ../irmp-15kHz -v < $j | grep error
+        tmpsrc/irmp-15kHz -v < $j | grep error
         echo "test failed"
         exit 1
     fi
 done
 
-# for j in                                \
-#     fdc-20kHz.txt
-# do
-#     echo "testing $j ..."
-#     if ../irmp-20kHz -v < $j | grep -q error
-#     then
-#         ../irmp-20kHz -v < $j | grep error
-#         echo "test failed"
-#         exit 1
-#     fi
-# done
+for j in                                \
+    rc-car-20kHz.txt                    \
+    fdc-20kHz.txt                       \
+    fdc2-20kHz.txt
+do
+    echo "testing $j ..."
+    if tmpsrc/irmp-20kHz -v < $j | grep -q error
+    then
+        tmpsrc/irmp-20kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
+    fi
+done
 
+rm -rf tmpsrc
 
 echo "all tests successful"
 exit 0

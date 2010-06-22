@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.22 2010/06/15 12:02:52 fm Exp $
+ * $Id: irmpconfig.h,v 1.27 2010/06/22 12:39:51 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -46,8 +46,8 @@
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen        uses ~200 bytes
 #define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig               uses ~150 bytes
 #define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // flag: support Nokia                 uses ~150 bytes
-#define IRMP_SUPPORT_FDC_PROTOCOL               0       // flag: support FDC3402 keyboard      uses  ~50 bytes
-#define IRMP_SUPPORT_RCCAR_PROTOCOL             0       // flag: support RC car                uses ~150 bytes
+#define IRMP_SUPPORT_FDC_PROTOCOL               0       // flag: support FDC3402 keyboard      uses  ~50/400 bytes
+#define IRMP_SUPPORT_RCCAR_PROTOCOL             0       // flag: support RC car                uses ~150/500 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * THE FOLLOWING DECODERS WORK ONLY FOR F_INTERRUPTS > 14500!
@@ -57,14 +57,6 @@
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           1       // flag: support Siemens Gigaset       uses ~150 bytes
 #else
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#endif
-
-#if IRMP_SUPPORT_FDC_PROTOCOL == 1 && IRMP_SUPPORT_RC5_PROTOCOL == 1
-#error Protocols RC5 and FDC may not be enabled both at the same time. Please disable one of them in irmpconfig.h.
-#endif
-
-#if IRMP_SUPPORT_RCCAR_PROTOCOL == 1 && IRMP_SUPPORT_RC5_PROTOCOL == 1
-#error Protocols RC5 and RCCAR may not be enabled both at the same time. Please disable one of them in irmpconfig.h.
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

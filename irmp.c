@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.53 2010/06/21 08:27:09 fm Exp $
+ * $Id: irmp.c,v 1.59 2010/06/22 12:39:27 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -524,12 +524,16 @@ typedef uint8_t     PAUSE_LEN;
 #define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define FDC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define FDC_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define FDC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define FDC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
-#define FDC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define FDC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
-#define FDC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define FDC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define FDC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define FDC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MAX_TOLERANCE_50 + 0.5) + 1)
+#define FDC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FDC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#if 0
+#define FDC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)   // could be negative: 255
+#else
+#define FDC_0_PAUSE_LEN_MIN                     (1)                                                                         // simply use 1
+#endif
+#define FDC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * FDC_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define RCCAR_START_BIT_PULSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RCCAR_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * RCCAR_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -1166,6 +1170,10 @@ static PROGMEM IRMP_PARAMETER rccar_param =
 static uint8_t                              irmp_bit;                   // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+static IRMP_PARAMETER                       irmp_param2;
+#endif
+
 static volatile uint8_t                     irmp_ir_detected;
 static volatile uint8_t                     irmp_protocol;
 static volatile uint16_t                    irmp_address;
@@ -1244,12 +1252,10 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 // Bit 12 11 10 9  8  7  6  5  4  3  2  1  0
                 //     V  D7 D6 D5 D4 D3 D2 D1 D0 A1 A0 C1 C0   //         10 9  8  7  6  5  4  3  2  1  0
                 irmp_address = (irmp_command & 0x000C) >> 2;    // addr:   0  0  0  0  0  0  0  0  0  A1 A0
-printf ("\n! %04x ", irmp_command);
                 irmp_command = ((irmp_command & 0x1000) >> 2) | // V-Bit:  V  0  0  0  0  0  0  0  0  0  0
                                ((irmp_command & 0x0003) << 8) | // C-Bits: 0  C1 C0 0  0  0  0  0  0  0  0
                                ((irmp_command & 0x0FF0) >> 4);  // D-Bits:          D7 D6 D5 D4 D3 D2 D1 D0
                 rtc = TRUE;                                     // Summe:  V  C1 C0 D7 D6 D5 D4 D3 D2 D1 D0
-printf ("%04x\n", irmp_command);
                 break;
 #endif
             default:
@@ -1276,6 +1282,12 @@ printf ("%04x\n", irmp_command);
 // these statics must not be volatile, because they are only used by irmp_store_bit(), which is called by irmp_ISR()
 static uint16_t   irmp_tmp_address;                                                         // ir address
 static uint16_t   irmp_tmp_command;                                                         // ir command
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+static uint16_t   irmp_tmp_address2;                                                         // ir address
+static uint16_t   irmp_tmp_command2;                                                         // ir command
+#endif
+
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
 static uint16_t   irmp_tmp_id;                                                              // ir id (only SAMSUNG)
 #endif
@@ -1323,6 +1335,38 @@ irmp_store_bit (uint8_t value)
 #endif
     irmp_bit++;
 }
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ *  store bit
+ *  @details  store bit in temp address or temp command
+ *  @param    value to store: 0 or 1
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+static void
+irmp_store_bit2 (uint8_t value)
+{
+    uint8_t irmp_bit2;
+
+    if (irmp_param.protocol)
+    {
+        irmp_bit2 = irmp_bit - 2;
+    }
+    else
+    {
+        irmp_bit2 = irmp_bit - 1;
+    }
+
+    if (irmp_bit2 >= irmp_param2.address_offset && irmp_bit2 < irmp_param2.address_end)
+    {
+        irmp_tmp_address2 |= (((uint16_t) (value)) << (irmp_bit2 - irmp_param2.address_offset));   // CV wants cast
+    }
+    else if (irmp_bit2 >= irmp_param2.command_offset && irmp_bit2 < irmp_param2.command_end)
+    {
+        irmp_tmp_command2 |= (((uint16_t) (value)) << (irmp_bit2 - irmp_param2.command_offset));   // CV wants cast
+    }
+}
+#endif // IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  ISR routine
@@ -1386,6 +1430,12 @@ irmp_ISR (void)
                     wait_for_space          = 0;
                     irmp_tmp_command        = 0;
                     irmp_tmp_address        = 0;
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+                    irmp_tmp_command2       = 0;
+                    irmp_tmp_address2       = 0;
+#endif
+
                     irmp_bit                = 0xff;
                     irmp_pause_time         = 1;                                // 1st pause: set to 1, not to 0!
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
@@ -1418,6 +1468,10 @@ irmp_ISR (void)
                 else
                 {                                                               // receiving first data pulse!
                     IRMP_PARAMETER * irmp_param_p = (IRMP_PARAMETER *) 0;
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+                    irmp_param2.protocol = 0;
+#endif
 
                     ANALYZE_PRINTF ("start-bit: pulse = %d, pause = %d\n", irmp_pulse_time, irmp_pause_time);
 
@@ -1508,9 +1562,42 @@ irmp_ISR (void)
                         ((irmp_pause_time >= RC5_START_BIT_LEN_MIN && irmp_pause_time <= RC5_START_BIT_LEN_MAX) ||
                          (irmp_pause_time >= 2 * RC5_START_BIT_LEN_MIN && irmp_pause_time <= 2 * RC5_START_BIT_LEN_MAX)))
                     {                                                           // it's RC5
-                        ANALYZE_PRINTF ("protocol = RC5, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX,
-                                        RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX);
+#if IRMP_SUPPORT_FDC_PROTOCOL == 1
+                        if (irmp_pulse_time >= FDC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= FDC_START_BIT_PULSE_LEN_MAX &&
+                            irmp_pause_time >= FDC_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= FDC_START_BIT_PAUSE_LEN_MAX)
+                        {
+                            ANALYZE_PRINTF ("protocol = RC5 or FDC\n");
+                            ANALYZE_PRINTF ("FDC start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX,
+                                            FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX);
+                            ANALYZE_PRINTF ("RC5 start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX,
+                                            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX);
+                            memcpy_P (&irmp_param2, &fdc_param, sizeof (IRMP_PARAMETER));
+                        }
+                        else
+#endif // IRMP_SUPPORT_FDC_PROTOCOL == 1
+#if IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+                        if (irmp_pulse_time >= RCCAR_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RCCAR_START_BIT_PULSE_LEN_MAX &&
+                            irmp_pause_time >= RCCAR_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_START_BIT_PAUSE_LEN_MAX)
+                        {
+                            ANALYZE_PRINTF ("protocol = RC5 or RCCAR\n");
+                            ANALYZE_PRINTF ("RCCAR start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            RCCAR_START_BIT_PULSE_LEN_MIN, RCCAR_START_BIT_PULSE_LEN_MAX,
+                                            RCCAR_START_BIT_PAUSE_LEN_MIN, RCCAR_START_BIT_PAUSE_LEN_MAX);
+                            ANALYZE_PRINTF ("RC5 start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX,
+                                            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX);
+                            memcpy_P (&irmp_param2, &rccar_param, sizeof (IRMP_PARAMETER));
+                        }
+                        else
+#endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+                        {
+                            ANALYZE_PRINTF ("protocol = RC5, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX,
+                                            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX);
+                        }
+
                         irmp_param_p = (IRMP_PARAMETER *) &rc5_param;
                         last_pause = irmp_pause_time;
 
@@ -1677,6 +1764,16 @@ irmp_ISR (void)
                                           2 * irmp_param.pause_1_len_min, 2 * irmp_param.pause_1_len_max);
                         }
 
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+                        if (irmp_param2.protocol)
+                        {
+                            ANALYZE_PRINTF ("pulse_0: %3d - %3d\n", irmp_param2.pulse_0_len_min, irmp_param2.pulse_0_len_max);
+                            ANALYZE_PRINTF ("pause_0: %3d - %3d\n", irmp_param2.pause_0_len_min, irmp_param2.pause_0_len_max);
+                            ANALYZE_PRINTF ("pulse_1: %3d - %3d\n", irmp_param2.pulse_1_len_min, irmp_param2.pulse_1_len_max);
+                            ANALYZE_PRINTF ("pause_1: %3d - %3d\n", irmp_param2.pause_1_len_min, irmp_param2.pause_1_len_max);
+                        }
+#endif
+
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_RC6_PROTOCOL)
                         {
@@ -1717,7 +1814,7 @@ irmp_ISR (void)
                             ANALYZE_NEWLINE ();
                             irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 0 : 1);
                         }
-                        else if (! last_value)
+                        else if (! last_value)  // && irmp_pause_time >= irmp_param.pause_1_len_min && irmp_pause_time <= irmp_param.pause_1_len_max)
                         {
                             ANALYZE_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
 
@@ -1889,10 +1986,15 @@ irmp_ISR (void)
                             irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 0  :  1 );
                             ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '1' : '0');
                             irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 :   0 );
-                            ANALYZE_NEWLINE ();
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+                            if (! irmp_param2.protocol)
+#endif
+                            {
+                                ANALYZE_NEWLINE ();
+                            }
                             last_value = (irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 : 0;
                         }
-                        else // if (irmp_pulse_time >= irmp_param.pulse_1_len_max && irmp_pulse_time <= irmp_param.pulse_1_len_max)
+                        else if (irmp_pulse_time >= irmp_param.pulse_1_len_min && irmp_pulse_time <= irmp_param.pulse_1_len_max)
                         {
                             uint8_t manchester_value;
 
@@ -1916,9 +2018,96 @@ irmp_ISR (void)
 #endif // 0
 
                             ANALYZE_PUTCHAR (manchester_value + '0');
-                            ANALYZE_NEWLINE ();
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+                            if (! irmp_param2.protocol)
+#endif
+                            {
+                                ANALYZE_NEWLINE ();
+                            }
                             irmp_store_bit (manchester_value);
                         }
+                        else
+                        {
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_FDC_PROTOCOL == 1
+                            if (irmp_param2.protocol == IRMP_FDC_PROTOCOL &&
+                                irmp_pulse_time >= FDC_PULSE_LEN_MIN && irmp_pulse_time <= FDC_PULSE_LEN_MAX &&
+                                ((irmp_pause_time >= FDC_1_PAUSE_LEN_MIN && irmp_pause_time <= FDC_1_PAUSE_LEN_MAX) ||
+                                 (irmp_pause_time >= FDC_0_PAUSE_LEN_MIN && irmp_pause_time <= FDC_0_PAUSE_LEN_MAX)))
+                            {
+                                ANALYZE_PUTCHAR ('?');
+                                irmp_param.protocol = 0;
+                            }
+                            else
+#endif // IRMP_SUPPORT_FDC_PROTOCOL == 1
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+                            if (irmp_param2.protocol == IRMP_RCCAR_PROTOCOL &&
+                                irmp_pulse_time >= RCCAR_PULSE_LEN_MIN && irmp_pulse_time <= RCCAR_PULSE_LEN_MAX &&
+                                ((irmp_pause_time >= RCCAR_1_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_1_PAUSE_LEN_MAX) ||
+                                 (irmp_pause_time >= RCCAR_0_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_0_PAUSE_LEN_MAX)))
+                            {
+                                ANALYZE_PUTCHAR ('?');
+                                irmp_param.protocol = 0;
+                            }
+                            else
+#endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+                            {
+                                ANALYZE_PUTCHAR ('?');
+                                ANALYZE_NEWLINE ();
+                                ANALYZE_PRINTF ("error 3 RC5: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                                ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+                                irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
+                                irmp_pause_time         = 0;
+                            }
+                        }
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_FDC_PROTOCOL == 1
+                        if (irmp_param2.protocol == IRMP_FDC_PROTOCOL && irmp_pulse_time >= FDC_PULSE_LEN_MIN && irmp_pulse_time <= FDC_PULSE_LEN_MAX)
+                        {
+                            if (irmp_pause_time >= FDC_1_PAUSE_LEN_MIN && irmp_pause_time <= FDC_1_PAUSE_LEN_MAX)
+                            {
+                                ANALYZE_PRINTF ("   1 (FDC)\n");
+                                irmp_store_bit2 (1);
+                            }
+                            else if (irmp_pause_time >= FDC_0_PAUSE_LEN_MIN && irmp_pause_time <= FDC_0_PAUSE_LEN_MAX)
+                            {
+                                ANALYZE_PRINTF ("   0 (FDC)\n");
+                                irmp_store_bit2 (0);
+                            }
+
+                            if (! irmp_param.protocol)
+                            {
+                                ANALYZE_PRINTF ("Switching to FDC protocol\n");
+                                memcpy (&irmp_param, &irmp_param2, sizeof (IRMP_PARAMETER));
+                                irmp_param2.protocol = 0;
+                                irmp_tmp_address = irmp_tmp_address2;
+                                irmp_tmp_command = irmp_tmp_command2;
+                            }
+                        }
+#endif // IRMP_SUPPORT_FDC_PROTOCOL == 1
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+                        if (irmp_param2.protocol == IRMP_RCCAR_PROTOCOL && irmp_pulse_time >= RCCAR_PULSE_LEN_MIN && irmp_pulse_time <= RCCAR_PULSE_LEN_MAX)
+                        {
+                            if (irmp_pause_time >= RCCAR_1_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_1_PAUSE_LEN_MAX)
+                            {
+                                ANALYZE_PRINTF ("   1 (RCCAR)\n");
+                                irmp_store_bit2 (1);
+                            }
+                            else if (irmp_pause_time >= RCCAR_0_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_0_PAUSE_LEN_MAX)
+                            {
+                                ANALYZE_PRINTF ("   0 (RCCAR)\n");
+                                irmp_store_bit2 (0);
+                            }
+
+                            if (! irmp_param.protocol)
+                            {
+                                ANALYZE_PRINTF ("Switching to RCCAR protocol\n");
+                                memcpy (&irmp_param, &irmp_param2, sizeof (IRMP_PARAMETER));
+                                irmp_param2.protocol = 0;
+                                irmp_tmp_address = irmp_tmp_address2;
+                                irmp_tmp_command = irmp_tmp_command2;
+                            }
+                        }
+#endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
 
                         last_pause      = irmp_pause_time;
                         wait_for_space  = 0;
@@ -2197,7 +2386,10 @@ irmp_ISR (void)
 #endif
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
-                        irmp_tmp_command |= rc5_cmd_bit6;                           // store bit 6
+                        if (irmp_param.protocol == IRMP_RC5_PROTOCOL)
+                        {
+                            irmp_tmp_command |= rc5_cmd_bit6;                       // store bit 6
+                        }
 #endif
                         irmp_command = irmp_tmp_command;                            // store command
 
@@ -2254,48 +2446,99 @@ irmp_ISR (void)
 static void
 print_timings (void)
 {
-    printf ("PROTOCOL       START BIT NO.   START BIT PULSE     START BIT PAUSE\n");
+    printf ("PROTOCOL       S  S-PULSE    S-PAUSE    PULSE-0    PAUSE-0    PULSE-1    PAUSE-1\n");
     printf ("====================================================================================\n");
-    printf ("SIRCS          1               %3d - %3d           %3d - %3d\n",
-            SIRCS_START_BIT_PULSE_LEN_MIN, SIRCS_START_BIT_PULSE_LEN_MAX, SIRCS_START_BIT_PAUSE_LEN_MIN, SIRCS_START_BIT_PAUSE_LEN_MAX);
-    printf ("NEC            1               %3d - %3d           %3d - %3d\n",
-            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX, NEC_START_BIT_PAUSE_LEN_MIN, NEC_START_BIT_PAUSE_LEN_MAX);
-    printf ("NEC (rep)      1               %3d - %3d           %3d - %3d\n",
-            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX, NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX);
-    printf ("SAMSUNG        1               %3d - %3d           %3d - %3d\n",
-            SAMSUNG_START_BIT_PULSE_LEN_MIN, SAMSUNG_START_BIT_PULSE_LEN_MAX, SAMSUNG_START_BIT_PAUSE_LEN_MIN, SAMSUNG_START_BIT_PAUSE_LEN_MAX);
-    printf ("MATSUSHITA     1               %3d - %3d           %3d - %3d\n",
-            MATSUSHITA_START_BIT_PULSE_LEN_MIN, MATSUSHITA_START_BIT_PULSE_LEN_MAX, MATSUSHITA_START_BIT_PAUSE_LEN_MIN, MATSUSHITA_START_BIT_PAUSE_LEN_MAX);
-    printf ("KASEIKYO       1               %3d - %3d           %3d - %3d\n",
-            KASEIKYO_START_BIT_PULSE_LEN_MIN, KASEIKYO_START_BIT_PULSE_LEN_MAX, KASEIKYO_START_BIT_PAUSE_LEN_MIN, KASEIKYO_START_BIT_PAUSE_LEN_MAX);
-    printf ("RECS80         1               %3d - %3d           %3d - %3d\n",
-            RECS80_START_BIT_PULSE_LEN_MIN, RECS80_START_BIT_PULSE_LEN_MAX, RECS80_START_BIT_PAUSE_LEN_MIN, RECS80_START_BIT_PAUSE_LEN_MAX);
-    printf ("RC5            1               %3d - %3d           %3d - %3d\n",
-            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX, RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX);
-    printf ("DENON          1               %3d - %3d           %3d - %3d or %3d - %3d\n",
-            DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_1_PAUSE_LEN_MIN, DENON_1_PAUSE_LEN_MAX, DENON_0_PAUSE_LEN_MIN, DENON_0_PAUSE_LEN_MAX);
-    printf ("RC6            1               %3d - %3d           %3d - %3d\n",
-            RC6_START_BIT_PULSE_LEN_MIN, RC6_START_BIT_PULSE_LEN_MAX, RC6_START_BIT_PAUSE_LEN_MIN, RC6_START_BIT_PAUSE_LEN_MAX);
-    printf ("RECS80EXT      1               %3d - %3d           %3d - %3d\n",
-            RECS80EXT_START_BIT_PULSE_LEN_MIN, RECS80EXT_START_BIT_PULSE_LEN_MAX, RECS80EXT_START_BIT_PAUSE_LEN_MIN, RECS80EXT_START_BIT_PAUSE_LEN_MAX);
-    printf ("NUBERT         1               %3d - %3d           %3d - %3d\n",
-            NUBERT_START_BIT_PULSE_LEN_MIN, NUBERT_START_BIT_PULSE_LEN_MAX, NUBERT_START_BIT_PAUSE_LEN_MIN, NUBERT_START_BIT_PAUSE_LEN_MAX);
-    printf ("BANG_OLUFSEN   1               %3d - %3d           %3d - %3d\n",
-            BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MAX);
-    printf ("BANG_OLUFSEN   2               %3d - %3d           %3d - %3d\n",
-            BANG_OLUFSEN_START_BIT2_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT2_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT2_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT2_PAUSE_LEN_MAX);
-    printf ("BANG_OLUFSEN   3               %3d - %3d           %3d - %3d\n",
-            BANG_OLUFSEN_START_BIT3_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MAX);
-    printf ("BANG_OLUFSEN   4               %3d - %3d           %3d - %3d\n",
-            BANG_OLUFSEN_START_BIT4_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PULSE_LEN_MAX, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MAX);
-    printf ("GRUNDIG/NOKIA  1               %3d - %3d           %3d - %3d\n",
-            GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX);
-    printf ("SIEMENS        1               %3d - %3d           %3d - %3d\n",
-            SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX, SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX);
-    printf ("FDC           1               %3d - %3d           %3d - %3d\n",
-            FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX, FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX);
-    printf ("RCCAR          1               %3d - %3d           %3d - %3d\n",
-            RCCAR_START_BIT_PULSE_LEN_MIN, RCCAR_START_BIT_PULSE_LEN_MAX, RCCAR_START_BIT_PAUSE_LEN_MIN, RCCAR_START_BIT_PAUSE_LEN_MAX);
+    printf ("SIRCS          1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            SIRCS_START_BIT_PULSE_LEN_MIN, SIRCS_START_BIT_PULSE_LEN_MAX, SIRCS_START_BIT_PAUSE_LEN_MIN, SIRCS_START_BIT_PAUSE_LEN_MAX,
+            SIRCS_0_PULSE_LEN_MIN, SIRCS_0_PULSE_LEN_MAX, SIRCS_PAUSE_LEN_MIN, SIRCS_PAUSE_LEN_MAX,
+            SIRCS_1_PULSE_LEN_MIN, SIRCS_1_PULSE_LEN_MAX, SIRCS_PAUSE_LEN_MIN, SIRCS_PAUSE_LEN_MAX);
+
+    printf ("NEC            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX, NEC_START_BIT_PAUSE_LEN_MIN, NEC_START_BIT_PAUSE_LEN_MAX,
+            NEC_PULSE_LEN_MIN, NEC_PULSE_LEN_MAX, NEC_0_PAUSE_LEN_MIN, NEC_0_PAUSE_LEN_MAX,
+            NEC_PULSE_LEN_MIN, NEC_PULSE_LEN_MAX, NEC_1_PAUSE_LEN_MIN, NEC_1_PAUSE_LEN_MAX);
+
+    printf ("NEC (rep)      1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX, NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX,
+            NEC_PULSE_LEN_MIN, NEC_PULSE_LEN_MAX, NEC_0_PAUSE_LEN_MIN, NEC_0_PAUSE_LEN_MAX,
+            NEC_PULSE_LEN_MIN, NEC_PULSE_LEN_MAX, NEC_1_PAUSE_LEN_MIN, NEC_1_PAUSE_LEN_MAX);
+
+    printf ("SAMSUNG        1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            SAMSUNG_START_BIT_PULSE_LEN_MIN, SAMSUNG_START_BIT_PULSE_LEN_MAX, SAMSUNG_START_BIT_PAUSE_LEN_MIN, SAMSUNG_START_BIT_PAUSE_LEN_MAX,
+            SAMSUNG_PULSE_LEN_MIN, SAMSUNG_PULSE_LEN_MAX, SAMSUNG_0_PAUSE_LEN_MIN, SAMSUNG_0_PAUSE_LEN_MAX,
+            SAMSUNG_PULSE_LEN_MIN, SAMSUNG_PULSE_LEN_MAX, SAMSUNG_1_PAUSE_LEN_MIN, SAMSUNG_1_PAUSE_LEN_MAX);
+
+    printf ("MATSUSHITA     1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            MATSUSHITA_START_BIT_PULSE_LEN_MIN, MATSUSHITA_START_BIT_PULSE_LEN_MAX, MATSUSHITA_START_BIT_PAUSE_LEN_MIN, MATSUSHITA_START_BIT_PAUSE_LEN_MAX,
+            MATSUSHITA_PULSE_LEN_MIN, MATSUSHITA_PULSE_LEN_MAX, MATSUSHITA_0_PAUSE_LEN_MIN, MATSUSHITA_0_PAUSE_LEN_MAX,
+            MATSUSHITA_PULSE_LEN_MIN, MATSUSHITA_PULSE_LEN_MAX, MATSUSHITA_1_PAUSE_LEN_MIN, MATSUSHITA_1_PAUSE_LEN_MAX);
+
+    printf ("KASEIKYO       1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            KASEIKYO_START_BIT_PULSE_LEN_MIN, KASEIKYO_START_BIT_PULSE_LEN_MAX, KASEIKYO_START_BIT_PAUSE_LEN_MIN, KASEIKYO_START_BIT_PAUSE_LEN_MAX,
+            KASEIKYO_PULSE_LEN_MIN, KASEIKYO_PULSE_LEN_MAX, KASEIKYO_0_PAUSE_LEN_MIN, KASEIKYO_0_PAUSE_LEN_MAX,
+            KASEIKYO_PULSE_LEN_MIN, KASEIKYO_PULSE_LEN_MAX, KASEIKYO_1_PAUSE_LEN_MIN, KASEIKYO_1_PAUSE_LEN_MAX);
+
+    printf ("RECS80         1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            RECS80_START_BIT_PULSE_LEN_MIN, RECS80_START_BIT_PULSE_LEN_MAX, RECS80_START_BIT_PAUSE_LEN_MIN, RECS80_START_BIT_PAUSE_LEN_MAX,
+            RECS80_PULSE_LEN_MIN, RECS80_PULSE_LEN_MAX, RECS80_0_PAUSE_LEN_MIN, RECS80_0_PAUSE_LEN_MAX,
+            RECS80_PULSE_LEN_MIN, RECS80_PULSE_LEN_MAX, RECS80_1_PAUSE_LEN_MIN, RECS80_1_PAUSE_LEN_MAX);
+
+    printf ("RC5            1  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX, RC5_START_BIT_LEN_MIN, RC5_START_BIT_LEN_MAX,
+            RC5_BIT_LEN_MIN, RC5_BIT_LEN_MAX);
+
+    printf ("DENON          1  %3d - %3d             %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX,
+            DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_0_PAUSE_LEN_MIN, DENON_0_PAUSE_LEN_MAX,
+            DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_1_PAUSE_LEN_MIN, DENON_1_PAUSE_LEN_MAX);
+
+    printf ("RC6            1  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            RC6_START_BIT_PULSE_LEN_MIN, RC6_START_BIT_PULSE_LEN_MAX, RC6_START_BIT_PAUSE_LEN_MIN, RC6_START_BIT_PAUSE_LEN_MAX,
+            RC6_BIT_LEN_MIN, RC6_BIT_LEN_MAX);
+
+    printf ("RECS80EXT      1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            RECS80EXT_START_BIT_PULSE_LEN_MIN, RECS80EXT_START_BIT_PULSE_LEN_MAX, RECS80EXT_START_BIT_PAUSE_LEN_MIN, RECS80EXT_START_BIT_PAUSE_LEN_MAX,
+            RECS80EXT_PULSE_LEN_MIN, RECS80EXT_PULSE_LEN_MAX, RECS80EXT_0_PAUSE_LEN_MIN, RECS80EXT_0_PAUSE_LEN_MAX,
+            RECS80EXT_PULSE_LEN_MIN, RECS80EXT_PULSE_LEN_MAX, RECS80EXT_1_PAUSE_LEN_MIN, RECS80EXT_1_PAUSE_LEN_MAX);
+
+    printf ("NUBERT         1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            NUBERT_START_BIT_PULSE_LEN_MIN, NUBERT_START_BIT_PULSE_LEN_MAX, NUBERT_START_BIT_PAUSE_LEN_MIN, NUBERT_START_BIT_PAUSE_LEN_MAX,
+            NUBERT_0_PULSE_LEN_MIN, NUBERT_0_PULSE_LEN_MAX, NUBERT_0_PAUSE_LEN_MIN, NUBERT_0_PAUSE_LEN_MAX,
+            NUBERT_1_PULSE_LEN_MIN, NUBERT_1_PULSE_LEN_MAX, NUBERT_1_PAUSE_LEN_MIN, NUBERT_1_PAUSE_LEN_MAX);
+
+    printf ("BANG_OLUFSEN   1  %3d - %3d  %3d - %3d\n",
+            BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX,
+            BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MAX);
+
+    printf ("BANG_OLUFSEN   3  %3d - %3d  %3d - %3d\n",
+            BANG_OLUFSEN_START_BIT3_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PULSE_LEN_MAX,
+            BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MAX);
+
+    printf ("BANG_OLUFSEN   4  %3d - %3d  %3d - %3d\n",
+            BANG_OLUFSEN_START_BIT4_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PULSE_LEN_MAX,
+            BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MAX);
+
+    printf ("BANG_OLUFSEN   -                        %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            BANG_OLUFSEN_PULSE_LEN_MIN, BANG_OLUFSEN_PULSE_LEN_MAX, BANG_OLUFSEN_0_PAUSE_LEN_MIN, BANG_OLUFSEN_0_PAUSE_LEN_MAX,
+            BANG_OLUFSEN_PULSE_LEN_MIN, BANG_OLUFSEN_PULSE_LEN_MAX, BANG_OLUFSEN_1_PAUSE_LEN_MIN, BANG_OLUFSEN_1_PAUSE_LEN_MAX);
+
+    printf ("GRUNDIG/NOKIA  1  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX,
+            GRUNDIG_OR_NOKIA_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_BIT_LEN_MAX);
+
+    printf ("SIEMENS        1  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX, SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX,
+            SIEMENS_BIT_LEN_MIN, SIEMENS_BIT_LEN_MAX);
+
+    printf ("FDC            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX, FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX,
+            FDC_PULSE_LEN_MIN, FDC_PULSE_LEN_MAX, FDC_0_PAUSE_LEN_MIN, FDC_0_PAUSE_LEN_MAX,
+            FDC_PULSE_LEN_MIN, FDC_PULSE_LEN_MAX, FDC_1_PAUSE_LEN_MIN, FDC_1_PAUSE_LEN_MAX);
+
+    printf ("RCCAR          1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            RCCAR_START_BIT_PULSE_LEN_MIN, RCCAR_START_BIT_PULSE_LEN_MAX, RCCAR_START_BIT_PAUSE_LEN_MIN, RCCAR_START_BIT_PAUSE_LEN_MAX,
+            RCCAR_PULSE_LEN_MIN, RCCAR_PULSE_LEN_MAX, RCCAR_0_PAUSE_LEN_MIN, RCCAR_0_PAUSE_LEN_MAX,
+            RCCAR_PULSE_LEN_MIN, RCCAR_PULSE_LEN_MAX, RCCAR_1_PAUSE_LEN_MIN, RCCAR_1_PAUSE_LEN_MAX);
 }
 
 void
@@ -2516,7 +2759,7 @@ main (int argc, char ** argv)
 
             if (! analyze)
             {
-                for (i = 0; i < (int) ((8000.0 * F_INTERRUPTS) / 10000); i++)                                  // newline: long pause of 800 msec
+                for (i = 0; i < (int) ((8000.0 * F_INTERRUPTS) / 10000); i++)               // newline: long pause of 800 msec
                 {
                     (void) irmp_ISR ();
                 }

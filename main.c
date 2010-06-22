@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.6 2010/06/10 10:09:47 fm Exp $
+ * $Id: main.c,v 1.7 2010/06/22 08:33:21 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -72,7 +72,7 @@ timer_init (void)
   TIMSK  = 1 << OCIE1A;                                                     // OCIE1A: Interrupt by timer compare
 #else
   TIMSK1  = 1 << OCIE1A;                                                    // OCIE1A: Interrupt by timer compare
-#endif	// __AVR...
+#endif  // __AVR...
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
