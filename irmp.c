@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.62 2010/06/23 10:48:58 fm Exp $
+ * $Id: irmp.c,v 1.63 2010/06/23 12:05:36 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -2660,21 +2660,24 @@ print_spectrum (char * text, int * buf, int is_pulse)
 #define KEY_STOP            0x86            // keycode = 0x0076
 #define KEY_MAIL            0x87            // keycode = 0x0077
 #define KEY_FAVORITES       0x88            // keycode = 0x0078
-#define KEY_NEW_PAGE        0x99            // keycode = 0x0079
-#define KEY_SETUP           0x9A            // keycode = 0x007a
-#define KEY_FONT            0x9B            // keycode = 0x007b
-#define KEY_ON_OFF          0x9C            // keycode = 0x007c
+#define KEY_NEW_PAGE        0x89            // keycode = 0x0079
+#define KEY_SETUP           0x8A            // keycode = 0x007a
+#define KEY_FONT            0x8B            // keycode = 0x007b
+#define KEY_PRINT           0x8C            // keycode = 0x007c
+#define KEY_ON_OFF          0x8E            // keycode = 0x007c
 
-#define KEY_INSERT          0xA0            // keycode = 0x004b
-#define KEY_DELETE          0xA1            // keycode = 0x004c
-#define KEY_LEFT            0xA2            // keycode = 0x004f
-#define KEY_HOME            0xA3            // keycode = 0x0050
-#define KEY_END             0xA4            // keycode = 0x0051
-#define KEY_UP              0xA5            // keycode = 0x0053
-#define KEY_DOWN            0xA6            // keycode = 0x0054
-#define KEY_PAGE_UP         0xA7            // keycode = 0x0055
-#define KEY_PAGE_DOWN       0xA8            // keycode = 0x0056
-#define KEY_RIGHT           0xA9            // keycode = 0x0059
+#define KEY_INSERT          0x90            // keycode = 0x004b
+#define KEY_DELETE          0x91            // keycode = 0x004c
+#define KEY_LEFT            0x92            // keycode = 0x004f
+#define KEY_HOME            0x93            // keycode = 0x0050
+#define KEY_END             0x94            // keycode = 0x0051
+#define KEY_UP              0x95            // keycode = 0x0053
+#define KEY_DOWN            0x96            // keycode = 0x0054
+#define KEY_PAGE_UP         0x97            // keycode = 0x0055
+#define KEY_PAGE_DOWN       0x98            // keycode = 0x0056
+#define KEY_RIGHT           0x99            // keycode = 0x0059
+#define KEY_MOUSE_1         0x9E            // keycode = 0x0400
+#define KEY_MOUSE_2         0x9F            // keycode = 0x0800
 
 static uint8_t
 get_fdc_key (uint16_t cmd)
@@ -2720,6 +2723,8 @@ get_fdc_key (uint16_t cmd)
         case 0x0055: key = KEY_PAGE_UP;             break;
         case 0x0056: key = KEY_PAGE_DOWN;           break;
         case 0x0059: key = KEY_RIGHT;               break;
+        case 0x0400: key = KEY_MOUSE_1;             break;
+        case 0x0800: key = KEY_MOUSE_2;             break;
 
         default:
         {
@@ -2751,6 +2756,10 @@ get_fdc_key (uint16_t cmd)
                         if (key_table[cmd] >= 'a' && key_table[cmd] <= 'z')
                         {
                             key = key_table[cmd] - 'a' + 1;
+                        }
+                        else
+                        {
+                            key = key_table[cmd];
                         }
                     }
                     else
@@ -2957,10 +2966,52 @@ main (int argc, char ** argv)
 
                 if (irmp_data.protocol == IRMP_FDC_PROTOCOL && (key = get_fdc_key (irmp_data.command)) != 0)
                 {
-                    if (key >= 32 && key < 0x7F)
+                    if ((key >= 0x20 && key < 0x7F) || key >= 0xA0)
                     {
-                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = %c\n",
+                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = '%c'\n",
                                 irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, key);
+                    }
+                    else if (key == '\r' || key == '\t' || key == KEY_ESCAPE || (key >= 0x80 && key <= 0x9F))                 // function keys
+                    {
+                        char * p = (char *) NULL;
+
+                        switch (key)
+                        {
+                            case '\t'                : p = "TAB";           break;
+                            case '\r'                : p = "CR";            break;
+                            case KEY_ESCAPE          : p = "ESCAPE";        break;
+                            case KEY_MENUE           : p = "MENUE";         break;
+                            case KEY_BACK            : p = "BACK";          break;
+                            case KEY_FORWARD         : p = "FORWARD";       break;
+                            case KEY_ADDRESS         : p = "ADDRESS";       break;
+                            case KEY_WINDOW          : p = "WINDOW";        break;
+                            case KEY_1ST_PAGE        : p = "1ST_PAGE";      break;
+                            case KEY_STOP            : p = "STOP";          break;
+                            case KEY_MAIL            : p = "MAIL";          break;
+                            case KEY_FAVORITES       : p = "FAVORITES";     break;
+                            case KEY_NEW_PAGE        : p = "NEW_PAGE";      break;
+                            case KEY_SETUP           : p = "SETUP";         break;
+                            case KEY_FONT            : p = "FONT";          break;
+                            case KEY_PRINT           : p = "PRINT";         break;
+                            case KEY_ON_OFF          : p = "ON_OFF";        break;
+
+                            case KEY_INSERT          : p = "INSERT";        break;
+                            case KEY_DELETE          : p = "DELETE";        break;
+                            case KEY_LEFT            : p = "LEFT";          break;
+                            case KEY_HOME            : p = "HOME";          break;
+                            case KEY_END             : p = "END";           break;
+                            case KEY_UP              : p = "UP";            break;
+                            case KEY_DOWN            : p = "DOWN";          break;
+                            case KEY_PAGE_UP         : p = "PAGE_UP";       break;
+                            case KEY_PAGE_DOWN       : p = "PAGE_DOWN";     break;
+                            case KEY_RIGHT           : p = "RIGHT";         break;
+                            case KEY_MOUSE_1         : p = "KEY_MOUSE_1";   break;
+                            case KEY_MOUSE_2         : p = "KEY_MOUSE_2";   break;
+                            default                  : p = "<UNKNWON>";     break;
+                        }
+
+                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = %s\n",
+                                irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, p);
                     }
                     else
                     {
