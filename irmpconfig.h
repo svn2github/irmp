@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.27 2010/06/22 12:39:51 fm Exp $
+ * $Id: irmpconfig.h,v 1.28 2010/06/22 15:41:38 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -18,7 +18,9 @@
 #define _IRMPCONFIG_H_
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change F_INTERRUPTS if you change the number of interrupts per second, F_INTERRUPTS should be in the range from 10000 to 15000
+ * Change F_INTERRUPTS if you change the number of interrupts per second,
+ * Normally, F_INTERRUPTS should be in the range from 10000 to 15000.
+ * A value above 15000 costs additional program space, absolut maximum value is 20000.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef F_INTERRUPTS
@@ -28,35 +30,56 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change settings from 1 to 0 if you want to disable one or more decoders.
  * This saves program space.
+ *
  * 1 enable  decoder
  * 0 disable decoder
+ *
+ * If you want to use FDC or RCCAR simultaneous with RC5 protocol, additional program space is required.
+ * If you don't need RC5 when using FDC/RCCAR, you should disable RC5.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // flag: support SIRCS                 uses ~100 bytes
+
+// Standard protocols: default is enabled. Change to 0 to save program space:
+
+#define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // flag: support Sony SIRCS            uses ~100 bytes
 #define IRMP_SUPPORT_NEC_PROTOCOL               1       // flag: support NEC + APPLE           uses ~250 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // flag: support Samsung + Samsung32   uses ~250 bytes
 #define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // flag: support Matsushita            uses  ~50 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // flag: support Kaseikyo              uses  ~50 bytes
-#define IRMP_SUPPORT_RECS80_PROTOCOL            1       // flag: support RECS80                uses  ~50 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               1       // flag: support RC5                   uses ~250 bytes
 #define IRMP_SUPPORT_DENON_PROTOCOL             1       // flag: support DENON                 uses ~250 bytes
-#define IRMP_SUPPORT_RC6_PROTOCOL               1       // flag: support RC6                   uses ~200 bytes
-#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         1       // flag: support RECS80EXT             uses  ~50 bytes
-#define IRMP_SUPPORT_NUBERT_PROTOCOL            1       // flag: support NUBERT                uses  ~50 bytes
-#define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // flag: support Bang & Olufsen        uses ~200 bytes
-#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // flag: support Grundig               uses ~150 bytes
-#define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // flag: support Nokia                 uses ~150 bytes
+
+
+// Non-standard protocols: default is disabled. Change to 1 to enable decoder:
+
+#define IRMP_SUPPORT_RC5_PROTOCOL               0       // flag: support RC5                   uses ~250 bytes
+#define IRMP_SUPPORT_RC6_PROTOCOL               0       // flag: support RC6                   uses ~200 bytes
+#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           0       // flag: support Grundig               uses ~150 bytes
+#define IRMP_SUPPORT_NOKIA_PROTOCOL             0       // flag: support Nokia                 uses ~150 bytes
+#define IRMP_SUPPORT_NUBERT_PROTOCOL            0       // flag: support NUBERT                uses  ~50 bytes
+#define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      0       // flag: support Bang & Olufsen        uses ~200 bytes
 #define IRMP_SUPPORT_FDC_PROTOCOL               0       // flag: support FDC3402 keyboard      uses  ~50/400 bytes
 #define IRMP_SUPPORT_RCCAR_PROTOCOL             0       // flag: support RC car                uses ~150/500 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * THE FOLLOWING DECODERS WORK ONLY FOR F_INTERRUPTS > 14500!
+ * THE FOLLOWING DECODERS WORK ONLY FOR F_INTERRUPTS >= 14500!
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if F_INTERRUPTS >= 14500
-#define IRMP_SUPPORT_SIEMENS_PROTOCOL           1       // flag: support Siemens Gigaset       uses ~150 bytes
+#define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // flag: support Siemens Gigaset       uses ~150 bytes
 #else
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#endif
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * THE FOLLOWING DECODERS WORK ONLY FOR F_INTERRUPTS >= 20000!
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#if F_INTERRUPTS >= 20000
+#define IRMP_SUPPORT_RECS80_PROTOCOL            0       // flag: support RECS80                uses  ~50 bytes
+#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         0       // flag: support RECS80EXT             uses  ~50 bytes
+#else
+#define IRMP_SUPPORT_RECS80_PROTOCOL            0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         0       // DO NOT CHANGE! F_INTERRUPTS too low!
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

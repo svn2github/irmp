@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.37 2010/06/22 11:55:45 fm Exp $
+ * $Id: irmp.h,v 1.38 2010/06/23 07:05:03 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -291,9 +291,9 @@ extern "C"
 #define FDC_0_PAUSE_TIME                          220.0e-6                      //  220 usec pause
 #define FDC_FRAME_REPEAT_PAUSE_TIME                60.0e-3                      // frame repeat after 60ms
 #define FDC_ADDRESS_OFFSET                       0                              // skip 0 bits
-#define FDC_ADDRESS_LEN                          8                              // read 8 address bits
-#define FDC_COMMAND_OFFSET                      24                              // skip 24 bits (8 address bits + 12 status bits + 4 repeat bits)
-#define FDC_COMMAND_LEN                          8                              // read 8 bits
+#define FDC_ADDRESS_LEN                         14                              // read 14 address bits, but use only 6, shift 8 into command
+#define FDC_COMMAND_OFFSET                      20                              // skip 20 bits
+#define FDC_COMMAND_LEN                         12                              // read 12 bits
 #define FDC_COMPLETE_DATA_LEN                   40                              // complete length
 #define FDC_STOP_BIT                            1                               // has stop bit
 #define FDC_LSB                                 1                               // LSB...MSB

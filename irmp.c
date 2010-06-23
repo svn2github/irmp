@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.59 2010/06/22 12:39:27 fm Exp $
+ * $Id: irmp.c,v 1.62 2010/06/23 10:48:58 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -314,7 +314,9 @@ typedef unsigned int16  uint16_t;
 #endif // unix
 
 #include "irmp.h"
+#ifndef IRMP_USE_AS_LIB
 #include "irmpconfig.h"
+#endif
 
 #if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRMP_SUPPORT_NOKIA_PROTOCOL == 1
 #define IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL  1
@@ -1300,6 +1302,9 @@ static uint8_t    irmp_bit;                                                     
  *  @param    value to store: 0 or 1
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+// verhindert, dass irmp_store_bit() inline compiliert wird:
+// static void irmp_store_bit (uint8_t) __attribute__ ((noinline));
+
 static void
 irmp_store_bit (uint8_t value)
 {
@@ -1774,6 +1779,7 @@ irmp_ISR (void)
                         }
 #endif
 
+
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_RC6_PROTOCOL)
                         {
@@ -1805,7 +1811,7 @@ irmp_ISR (void)
                     irmp_bit = 0;
 
 #if IRMP_SUPPORT_MANCHESTER == 1
-                    if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) && irmp_param.protocol != IRMP_RC6_PROTOCOL)    // manchester, but not rc6
+                    if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) && irmp_param.protocol != IRMP_RC6_PROTOCOL)    // Manchester, but not RC6
                     {
                         if (irmp_pause_time > irmp_param.pulse_1_len_max && irmp_pause_time <= 2 * irmp_param.pulse_1_len_max)
                         {
@@ -1962,10 +1968,10 @@ irmp_ISR (void)
                     ANALYZE_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
 
 #if IRMP_SUPPORT_MANCHESTER == 1
-                    if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER))                                     // manchester
+                    if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER))                                     // Manchester
                     {
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
-                        if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit >= 3 && irmp_bit <= 5)         // special bits of rc6
+                        if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit >= 3 && irmp_bit <= 5)         // special bits of RC6
                         {
                             if (irmp_pulse_time > RC6_TOGGLE_BIT_LEN_MAX && irmp_pause_time > RC6_TOGGLE_BIT_LEN_MAX)
                             {
@@ -2035,7 +2041,7 @@ irmp_ISR (void)
                                  (irmp_pause_time >= FDC_0_PAUSE_LEN_MIN && irmp_pause_time <= FDC_0_PAUSE_LEN_MAX)))
                             {
                                 ANALYZE_PUTCHAR ('?');
-                                irmp_param.protocol = 0;
+                                irmp_param.protocol = 0;                // switch to FDC, see below
                             }
                             else
 #endif // IRMP_SUPPORT_FDC_PROTOCOL == 1
@@ -2046,7 +2052,7 @@ irmp_ISR (void)
                                  (irmp_pause_time >= RCCAR_0_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_0_PAUSE_LEN_MAX)))
                             {
                                 ANALYZE_PUTCHAR ('?');
-                                irmp_param.protocol = 0;
+                                irmp_param.protocol = 0;                // switch to RCCAR, see below
                             }
                             else
 #endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
@@ -2380,6 +2386,23 @@ irmp_ISR (void)
                         }
 #endif // IRMP_SUPPORT_NEC_PROTOCOL
                         irmp_protocol = irmp_param.protocol;
+
+#if IRMP_SUPPORT_FDC_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_FDC_PROTOCOL)
+                        {
+                            if (irmp_tmp_command & 0x000F)                          // released key?
+                            {
+                                irmp_tmp_command = (irmp_tmp_command >> 4) | 0x80;  // yes, set bit 7
+                            }
+                            else
+                            {
+                                irmp_tmp_command >>= 4;                             // no, it's a pressed key
+                            }
+                            irmp_tmp_command |= (irmp_tmp_address << 2) & 0x0F00;   // 000000CCCCAAAAAA -> 0000CCCC00000000
+                            irmp_tmp_address &= 0x003F;
+                        }
+#endif
+
                         irmp_address = irmp_tmp_address;                            // store address
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
                         last_irmp_address = irmp_tmp_address;                       // store as last address, too
@@ -2621,6 +2644,133 @@ print_spectrum (char * text, int * buf, int is_pulse)
     }
 }
 
+#define STATE_LEFT_SHIFT    0x01
+#define STATE_RIGHT_SHIFT   0x02
+#define STATE_LEFT_CTRL     0x04
+#define STATE_LEFT_ALT      0x08
+#define STATE_RIGHT_ALT     0x10
+
+#define KEY_ESCAPE          0x1B            // keycode = 0x006e
+#define KEY_MENUE           0x80            // keycode = 0x0070
+#define KEY_BACK            0x81            // keycode = 0x0071
+#define KEY_FORWARD         0x82            // keycode = 0x0072
+#define KEY_ADDRESS         0x83            // keycode = 0x0073
+#define KEY_WINDOW          0x84            // keycode = 0x0074
+#define KEY_1ST_PAGE        0x85            // keycode = 0x0075
+#define KEY_STOP            0x86            // keycode = 0x0076
+#define KEY_MAIL            0x87            // keycode = 0x0077
+#define KEY_FAVORITES       0x88            // keycode = 0x0078
+#define KEY_NEW_PAGE        0x99            // keycode = 0x0079
+#define KEY_SETUP           0x9A            // keycode = 0x007a
+#define KEY_FONT            0x9B            // keycode = 0x007b
+#define KEY_ON_OFF          0x9C            // keycode = 0x007c
+
+#define KEY_INSERT          0xA0            // keycode = 0x004b
+#define KEY_DELETE          0xA1            // keycode = 0x004c
+#define KEY_LEFT            0xA2            // keycode = 0x004f
+#define KEY_HOME            0xA3            // keycode = 0x0050
+#define KEY_END             0xA4            // keycode = 0x0051
+#define KEY_UP              0xA5            // keycode = 0x0053
+#define KEY_DOWN            0xA6            // keycode = 0x0054
+#define KEY_PAGE_UP         0xA7            // keycode = 0x0055
+#define KEY_PAGE_DOWN       0xA8            // keycode = 0x0056
+#define KEY_RIGHT           0xA9            // keycode = 0x0059
+
+static uint8_t
+get_fdc_key (uint16_t cmd)
+{
+    static uint8_t key_table[128] =
+    {
+     // 0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+        0,  '^', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß', '´',  0,  '\b',
+       '\t','q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', 'ü', '+',  0,   0,  'a',
+       's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä', '#',  '\r', 0,  '<', 'y', 'x',
+       'c', 'v', 'b', 'n', 'm', ',', '.', '-',  0,   0,   0,   0,   0,  ' ',  0,   0,
+
+        0,  '°', '!', '"', '§', '$', '%', '&', '/', '(', ')', '=', '?', '`',  0,  '\b',
+       '\t','Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü', '*',  0,   0,  'A',
+       'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä', '\'','\r', 0,  '>', 'Y', 'X',
+       'C', 'V', 'B', 'N', 'M', ';', ':', '_',  0,   0,   0,   0,   0,  ' ',  0,   0
+    };
+    static uint8_t state;
+
+    uint8_t key = 0;
+
+    switch (cmd)
+    {
+        case 0x002C: state |=  STATE_LEFT_SHIFT;    break;              // pressed left shift
+        case 0x00AC: state &= ~STATE_LEFT_SHIFT;    break;              // released left shift
+        case 0x0039: state |=  STATE_RIGHT_SHIFT;   break;              // pressed right shift
+        case 0x00B9: state &= ~STATE_RIGHT_SHIFT;   break;              // released right shift
+        case 0x003A: state |=  STATE_LEFT_CTRL;     break;              // pressed left ctrl
+        case 0x00BA: state &= ~STATE_LEFT_CTRL;     break;              // released left ctrl
+        case 0x003C: state |=  STATE_LEFT_ALT;      break;              // pressed left alt
+        case 0x00BC: state &= ~STATE_LEFT_ALT;      break;              // released left alt
+        case 0x003E: state |=  STATE_RIGHT_ALT;     break;              // pressed left alt
+        case 0x00BE: state &= ~STATE_RIGHT_ALT;     break;              // released left alt
+
+        case 0x006e: key = KEY_ESCAPE;              break;
+        case 0x004b: key = KEY_INSERT;              break;
+        case 0x004c: key = KEY_DELETE;              break;
+        case 0x004f: key = KEY_LEFT;                break;
+        case 0x0050: key = KEY_HOME;                break;
+        case 0x0051: key = KEY_END;                 break;
+        case 0x0053: key = KEY_UP;                  break;
+        case 0x0054: key = KEY_DOWN;                break;
+        case 0x0055: key = KEY_PAGE_UP;             break;
+        case 0x0056: key = KEY_PAGE_DOWN;           break;
+        case 0x0059: key = KEY_RIGHT;               break;
+
+        default:
+        {
+            if (!(cmd & 0x80))                      // pressed key
+            {
+                if (cmd >= 0x70 && cmd <= 0x7F)     // function keys
+                {
+                    key = cmd + 0x10;               // 7x -> 8x
+                }
+                else if (cmd < 64)                  // key listed in key_table
+                {
+                    if (state & (STATE_LEFT_ALT | STATE_RIGHT_ALT))
+                    {
+                        switch (cmd)
+                        {
+                            case 0x0003: key = '²';     break;
+                            case 0x0008: key = '{';     break;
+                            case 0x0009: key = '[';     break;
+                            case 0x000A: key = ']';     break;
+                            case 0x000B: key = '}';     break;
+                            case 0x000C: key = '\\';    break;
+                            case 0x001C: key = '~';     break;
+                            case 0x002D: key = '|';     break;
+                            case 0x0034: key = 'µ';     break;
+                        }
+                    }
+                    else if (state & (STATE_LEFT_CTRL))
+                    {
+                        if (key_table[cmd] >= 'a' && key_table[cmd] <= 'z')
+                        {
+                            key = key_table[cmd] - 'a' + 1;
+                        }
+                    }
+                    else
+                    {
+                        int idx = cmd + ((state & (STATE_LEFT_SHIFT | STATE_RIGHT_SHIFT)) ? 64 : 0);
+
+                        if (key_table[idx])
+                        {
+                            key = key_table[idx];
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    return (key);
+}
+
 int
 main (int argc, char ** argv)
 {
@@ -2801,9 +2951,28 @@ main (int argc, char ** argv)
 
             if (irmp_get_data (&irmp_data))
             {
+                uint8_t key;
+
                 ANALYZE_ONLY_NORMAL_PUTCHAR (' ');
-                printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x\n",
-                        irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags);
+
+                if (irmp_data.protocol == IRMP_FDC_PROTOCOL && (key = get_fdc_key (irmp_data.command)) != 0)
+                {
+                    if (key >= 32 && key < 0x7F)
+                    {
+                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = %c\n",
+                                irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, key);
+                    }
+                    else
+                    {
+                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x\n",
+                                irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key);
+                    }
+                }
+                else
+                {
+                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x\n",
+                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags);
+                }
             }
         }
     }
