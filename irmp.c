@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.63 2010/06/23 12:05:36 fm Exp $
+ * $Id: irmp.c,v 1.64 2010/06/25 09:04:43 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -236,6 +236,18 @@
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
+ *   SIEMENS:
+ *   --------
+ *
+ *   SIEMENS frame:  1 start bit + 22 data bits + no stop bit
+ *   SIEMENS data:   13 address bits + 1 repeat bit + 7 data bits + 1 unknown bit
+ *
+ *   start  bit           data "0":            data "1":
+ *   -------_______       _______-------       -------_______
+ *    250us  250us         250us  250us         250us  250us
+ *
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ *
  *   PANASONIC (older protocol, yet not implemented, see also MATSUSHITA, timing very similar)
  *   -----------------------------------------------------------------------------------------
  *
@@ -334,13 +346,12 @@ typedef unsigned int16  uint16_t;
 #define IRMP_TIMEOUT_TIME_MS                    16500L                      // timeout after 16.5 ms darkness
 
 #if (F_INTERRUPTS * IRMP_TIMEOUT_TIME_MS) / 1000000 >= 254
-#define IRMP_TIMEOUT_LEN                        (uint16_t)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
 typedef uint16_t    PAUSE_LEN;
 #else
-#define IRMP_TIMEOUT_LEN                        (uint8_t)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
 typedef uint8_t     PAUSE_LEN;
 #endif
 
+#define IRMP_TIMEOUT_LEN                        (PAUSE_LEN)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
 #define IRMP_KEY_REPETITION_LEN                 (uint16_t)(F_INTERRUPTS * 150.0e-3 + 0.5)  // autodetect key repetition within 150 msec
 
 #define MIN_TOLERANCE_00                        1.0                           // -0%
@@ -494,7 +505,7 @@ typedef uint8_t     PAUSE_LEN;
 #define BANG_OLUFSEN_START_BIT3_PULSE_LEN_MIN   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define BANG_OLUFSEN_START_BIT3_PULSE_LEN_MAX   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MIN   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MAX   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1) // 10% is too big (uint8_t)
+#define BANG_OLUFSEN_START_BIT3_PAUSE_LEN_MAX   ((PAUSE_LEN)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT3_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1) // value must be below IRMP_TIMEOUT
 #define BANG_OLUFSEN_START_BIT4_PULSE_LEN_MIN   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT4_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define BANG_OLUFSEN_START_BIT4_PULSE_LEN_MAX   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT4_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define BANG_OLUFSEN_START_BIT4_PAUSE_LEN_MIN   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT4_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
@@ -2453,22 +2464,31 @@ irmp_ISR (void)
 
 #ifdef ANALYZE
 
-// main function - for unix/linux + windows only!
-// AVR: see main.c!
-// Compile it under linux with:
-// cc irmp.c -o irmp
-//
-// usage: ./irmp [-v|-s|-a|-l|-p] < file
-// options:
-//   -v verbose
-//   -s silent
-//   -a analyze
-//   -l list pulse/pauses
-//   -p print timings
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * main functions - for Unix/Linux + Windows only!
+ *
+ * AVR: see main.c!
+ *
+ * Compile it under linux with:
+ * cc irmp.c -o irmp
+ *
+ * usage: ./irmp [-v|-s|-a|-l|-p] < file
+ *
+ * options:
+ *   -v verbose
+ *   -s silent
+ *   -a analyze
+ *   -l list pulse/pauses
+ *   -p print timings
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
 
 static void
 print_timings (void)
 {
+    printf ("IRMP_TIMEOUT_LEN:        %d\n", IRMP_TIMEOUT_LEN);
+    printf ("IRMP_KEY_REPETITION_LEN  %d\n", IRMP_KEY_REPETITION_LEN);
+    puts ("");
     printf ("PROTOCOL       S  S-PULSE    S-PAUSE    PULSE-0    PAUSE-0    PULSE-1    PAUSE-1\n");
     printf ("====================================================================================\n");
     printf ("SIRCS          1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
@@ -2532,6 +2552,10 @@ print_timings (void)
     printf ("BANG_OLUFSEN   1  %3d - %3d  %3d - %3d\n",
             BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX,
             BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MAX);
+
+    printf ("BANG_OLUFSEN   2  %3d - %3d  %3d - %3d\n",
+            BANG_OLUFSEN_START_BIT2_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT2_PULSE_LEN_MAX,
+            BANG_OLUFSEN_START_BIT2_PAUSE_LEN_MIN, BANG_OLUFSEN_START_BIT2_PAUSE_LEN_MAX);
 
     printf ("BANG_OLUFSEN   3  %3d - %3d  %3d - %3d\n",
             BANG_OLUFSEN_START_BIT3_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT3_PULSE_LEN_MAX,
