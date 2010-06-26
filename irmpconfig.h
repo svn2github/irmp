@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.30 2010/06/25 09:04:43 fm Exp $
+ * $Id: irmpconfig.h,v 1.34 2010/06/26 18:11:08 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -89,14 +89,20 @@
 
 #if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 && F_INTERRUPTS < 15000
 #warning F_INTERRUPTS too low, SIEMENS protocol disabled (should be at least 15000)
+#undef IRMP_SUPPORT_SIEMENS_PROTOCOL
+#define IRMP_SUPPORT_SIEMENS_PROTOCOL           0
 #endif
 
 #if IRMP_SUPPORT_RECS80_PROTOCOL == 1 && F_INTERRUPTS < 20000
 #warning F_INTERRUPTS too low, RECS80 protocol disabled (should be at least 20000)
+#undef IRMP_SUPPORT_RECS80_PROTOCOL
+#define IRMP_SUPPORT_RECS80_PROTOCOL            0
 #endif
 
 #if IRMP_SUPPORT_RECS80EXT_PROTOCOL == 1 && F_INTERRUPTS < 20000
 #warning F_INTERRUPTS too low, RECS80EXT protocol disabled (should be at least 20000)
+#undef IRMP_SUPPORT_RECS80EXT_PROTOCOL
+#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         0
 #endif
 
 #endif /* _WC_IRMPCONFIG_H_ */

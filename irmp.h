@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.38 2010/06/23 07:05:03 fm Exp $
+ * $Id: irmp.h,v 1.39 2010/06/25 13:18:36 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -26,25 +26,25 @@ extern "C"
  * IR protocols
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRMP_SIRCS_PROTOCOL                      1                              // Sony
-#define IRMP_NEC_PROTOCOL                        2                              // NEC, Pioneer, JVC, Toshiba, NoName etc.
-#define IRMP_SAMSUNG_PROTOCOL                    3                              // Samsung
-#define IRMP_MATSUSHITA_PROTOCOL                 4                              // Matsushita
-#define IRMP_KASEIKYO_PROTOCOL                   5                              // Kaseikyo (Panasonic etc)
-#define IRMP_RECS80_PROTOCOL                     6                              // Philips, Thomson, Nordmende, Telefunken, Saba
-#define IRMP_RC5_PROTOCOL                        7                              // Philips etc
-#define IRMP_DENON_PROTOCOL                      8                              // Denon
-#define IRMP_RC6_PROTOCOL                        9                              // Philips etc
-#define IRMP_SAMSUNG32_PROTOCOL                 10                              // Samsung32: no sync pulse at bit 16, length 32 instead of 37
-#define IRMP_APPLE_PROTOCOL                     11                              // Apple, very similar to NEC
-#define IRMP_RECS80EXT_PROTOCOL                 12                              // Philips, Technisat, Thomson, Nordmende, Telefunken, Saba
-#define IRMP_NUBERT_PROTOCOL                    13                              // Nubert
-#define IRMP_BANG_OLUFSEN_PROTOCOL              14                              // Bang & Olufsen
-#define IRMP_GRUNDIG_PROTOCOL                   15                              // Grundig
-#define IRMP_NOKIA_PROTOCOL                     16                              // Nokia
-#define IRMP_SIEMENS_PROTOCOL                   17                              // Siemens, e.g. Gigaset
-#define IRMP_FDC_PROTOCOL                       18                              // FDC keyboard
-#define IRMP_RCCAR_PROTOCOL                     19                              // RC Car
+#define IRMP_SIRCS_PROTOCOL                      1              // Sony
+#define IRMP_NEC_PROTOCOL                        2              // NEC, Pioneer, JVC, Toshiba, NoName etc.
+#define IRMP_SAMSUNG_PROTOCOL                    3              // Samsung
+#define IRMP_MATSUSHITA_PROTOCOL                 4              // Matsushita
+#define IRMP_KASEIKYO_PROTOCOL                   5              // Kaseikyo (Panasonic etc)
+#define IRMP_RECS80_PROTOCOL                     6              // Philips, Thomson, Nordmende, Telefunken, Saba
+#define IRMP_RC5_PROTOCOL                        7              // Philips etc
+#define IRMP_DENON_PROTOCOL                      8              // Denon
+#define IRMP_RC6_PROTOCOL                        9              // Philips etc
+#define IRMP_SAMSUNG32_PROTOCOL                 10              // Samsung32: no sync pulse at bit 16, length 32 instead of 37
+#define IRMP_APPLE_PROTOCOL                     11              // Apple, very similar to NEC
+#define IRMP_RECS80EXT_PROTOCOL                 12              // Philips, Technisat, Thomson, Nordmende, Telefunken, Saba
+#define IRMP_NUBERT_PROTOCOL                    13              // Nubert
+#define IRMP_BANG_OLUFSEN_PROTOCOL              14              // Bang & Olufsen
+#define IRMP_GRUNDIG_PROTOCOL                   15              // Grundig
+#define IRMP_NOKIA_PROTOCOL                     16              // Nokia
+#define IRMP_SIEMENS_PROTOCOL                   17              // Siemens, e.g. Gigaset
+#define IRMP_FDC_PROTOCOL                       18              // FDC keyboard
+#define IRMP_RCCAR_PROTOCOL                     19              // RC Car
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
