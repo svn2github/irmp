@@ -29,33 +29,24 @@
  * 0 disable decoder
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRSND_SUPPORT_SIRCS_PROTOCOL            1       // flag: support SIRCS                  uses ~150 bytes
-#define IRSND_SUPPORT_NEC_PROTOCOL              1       // flag: support NEC + APPLE            uses ~100 bytes
-#define IRSND_SUPPORT_SAMSUNG_PROTOCOL          1       // flag: support Samsung + Samsung32    uses ~300 bytes
-#define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // flag: support Matsushita             uses ~150 bytes
-#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         0       // flag: support Kaseikyo               NOT SUPPORTED YET!
-#define IRSND_SUPPORT_RECS80_PROTOCOL           1       // flag: support RECS80                 uses ~100 bytes
-#define IRSND_SUPPORT_RC5_PROTOCOL              1       // flag: support RC5                    uses ~150 bytes
-#define IRSND_SUPPORT_DENON_PROTOCOL            1       // flag: support DENON                  uses ~200 bytes
-#define IRSND_SUPPORT_RC6_PROTOCOL              0       // flag: support RC6                    NOT SUPPORTED YET!
-#define IRSND_SUPPORT_RECS80EXT_PROTOCOL        1       // flag: support RECS80EXT              uses ~100 bytes
-#define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // flag: support NUBERT                 uses ~100 bytes
-#define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // flag: support Bang&Olufsen           uses ~250 bytes
-#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // flag: support Grundig                uses ~300 bytes
-#define IRSND_SUPPORT_NOKIA_PROTOCOL            1       // flag: support Nokia                  uses ~400 bytes
-#define IRSND_SUPPORT_FDC_PROTOCOL              1       // flag: support FDC infrared keyboard  uses ~150 bytes
-#define IRSND_SUPPORT_RCCAR_PROTOCOL            1       // flag: support RC CAR                 uses ~150 bytes
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * THE FOLLOWING ENCODERS WORK ONLY FOR F_INTERRUPTS > 14500!
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#if F_INTERRUPTS >= 14500
-#define IRSND_SUPPORT_SIEMENS_PROTOCOL          1       // flag: support Siemens, e.g. Gigaset  uses ~150 bytes
-#else
-#define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#endif
-
+//      Protocol                                Enable  Remarks                 F_INTERRUPTS                Program Space
+#define IRSND_SUPPORT_SIRCS_PROTOCOL            1       // Sony SIRCS           >= 10000                    uses ~150 bytes
+#define IRSND_SUPPORT_NEC_PROTOCOL              1       // NEC + APPLE          >= 10000                    uses ~100 bytes
+#define IRSND_SUPPORT_SAMSUNG_PROTOCOL          1       // Samsung + Samsung32  >= 10000                    uses ~300 bytes
+#define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // Matsushita           >= 10000                    uses ~150 bytes
+#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         0       // Kaseikyo             NOT SUPPORTED YET!
+#define IRSND_SUPPORT_RC5_PROTOCOL              1       // RC5                  >= 10000                    uses ~150 bytes
+#define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON                >= 10000                    uses ~200 bytes
+#define IRSND_SUPPORT_RC6_PROTOCOL              0       // RC6                  NOT SUPPORTED YET!
+#define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // NUBERT               >= 10000                    uses ~100 bytes
+#define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // Bang&Olufsen         >= 10000                    uses ~250 bytes
+#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // Grundig              >= 10000                    uses ~300 bytes
+#define IRSND_SUPPORT_NOKIA_PROTOCOL            1       // Nokia                >= 10000                    uses ~400 bytes
+#define IRSND_SUPPORT_FDC_PROTOCOL              1       // FDC IR keyboard      >= 10000 (better 15000)     uses ~150 bytes
+#define IRSND_SUPPORT_RCCAR_PROTOCOL            1       // RC CAR               >= 10000 (better 15000)     uses ~150 bytes
+#define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                    uses ~150 bytes
+#define IRSND_SUPPORT_RECS80_PROTOCOL           0       // RECS80               >= 20000                    uses ~100 bytes
+#define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0       // RECS80EXT            >= 20000                    uses ~100 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:
@@ -70,3 +61,23 @@
 #define IRSND_DDR                               DDRB    // ddr B
 #define IRSND_BIT                               3       // OC2A
 #endif // __AVR...
+
+
+#if IRSND_SUPPORT_SIEMENS_PROTOCOL == 1 && F_INTERRUPTS < 15000
+#warning F_INTERRUPTS too low, SIEMENS protocol disabled (should be at least 15000)
+#undef IRSND_SUPPORT_SIEMENS_PROTOCOL
+#define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#endif
+
+#if IRSND_SUPPORT_RECS80_PROTOCOL == 1 && F_INTERRUPTS < 20000
+#warning F_INTERRUPTS too low, RECS80 protocol disabled (should be at least 20000)
+#undef IRSND_SUPPORT_RECS80_PROTOCOL
+#define IRSND_SUPPORT_RECS80_PROTOCOL           0
+#endif
+
+#if IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 && F_INTERRUPTS < 20000
+#warning F_INTERRUPTS too low, RECS80EXT protocol disabled (should be at least 20000)
+#undef IRSND_SUPPORT_RECS80EXT_PROTOCOL
+#define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0
+#endif
+
