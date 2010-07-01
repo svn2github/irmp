@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.73 2010/06/26 18:13:11 fm Exp $
+ * $Id: irmp.c,v 1.75 2010/07/01 09:00:16 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -352,7 +352,7 @@ typedef uint8_t     PAUSE_LEN;
 #endif
 
 #define IRMP_TIMEOUT_LEN                        (PAUSE_LEN)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
-#define IRMP_KEY_REPETITION_LEN                 (uint16_t)(F_INTERRUPTS * 150.0e-3 + 0.5)  // autodetect key repetition within 150 msec
+#define IRMP_KEY_REPETITION_LEN                 (uint16_t)(F_INTERRUPTS * 150.0e-3 + 0.5)           // autodetect key repetition within 150 msec
 
 #define MIN_TOLERANCE_00                        1.0                           // -0%
 #define MAX_TOLERANCE_00                        1.0                           // +0%
@@ -404,6 +404,13 @@ typedef uint8_t     PAUSE_LEN;
 #define NEC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * NEC_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 #define NEC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * NEC_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define NEC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * NEC_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+// autodetect nec repetition frame within 50 msec:
+// NEC seems to send the first repetition frame after 40ms, further repetition frames after 100 ms
+#if 0
+#define NEC_FRAME_REPEAT_PAUSE_LEN_MAX          (uint16_t)(F_INTERRUPTS * NEC_FRAME_REPEAT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5)
+#else
+#define NEC_FRAME_REPEAT_PAUSE_LEN_MAX          (uint16_t)(F_INTERRUPTS * 100.0e-3 * MAX_TOLERANCE_20 + 0.5)
+#endif
 
 #define SAMSUNG_START_BIT_PULSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * SAMSUNG_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SAMSUNG_START_BIT_PULSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * SAMSUNG_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -630,9 +637,9 @@ irmp_uart_init (void)
     UART0_UBRRL = UBRRL_VALUE;
 
 #if USE_2X
-    UART0_UCSRA = (1<<U2X);
+    UART0_UCSRA |= (1<<U2X);
 #else
-    UART0_UCSRA = 0;
+    UART0_UCSRA &= ~(1<<U2X);
 #endif
 
     UART0_UCSRC = UART0_UCSZ1_BIT_VALUE | UART0_UCSZ0_BIT_VALUE | UART0_URSEL_BIT_VALUE;
@@ -1460,7 +1467,10 @@ irmp_ISR (void)
                 }
                 else
                 {
-                    repetition_counter++;
+                    if (repetition_counter < 0xFFFF)                            // avoid overflow of counter
+                    {
+                        repetition_counter++;
+                    }
                 }
             }
         }
@@ -2391,9 +2401,20 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_NEC_PROTOCOL && irmp_bit == 0)  // repetition frame
                         {
-                            irmp_tmp_address = last_irmp_address;                   // address is last address
-                            irmp_tmp_command = last_irmp_command;                   // command is last command
-                            irmp_flags |= IRMP_FLAG_REPETITION;
+                            if (repetition_counter < NEC_FRAME_REPEAT_PAUSE_LEN_MAX)
+                            {
+                                ANALYZE_PRINTF ("Detected NEC repetition frame, repetition_counter = %d\n", repetition_counter);
+                                irmp_tmp_address = last_irmp_address;                   // address is last address
+                                irmp_tmp_command = last_irmp_command;                   // command is last command
+                                irmp_flags |= IRMP_FLAG_REPETITION;
+                                repetition_counter = 0;
+                            }
+                            else
+                            {
+                                ANALYZE_PRINTF ("Detected NEC repetition frame, ignoring it: timeout occured, repetition_counter = %d > %d\n",
+                                                repetition_counter, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
+                                irmp_ir_detected = FALSE;
+                            }
                         }
 #endif // IRMP_SUPPORT_NEC_PROTOCOL
                         irmp_protocol = irmp_param.protocol;
