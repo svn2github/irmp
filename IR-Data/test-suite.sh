@@ -43,10 +43,12 @@ for j in                            \
     Sony_Bravia_RM-ED0009_new.txt   \
     Yamaha-RAV388.txt               \
     apple.txt                       \
+    apple-unibody-remote.txt        \
     bo_beolink1000-10kHz.txt        \
     denon.txt                       \
     elta_radio.txt                  \
     fdc.txt                         \
+    jvc.txt                         \
     nec-repetition.txt              \
     nec-skymaster-dt500.txt         \
     nec.txt                         \

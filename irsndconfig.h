@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.9 2010/07/01 11:17:11 fm Exp $
+ * $Id: irsndconfig.h,v 1.10 2010/08/18 12:03:26 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -33,8 +33,8 @@
 #define IRSND_SUPPORT_SIRCS_PROTOCOL            1       // Sony SIRCS           >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_NEC_PROTOCOL              1       // NEC + APPLE          >= 10000                    uses ~100 bytes
 #define IRSND_SUPPORT_SAMSUNG_PROTOCOL          1       // Samsung + Samsung32  >= 10000                    uses ~300 bytes
-#define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // Matsushita           >= 10000                    uses ~150 bytes
-#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         0       // Kaseikyo             NOT SUPPORTED YET!
+#define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // Matsushita           >= 10000                    uses ~200 bytes
+#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         1       // Kaseikyo             >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_RC5_PROTOCOL              1       // RC5                  >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON                >= 10000                    uses ~200 bytes
 #define IRSND_SUPPORT_RC6_PROTOCOL              0       // RC6                  NOT SUPPORTED YET!
@@ -47,6 +47,8 @@
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                    uses ~150 bytes
 #define IRSND_SUPPORT_RECS80_PROTOCOL           0       // RECS80               >= 20000                    uses ~100 bytes
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0       // RECS80EXT            >= 20000                    uses ~100 bytes
+#define IRSND_SUPPORT_JVC_PROTOCOL              0       // JVC                  NOT SUPPORTED YET!
+
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:

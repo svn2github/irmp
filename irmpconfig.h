@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.34 2010/06/26 18:11:08 fm Exp $
+ * $Id: irmpconfig.h,v 1.37 2010/08/18 12:03:26 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -47,14 +47,15 @@
 #define IRMP_SUPPORT_NEC_PROTOCOL               1       // NEC + APPLE          >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // Samsung + Samsung32  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // Matsushita           >= 10000                  ~50 bytes
-#define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // support Kaseikyo     >= 10000                  ~50 bytes
-#define IRMP_SUPPORT_DENON_PROTOCOL             1       // support DENON        >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               0       // RC5                  >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_RC6_PROTOCOL               0       // RC6                  >= 10000                 ~200 bytes
-#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           0       // Grundig              >= 10000                 ~150 bytes
-#define IRMP_SUPPORT_NOKIA_PROTOCOL             0       // Nokia                >= 10000                 ~150 bytes
-#define IRMP_SUPPORT_NUBERT_PROTOCOL            0       // NUBERT               >= 10000                  ~50 bytes
-#define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      0       // Bang & Olufsen       >= 10000                 ~200 bytes
+#define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // Kaseikyo             >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON                >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_JVC_PROTOCOL               1       // JVC                  >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_RC5_PROTOCOL               1       // RC5                  >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_RC6_PROTOCOL               1       // RC6                  >= 10000                 ~200 bytes
+#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // Grundig              >= 10000                 ~150 bytes
+#define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // Nokia                >= 10000                 ~150 bytes
+#define IRMP_SUPPORT_NUBERT_PROTOCOL            1       // NUBERT               >= 10000                  ~50 bytes
+#define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      1       // Bang & Olufsen       >= 10000                 ~200 bytes
 #define IRMP_SUPPORT_FDC_PROTOCOL               0       // FDC3402 keyboard     >= 10000 (better 15000)   ~50 bytes (~400 in combination with RC5)
 #define IRMP_SUPPORT_RCCAR_PROTOCOL             0       // RC Car               >= 10000 (better 15000)  ~150 bytes (~500 in combination with RC5)
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // Siemens Gigaset      >= 15000                 ~150 bytes
@@ -103,6 +104,12 @@
 #warning F_INTERRUPTS too low, RECS80EXT protocol disabled (should be at least 20000)
 #undef IRMP_SUPPORT_RECS80EXT_PROTOCOL
 #define IRMP_SUPPORT_RECS80EXT_PROTOCOL         0
+#endif
+
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1 && IRMP_SUPPORT_NEC_PROTOCOL == 0
+#warning JVC protocol needs also NEC protocol, NEC protocol enabled
+#undef IRMP_SUPPORT_NEC_PROTOCOL
+#define IRMP_SUPPORT_NEC_PROTOCOL               1
 #endif
 
 #endif /* _WC_IRMPCONFIG_H_ */

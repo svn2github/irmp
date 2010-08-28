@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.75 2010/07/01 09:00:16 fm Exp $
+ * $Id: irmp.c,v 1.79 2010/08/28 22:14:56 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -439,9 +439,9 @@ typedef uint8_t     PAUSE_LEN;
 #define KASEIKYO_START_BIT_PAUSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define KASEIKYO_START_BIT_PAUSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define KASEIKYO_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * KASEIKYO_PULSE_TIME * MIN_TOLERANCE_50 + 0.5) - 1)
-#define KASEIKYO_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * KASEIKYO_PULSE_TIME * MAX_TOLERANCE_60 + 0.5) + 1)
-#define KASEIKYO_1_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME * MIN_TOLERANCE_50 + 0.5) - 1)
-#define KASEIKYO_1_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME * MAX_TOLERANCE_50 + 0.5) + 1)
+#define KASEIKYO_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * KASEIKYO_PULSE_TIME * MAX_TOLERANCE_50 + 0.5) + 1)
+#define KASEIKYO_1_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define KASEIKYO_1_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define KASEIKYO_0_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KASEIKYO_0_PAUSE_TIME * MIN_TOLERANCE_50 + 0.5) - 1)
 #define KASEIKYO_0_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KASEIKYO_0_PAUSE_TIME * MAX_TOLERANCE_50 + 0.5) + 1)
 
@@ -565,6 +565,19 @@ typedef uint8_t     PAUSE_LEN;
 #define RCCAR_1_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RCCAR_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define RCCAR_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RCCAR_0_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define RCCAR_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RCCAR_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+
+#define JVC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * JVC_START_BIT_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define JVC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * JVC_START_BIT_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define JVC_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * (JVC_FRAME_REPEAT_PAUSE_TIME - IRMP_TIMEOUT_TIME) * MIN_TOLERANCE_40 + 0.5) - 1)  // HACK!
+#define JVC_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * (JVC_FRAME_REPEAT_PAUSE_TIME - IRMP_TIMEOUT_TIME) * MAX_TOLERANCE_40 + 0.5) - 1)  // HACK!
+#define JVC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * JVC_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define JVC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * JVC_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define JVC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * JVC_1_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define JVC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * JVC_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define JVC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * JVC_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define JVC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * JVC_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+// autodetect JVC repetition frame within 50 msec:
+#define JVC_FRAME_REPEAT_PAUSE_LEN_MAX          (uint16_t)(F_INTERRUPTS * JVC_FRAME_REPEAT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -1257,11 +1270,12 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                     irmp_command &= 0xff;
                     rtc = TRUE;
                 }
-                else if ((irmp_command & 0xFF00) == 0xD100)
+                else if (irmp_address == 0x87EE)
                 {
                     ANALYZE_PRINTF ("Switching to APPLE protocol\n");
                     irmp_protocol = IRMP_APPLE_PROTOCOL;
-                    irmp_command &= 0xff;
+                    irmp_address = (irmp_command & 0xFF00) >> 8;
+                    irmp_command &= 0x00FF;
                     rtc = TRUE;
                 }
                 break;
@@ -1300,19 +1314,22 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
 }
 
 // these statics must not be volatile, because they are only used by irmp_store_bit(), which is called by irmp_ISR()
-static uint16_t   irmp_tmp_address;                                                         // ir address
-static uint16_t   irmp_tmp_command;                                                         // ir command
+static uint16_t irmp_tmp_address;                                                       // ir address
+static uint16_t irmp_tmp_command;                                                       // ir command
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
-static uint16_t   irmp_tmp_address2;                                                         // ir address
-static uint16_t   irmp_tmp_command2;                                                         // ir command
+static uint16_t irmp_tmp_address2;                                                      // ir address
+static uint16_t irmp_tmp_command2;                                                      // ir command
 #endif
 
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
-static uint16_t   irmp_tmp_id;                                                              // ir id (only SAMSUNG)
+static uint16_t irmp_tmp_id;                                                            // ir id (only SAMSUNG)
+#endif
+#if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+static uint8_t  xor_check[6];                                                           // check kaseikyo "parity" bits
 #endif
 
-static uint8_t    irmp_bit;                                                                 // current bit position
+static uint8_t  irmp_bit;                                                               // current bit position
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  store bit
@@ -1326,6 +1343,7 @@ static uint8_t    irmp_bit;                                                     
 static void
 irmp_store_bit (uint8_t value)
 {
+
     if (irmp_bit >= irmp_param.address_offset && irmp_bit < irmp_param.address_end)
     {
         if (irmp_param.lsb_first)
@@ -1350,12 +1368,34 @@ irmp_store_bit (uint8_t value)
             irmp_tmp_command |= value;
         }
     }
+
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
     else if (irmp_param.protocol == IRMP_SAMSUNG_PROTOCOL && irmp_bit >= SAMSUNG_ID_OFFSET && irmp_bit < SAMSUNG_ID_OFFSET + SAMSUNG_ID_LEN)
     {
         irmp_tmp_id |= (((uint16_t) (value)) << (irmp_bit - SAMSUNG_ID_OFFSET));                    // store with LSB first
     }
 #endif
+
+#if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+    else if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && irmp_bit >= 20 && irmp_bit < 24)
+    {
+        irmp_tmp_command |= (((uint16_t) (value)) << (irmp_bit - 8));                   // store 4 system bits in upper nibble with LSB first
+    }
+
+    if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && irmp_bit < KASEIKYO_COMPLETE_DATA_LEN)
+    {
+        if (value)
+        {
+            xor_check[irmp_bit / 8] |= 1 << (irmp_bit % 8);
+        }
+        else
+        {
+            xor_check[irmp_bit / 8] &= ~(1 << (irmp_bit % 8));
+        }
+    }
+
+#endif
+
     irmp_bit++;
 }
 
@@ -1512,6 +1552,19 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_SIRCS_PROTOCOL == 1
+
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1
+                    if (irmp_protocol == IRMP_JVC_PROTOCOL &&                                                       // last protocol was JVC, awaiting repeat frame
+                        irmp_pulse_time >= JVC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= JVC_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= JVC_REPEAT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= JVC_REPEAT_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        ANALYZE_PRINTF ("protocol = NEC or JVC repeat frame, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        JVC_START_BIT_PULSE_LEN_MIN, JVC_START_BIT_PULSE_LEN_MAX,
+                                        JVC_REPEAT_START_BIT_PAUSE_LEN_MIN, JVC_REPEAT_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &nec_param;                                               // tricky: use nec parameters
+                    }
+                    else
+#endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
 
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
                     if (irmp_pulse_time >= NEC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NEC_START_BIT_PULSE_LEN_MAX &&
@@ -1967,6 +2020,18 @@ irmp_ISR (void)
                             {
                                 irmp_bit++;
                             }
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1
+                            else if (irmp_param.protocol == IRMP_NEC_PROTOCOL && (irmp_bit == 16 || irmp_bit == 17))      // it was a JVC stop bit
+                            {
+                                ANALYZE_PRINTF ("Switching to JVC protocol\n");
+                                irmp_param.stop_bit     = TRUE;                                     // set flag
+                                irmp_param.protocol     = IRMP_JVC_PROTOCOL;                        // switch protocol
+                                irmp_param.complete_len = irmp_bit;                                 // patch length: 16 or 17
+                                irmp_tmp_command        = (irmp_tmp_address >> 4);                  // set command: upper 12 bits are command bits
+                                irmp_tmp_address        = irmp_tmp_address & 0x000F;                // lower 4 bits are address bits
+                                irmp_start_bit_detected = 1;                                        // tricky: don't wait for another start bit...
+                            }
+#endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
                             else
                             {
                                 ANALYZE_PRINTF ("error 2: pause %d after data bit %d too long\n", irmp_pause_time, irmp_bit);
@@ -2333,6 +2398,17 @@ irmp_ISR (void)
                 else
 #endif
 
+#if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+                // if KASEIKYO protocol and the code will be repeated within 50 ms, we will ignore 2nd repetition frame
+                if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && repetition_frame_number == 1)
+                {
+                    ANALYZE_PRINTF ("code skipped: KASEIKYO auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                                    repetition_frame_number + 1, repetition_counter, AUTO_FRAME_REPETITION_LEN);
+                    repetition_counter = 0;
+                }
+                else
+#endif
+
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
                 // if SAMSUNG32 protocol and the code will be repeated within 50 ms, we will ignore every 2nd frame
                 if (irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL && (repetition_frame_number & 0x01))
@@ -2417,6 +2493,32 @@ irmp_ISR (void)
                             }
                         }
 #endif // IRMP_SUPPORT_NEC_PROTOCOL
+
+#if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL)
+                        {
+                            uint8_t xor;
+                            // ANALYZE_PRINTF ("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n",
+                            //                 xor_check[0], xor_check[1], xor_check[2], xor_check[3], xor_check[4], xor_check[5]);
+
+                            xor = (xor_check[0] & 0x0F) ^ ((xor_check[0] & 0xF0) >> 4) ^ (xor_check[1] & 0x0F) ^ ((xor_check[1] & 0xF0) >> 4);
+
+                            if (xor != (xor_check[2] & 0x0F))
+                            {
+                                ANALYZE_PRINTF ("error 4: wrong XOR check for customer id: 0x%1x 0x%1x\n", xor, xor_check[2] & 0x0F);
+                                irmp_ir_detected = FALSE;
+                            }
+
+                            xor = xor_check[2] ^ xor_check[3] ^ xor_check[4];
+
+                            if (xor != xor_check[5])
+                            {
+                                ANALYZE_PRINTF ("error 4: wrong XOR check for data bits: 0x%02x 0x%02x\n", xor, xor_check[5]);
+                                irmp_ir_detected = FALSE;
+                            }
+                        }
+#endif // IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+
                         irmp_protocol = irmp_param.protocol;
 
 #if IRMP_SUPPORT_FDC_PROTOCOL == 1
@@ -2477,6 +2579,13 @@ irmp_ISR (void)
                 irmp_tmp_command        = 0;
                 irmp_pulse_time         = 0;
                 irmp_pause_time         = 0;
+
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1
+                if (irmp_protocol == IRMP_JVC_PROTOCOL)                             // the stop bit of JVC frame is also start bit of next frame
+                {                                                                   // set pulse time here!
+                    irmp_pulse_time = ((uint8_t)(F_INTERRUPTS * JVC_START_BIT_PULSE_TIME));
+                }
+#endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
             }
         }
     }

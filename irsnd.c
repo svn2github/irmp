@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.20 2010/06/15 15:47:21 fm Exp $
+ * $Id: irsnd.c,v 1.21 2010/08/18 12:03:26 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,14 @@ typedef unsigned short    uint16_t;
 #define MATSUSHITA_1_PAUSE_LEN                  (uint8_t)(F_INTERRUPTS * MATSUSHITA_1_PAUSE_TIME + 0.5)
 #define MATSUSHITA_0_PAUSE_LEN                  (uint8_t)(F_INTERRUPTS * MATSUSHITA_0_PAUSE_TIME + 0.5)
 #define MATSUSHITA_FRAME_REPEAT_PAUSE_LEN       (uint16_t)(F_INTERRUPTS * MATSUSHITA_FRAME_REPEAT_PAUSE_TIME + 0.5)         // use uint16_t!
+
+#define KASEIKYO_START_BIT_PULSE_LEN            (uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PULSE_TIME + 0.5)
+#define KASEIKYO_START_BIT_PAUSE_LEN            (uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME + 0.5)
+#define KASEIKYO_PULSE_LEN                      (uint8_t)(F_INTERRUPTS * KASEIKYO_PULSE_TIME + 0.5)
+#define KASEIKYO_1_PAUSE_LEN                    (uint8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME + 0.5)
+#define KASEIKYO_0_PAUSE_LEN                    (uint8_t)(F_INTERRUPTS * KASEIKYO_0_PAUSE_TIME + 0.5)
+#define KASEIKYO_AUTO_REPETITION_PAUSE_LEN      (uint16_t)(F_INTERRUPTS * KASEIKYO_AUTO_REPETITION_PAUSE_TIME + 0.5)        // use uint16_t!
+#define KASEIKYO_FRAME_REPEAT_PAUSE_LEN         (uint16_t)(F_INTERRUPTS * KASEIKYO_FRAME_REPEAT_PAUSE_TIME + 0.5)           // use uint16_t!
 
 #define RECS80_START_BIT_PULSE_LEN              (uint8_t)(F_INTERRUPTS * RECS80_START_BIT_PULSE_TIME + 0.5)
 #define RECS80_START_BIT_PAUSE_LEN              (uint8_t)(F_INTERRUPTS * RECS80_START_BIT_PAUSE_TIME + 0.5)
@@ -386,6 +394,29 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             irsnd_buffer[0] = (command & 0x0FF0) >> 4;                                                          // CCCCCCCC
             irsnd_buffer[1] = ((command & 0x000F) << 4) | ((address & 0x0F00) >> 8);                            // CCCCAAAA
             irsnd_buffer[2] = (address & 0x00FF);                                                               // AAAAAAAA
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1
+        case IRMP_KASEIKYO_PROTOCOL:
+        {
+            uint8_t xor;
+
+            address = bitsrevervse (irmp_data_p->address, KASEIKYO_ADDRESS_LEN);
+            command = bitsrevervse (irmp_data_p->command, KASEIKYO_COMMAND_LEN + 4);
+
+            xor = ((address & 0x000F) ^ ((address & 0x00F0) >> 4) ^ ((address & 0x0F00) >> 8) ^ ((address & 0xF000) >> 12)) & 0x0F;
+
+            irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
+            irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
+            irsnd_buffer[2] = xor << 4 | (command & 0x000F);                                                    // XXXXCCCC
+            irsnd_buffer[3] = 0 | (command & 0xF000) >> 12;                                                     // 0000CCCC
+            irsnd_buffer[4] = (command & 0x0FF0) >> 4;                                                          // CCCCCCCC
+
+            xor = irsnd_buffer[2] ^ irsnd_buffer[3] ^ irsnd_buffer[4];
+
+            irsnd_buffer[5] = xor;
             irsnd_busy      = TRUE;
             break;
         }
@@ -743,6 +774,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1
+                    case IRMP_KASEIKYO_PROTOCOL:
+                    {
+                        startbit_pulse_len          = KASEIKYO_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = KASEIKYO_START_BIT_PAUSE_LEN;
+                        pulse_1_len                 = KASEIKYO_PULSE_LEN;
+                        pause_1_len                 = KASEIKYO_1_PAUSE_LEN;
+                        pulse_0_len                 = KASEIKYO_PULSE_LEN;
+                        pause_0_len                 = KASEIKYO_0_PAUSE_LEN;
+                        has_stop_bit                = KASEIKYO_STOP_BIT;
+                        complete_data_len           = KASEIKYO_COMPLETE_DATA_LEN;
+                        n_auto_repetitions          = (repeat_counter == 0) ? KASEIKYO_FRAMES : 1;  // 2 frames auto repetition if first frame
+                        auto_repetition_pause_len   = KASEIKYO_AUTO_REPETITION_PAUSE_LEN;           // 75 ms pause
+                        repeat_frame_pause_len      = KASEIKYO_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_RECS80_PROTOCOL == 1
                     case IRMP_RECS80_PROTOCOL:
                     {
@@ -963,6 +1012,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1
                 case IRMP_MATSUSHITA_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1
+                case IRMP_KASEIKYO_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_RECS80_PROTOCOL == 1
                 case IRMP_RECS80_PROTOCOL:
 #endif
@@ -986,9 +1038,9 @@ irsnd_ISR (void)
 #endif
 
 
-#if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 || \
-    IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || \
-    IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1
+#if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
+    IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
+    IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1
                 {
                     if (pulse_counter == 0)
                     {
