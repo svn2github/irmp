@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.10 2010/08/18 12:03:26 fm Exp $
+ * $Id: irsndconfig.h,v 1.12 2010/08/31 15:22:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -37,7 +37,8 @@
 #define IRSND_SUPPORT_KASEIKYO_PROTOCOL         1       // Kaseikyo             >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_RC5_PROTOCOL              1       // RC5                  >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON                >= 10000                    uses ~200 bytes
-#define IRSND_SUPPORT_RC6_PROTOCOL              0       // RC6                  NOT SUPPORTED YET!
+#define IRSND_SUPPORT_JVC_PROTOCOL              1       // JVC                  >= 10000                    uses ~150 bytes
+#define IRSND_SUPPORT_RC6_PROTOCOL              0       // RC6                  NOT SUPPORTED YET! DON'T CHANGE!
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           1       // NUBERT               >= 10000                    uses ~100 bytes
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     1       // Bang&Olufsen         >= 10000                    uses ~250 bytes
 #define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // Grundig              >= 10000                    uses ~300 bytes
@@ -47,7 +48,6 @@
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                    uses ~150 bytes
 #define IRSND_SUPPORT_RECS80_PROTOCOL           0       // RECS80               >= 20000                    uses ~100 bytes
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0       // RECS80EXT            >= 20000                    uses ~100 bytes
-#define IRSND_SUPPORT_JVC_PROTOCOL              0       // JVC                  NOT SUPPORTED YET!
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -82,4 +82,3 @@
 #undef IRSND_SUPPORT_RECS80EXT_PROTOCOL
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0
 #endif
-

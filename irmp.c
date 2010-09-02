@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.79 2010/08/28 22:14:56 fm Exp $
+ * $Id: irmp.c,v 1.82 2010/08/31 15:22:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -342,16 +342,6 @@ typedef unsigned int16  uint16_t;
 #define IRMP_SUPPORT_MANCHESTER                 0
 #endif
 
-#define IRMP_TIMEOUT_TIME                       16500.0e-6                  // timeout after 16.5 ms darkness
-#define IRMP_TIMEOUT_TIME_MS                    16500L                      // timeout after 16.5 ms darkness
-
-#if (F_INTERRUPTS * IRMP_TIMEOUT_TIME_MS) / 1000000 >= 254
-typedef uint16_t    PAUSE_LEN;
-#else
-typedef uint8_t     PAUSE_LEN;
-#endif
-
-#define IRMP_TIMEOUT_LEN                        (PAUSE_LEN)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
 #define IRMP_KEY_REPETITION_LEN                 (uint16_t)(F_INTERRUPTS * 150.0e-3 + 0.5)           // autodetect key repetition within 150 msec
 
 #define MIN_TOLERANCE_00                        1.0                           // -0%
@@ -474,8 +464,10 @@ typedef uint8_t     PAUSE_LEN;
 #define RC6_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * RC6_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define RC6_TOGGLE_BIT_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RC6_TOGGLE_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RC6_TOGGLE_BIT_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RC6_TOGGLE_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define RC6_BIT_LEN_MIN                         ((uint8_t)(F_INTERRUPTS * RC6_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RC6_BIT_LEN_MAX                         ((uint8_t)(F_INTERRUPTS * RC6_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RC6_BIT_PULSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RC6_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RC6_BIT_PULSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RC6_BIT_TIME * MAX_TOLERANCE_30 + 0.5) + 1)       // pulses: 300 - 700
+#define RC6_BIT_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * RC6_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)       // pauses: 300 - 600
+#define RC6_BIT_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * RC6_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define RECS80EXT_START_BIT_PULSE_LEN_MIN       ((uint8_t)(F_INTERRUPTS * RECS80EXT_START_BIT_PULSE_TIME * MIN_TOLERANCE_00 + 0.5) - 1)
 #define RECS80EXT_START_BIT_PULSE_LEN_MAX       ((uint8_t)(F_INTERRUPTS * RECS80EXT_START_BIT_PULSE_TIME * MAX_TOLERANCE_00 + 0.5) + 1)
@@ -617,6 +609,7 @@ static int      verbose;
 #endif
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN0)
 #define UART0_UDR                               UDR0
+#define UART0_U2X                               U2X0
 
 #else
 
@@ -635,6 +628,7 @@ static int      verbose;
 #endif
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN)
 #define UART0_UDR                               UDR
+#define UART0_U2X                               U2X
 
 #endif
 
@@ -650,9 +644,9 @@ irmp_uart_init (void)
     UART0_UBRRL = UBRRL_VALUE;
 
 #if USE_2X
-    UART0_UCSRA |= (1<<U2X);
+    UART0_UCSRA |= (1<<UART0_U2X);
 #else
-    UART0_UCSRA &= ~(1<<U2X);
+    UART0_UCSRA &= ~(1<<UART0_U2X);
 #endif
 
     UART0_UCSRC = UART0_UCSZ1_BIT_VALUE | UART0_UCSZ0_BIT_VALUE | UART0_URSEL_BIT_VALUE;
@@ -1005,10 +999,10 @@ static PROGMEM IRMP_PARAMETER denon_param =
 static PROGMEM IRMP_PARAMETER rc6_param =
 {
     IRMP_RC6_PROTOCOL,                                                  // protocol:        ir protocol
-    RC6_BIT_LEN_MIN,                                                    // pulse_1_len_min: minimum length of pulse with bit value 1
-    RC6_BIT_LEN_MAX,                                                    // pulse_1_len_max: maximum length of pulse with bit value 1
-    RC6_BIT_LEN_MIN,                                                    // pause_1_len_min: minimum length of pause with bit value 1
-    RC6_BIT_LEN_MAX,                                                    // pause_1_len_max: maximum length of pause with bit value 1
+    RC6_BIT_PULSE_LEN_MIN,                                              // pulse_1_len_min: minimum length of pulse with bit value 1
+    RC6_BIT_PULSE_LEN_MAX,                                              // pulse_1_len_max: maximum length of pulse with bit value 1
+    RC6_BIT_PAUSE_LEN_MIN,                                              // pause_1_len_min: minimum length of pause with bit value 1
+    RC6_BIT_PAUSE_LEN_MAX,                                              // pause_1_len_max: maximum length of pause with bit value 1
     1,  // tricky: use this as stop bit length                          // pulse_0_len_min: minimum length of pulse with bit value 0
     1,                                                                  // pulse_0_len_max: maximum length of pulse with bit value 0
     1,                                                                  // pause_0_len_min: minimum length of pause with bit value 0
@@ -1446,7 +1440,7 @@ irmp_ISR (void)
     static PAUSE_LEN    irmp_pause_time;                                        // count bit time for pause
     static uint16_t     last_irmp_address = 0xFFFF;                             // save last irmp address to recognize key repetition
     static uint16_t     last_irmp_command = 0xFFFF;                             // save last irmp command to recognize key repetition
-    static uint16_t     repetition_counter;                                     // SIRCS repeats frame 2-5 times with 45 ms pause
+    static uint16_t     repetition_len;                                         // SIRCS repeats frame 2-5 times with 45 ms pause
     static uint8_t      repetition_frame_number;
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
     static uint16_t     last_irmp_denon_command;                                // save last irmp command to recognize DENON frame repetition
@@ -1507,9 +1501,9 @@ irmp_ISR (void)
                 }
                 else
                 {
-                    if (repetition_counter < 0xFFFF)                            // avoid overflow of counter
+                    if (repetition_len < 0xFFFF)                                // avoid overflow of counter
                     {
-                        repetition_counter++;
+                        repetition_len++;
                     }
                 }
             }
@@ -1524,8 +1518,17 @@ irmp_ISR (void)
 
                     if (irmp_pause_time > IRMP_TIMEOUT_LEN)                     // timeout?
                     {                                                           // yes...
-                        ANALYZE_PRINTF ("error 1: pause after start bit pulse %d too long: %d\n", irmp_pulse_time, irmp_pause_time);
-                        ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1
+                        if (irmp_protocol == IRMP_JVC_PROTOCOL)                 // don't show eror if JVC protocol, irmp_pulse_time has been set below!
+                        {
+                            ;
+                        }
+                        else
+#endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
+                        {
+                            ANALYZE_PRINTF ("%8d error 1: pause after start bit pulse %d too long: %d\n", time_counter, irmp_pulse_time, irmp_pause_time);
+                            ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+                        }
                         irmp_start_bit_detected = 0;                            // reset flags, let's wait for another start bit
                         irmp_pulse_time         = 0;
                         irmp_pause_time         = 0;
@@ -1539,7 +1542,7 @@ irmp_ISR (void)
                     irmp_param2.protocol = 0;
 #endif
 
-                    ANALYZE_PRINTF ("start-bit: pulse = %d, pause = %d\n", irmp_pulse_time, irmp_pause_time);
+                    ANALYZE_PRINTF ("%8d [start-bit: pulse = %2d, pause = %2d]\n", time_counter, irmp_pulse_time, irmp_pause_time);
 
 #if IRMP_SUPPORT_SIRCS_PROTOCOL == 1
                     if (irmp_pulse_time >= SIRCS_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SIRCS_START_BIT_PULSE_LEN_MAX &&
@@ -1717,7 +1720,7 @@ irmp_ISR (void)
                                         RC6_START_BIT_PAUSE_LEN_MIN, RC6_START_BIT_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &rc6_param;
                         last_pause = 0;
-                        last_value = 0;
+                        last_value = 1;
                     }
                     else
 #endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
@@ -1838,9 +1841,9 @@ irmp_ISR (void)
                         else
                         {
                             ANALYZE_PRINTF ("pulse: %3d - %3d or %3d - %3d\n", irmp_param.pulse_1_len_min, irmp_param.pulse_1_len_max,
-                                          2 * irmp_param.pulse_1_len_min, 2 * irmp_param.pulse_1_len_max);
+                                            irmp_param.pulse_1_len_max + 1, 2 * irmp_param.pulse_1_len_max);
                             ANALYZE_PRINTF ("pause: %3d - %3d or %3d - %3d\n", irmp_param.pause_1_len_min, irmp_param.pause_1_len_max,
-                                          2 * irmp_param.pause_1_len_min, 2 * irmp_param.pause_1_len_max);
+                                            irmp_param.pause_1_len_max + 1, 2 * irmp_param.pause_1_len_max);
                         }
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
@@ -2056,35 +2059,60 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_MANCHESTER == 1
                     if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER))                                     // Manchester
                     {
+                        if (irmp_pulse_time > irmp_param.pulse_1_len_max /* && irmp_pulse_time <= 2 * irmp_param.pulse_1_len_max */)
+                        {
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
-                        if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit >= 3 && irmp_bit <= 5)         // special bits of RC6
-                        {
-                            if (irmp_pulse_time > RC6_TOGGLE_BIT_LEN_MAX && irmp_pause_time > RC6_TOGGLE_BIT_LEN_MAX)
+                            if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit == 4 && irmp_pulse_time > RC6_TOGGLE_BIT_LEN_MIN)         // RC6 toggle bit
                             {
-                                ANALYZE_PUTCHAR ('1');
-                                irmp_store_bit (1);
-                            }
-
-                            ANALYZE_PUTCHAR ('0');
-                            irmp_store_bit (0);
-                            last_value = 0;
-                            ANALYZE_NEWLINE ();
-                        }
-                        else
-#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
-                        if (irmp_pulse_time > irmp_param.pulse_1_len_max && irmp_pulse_time <= 2 * irmp_param.pulse_1_len_max)
-                        {
-                            ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '0' : '1');
-                            irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 0  :  1 );
-                            ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '1' : '0');
-                            irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 :   0 );
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
-                            if (! irmp_param2.protocol)
-#endif
-                            {
+                                ANALYZE_PUTCHAR ('T');
+                                if (irmp_param.complete_len == RC6_COMPLETE_DATA_LEN_LONG)                      // RC6 mode 6A
+                                {
+                                    irmp_store_bit (1);
+                                    last_value = 1;
+                                }
+                                else                                                                            // RC6 mode 0
+                                {
+                                    irmp_store_bit (0);
+                                    last_value = 0;
+                                }
                                 ANALYZE_NEWLINE ();
                             }
-                            last_value = (irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 : 0;
+                            else
+#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
+                            {
+                                ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '0' : '1');
+                                irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 0  :  1 );
+
+#if IRMP_SUPPORT_RC6_PROTOCOL == 1
+                                if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit == 4 && irmp_pulse_time > RC6_TOGGLE_BIT_LEN_MIN)      // RC6 toggle bit
+                                {
+                                    ANALYZE_PUTCHAR ('T');
+                                    irmp_store_bit (1);
+
+                                    if (irmp_pause_time > 2 * irmp_param.pause_1_len_max)
+                                    {
+                                        last_value = 0;
+                                    }
+                                    else
+                                    {
+                                        last_value = 1;
+                                    }
+                                    ANALYZE_NEWLINE ();
+                                }
+                                else
+#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
+                                {
+                                    ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '1' : '0');
+                                    irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 :   0 );
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+                                    if (! irmp_param2.protocol)
+#endif
+                                    {
+                                        ANALYZE_NEWLINE ();
+                                    }
+                                    last_value = (irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 : 0;
+                                }
+                            }
                         }
                         else if (irmp_pulse_time >= irmp_param.pulse_1_len_min && irmp_pulse_time <= irmp_param.pulse_1_len_max)
                         {
@@ -2100,22 +2128,28 @@ irmp_ISR (void)
                                 manchester_value = last_value;
                             }
 
-#if 0
-#if IRMP_SUPPORT_RC6_PROTOCOL == 1
-                            if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit == 1 && manchester_value == 0)     // RC6 mode != 0 ???
-                            {
-                                irmp_param.complete_len = RC6_COMPLETE_DATA_LEN_LONG;
-                            }
-#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
-#endif // 0
-
                             ANALYZE_PUTCHAR (manchester_value + '0');
+
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
                             if (! irmp_param2.protocol)
 #endif
                             {
                                 ANALYZE_NEWLINE ();
                             }
+
+#if IRMP_SUPPORT_RC6_PROTOCOL == 1
+                            if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_bit == 1 && manchester_value == 1)     // RC6 mode != 0 ???
+                            {
+                                ANALYZE_PRINTF ("Switching to RC6A protocol\n");
+                                irmp_param.complete_len = RC6_COMPLETE_DATA_LEN_LONG;
+                                irmp_param.address_offset = 5;
+                                irmp_param.address_end = irmp_param.address_offset + 15;
+                                irmp_param.command_offset = irmp_param.address_end + 1;                                 // skip 1 system bit, changes like a toggle bit
+                                irmp_param.command_end = irmp_param.command_offset + 16 - 1;
+                                irmp_tmp_address = 1;                                                                   // addr 0 - 32767 --> 32768 - 65535
+                            }
+#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
+
                             irmp_store_bit (manchester_value);
                         }
                         else
@@ -2145,7 +2179,7 @@ irmp_ISR (void)
                             {
                                 ANALYZE_PUTCHAR ('?');
                                 ANALYZE_NEWLINE ();
-                                ANALYZE_PRINTF ("error 3 RC5: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
+                                ANALYZE_PRINTF ("error 3 manchester: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                                 ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
                                 irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                                 irmp_pause_time         = 0;
@@ -2378,7 +2412,7 @@ irmp_ISR (void)
 
             if (irmp_start_bit_detected && irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 0)    // enough bits received?
             {
-                if (last_irmp_command == irmp_tmp_command && repetition_counter < AUTO_FRAME_REPETITION_LEN)
+                if (last_irmp_command == irmp_tmp_command && repetition_len < AUTO_FRAME_REPETITION_LEN)
                 {
                     repetition_frame_number++;
                 }
@@ -2392,8 +2426,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_SIRCS_PROTOCOL && (repetition_frame_number == 1 || repetition_frame_number == 2))
                 {
                     ANALYZE_PRINTF ("code skipped: SIRCS auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_counter, AUTO_FRAME_REPETITION_LEN);
-                    repetition_counter = 0;
+                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    repetition_len = 0;
                 }
                 else
 #endif
@@ -2403,8 +2437,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && repetition_frame_number == 1)
                 {
                     ANALYZE_PRINTF ("code skipped: KASEIKYO auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_counter, AUTO_FRAME_REPETITION_LEN);
-                    repetition_counter = 0;
+                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    repetition_len = 0;
                 }
                 else
 #endif
@@ -2414,8 +2448,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL && (repetition_frame_number & 0x01))
                 {
                     ANALYZE_PRINTF ("code skipped: SAMSUNG32 auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_counter, AUTO_FRAME_REPETITION_LEN);
-                    repetition_counter = 0;
+                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    repetition_len = 0;
                 }
                 else
 #endif
@@ -2425,14 +2459,14 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_NUBERT_PROTOCOL && (repetition_frame_number & 0x01))
                 {
                     ANALYZE_PRINTF ("code skipped: NUBERT auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_counter, AUTO_FRAME_REPETITION_LEN);
-                    repetition_counter = 0;
+                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    repetition_len = 0;
                 }
                 else
 #endif
 
                 {
-                    ANALYZE_PRINTF ("code detected, length = %d\n", irmp_bit);
+                    ANALYZE_PRINTF ("%8d code detected, length = %d\n", time_counter, irmp_bit);
                     irmp_ir_detected = TRUE;
 
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
@@ -2477,18 +2511,18 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_NEC_PROTOCOL && irmp_bit == 0)  // repetition frame
                         {
-                            if (repetition_counter < NEC_FRAME_REPEAT_PAUSE_LEN_MAX)
+                            if (repetition_len < NEC_FRAME_REPEAT_PAUSE_LEN_MAX)
                             {
-                                ANALYZE_PRINTF ("Detected NEC repetition frame, repetition_counter = %d\n", repetition_counter);
+                                ANALYZE_PRINTF ("Detected NEC repetition frame, repetition_len = %d\n", repetition_len);
                                 irmp_tmp_address = last_irmp_address;                   // address is last address
                                 irmp_tmp_command = last_irmp_command;                   // command is last command
                                 irmp_flags |= IRMP_FLAG_REPETITION;
-                                repetition_counter = 0;
+                                repetition_len = 0;
                             }
                             else
                             {
-                                ANALYZE_PRINTF ("Detected NEC repetition frame, ignoring it: timeout occured, repetition_counter = %d > %d\n",
-                                                repetition_counter, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
+                                ANALYZE_PRINTF ("Detected NEC repetition frame, ignoring it: timeout occured, repetition_len = %d > %d\n",
+                                                repetition_len, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
                                 irmp_ir_detected = FALSE;
                             }
                         }
@@ -2518,6 +2552,14 @@ irmp_ISR (void)
                             }
                         }
 #endif // IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+
+#if IRMP_SUPPORT_RC6_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_param.complete_len == RC6_COMPLETE_DATA_LEN_LONG)     // RC6 mode = 6?
+                        {
+                            irmp_protocol = IRMP_RC6A_PROTOCOL;
+                        }
+                        else
+#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
 
                         irmp_protocol = irmp_param.protocol;
 
@@ -2560,7 +2602,7 @@ irmp_ISR (void)
                 {
                     if (last_irmp_command == irmp_command &&
                         last_irmp_address == irmp_address &&
-                        repetition_counter < IRMP_KEY_REPETITION_LEN)
+                        repetition_len < IRMP_KEY_REPETITION_LEN)
                     {
                         irmp_flags |= IRMP_FLAG_REPETITION;
                     }
@@ -2568,7 +2610,7 @@ irmp_ISR (void)
                     last_irmp_address = irmp_tmp_address;                           // store as last address, too
                     last_irmp_command = irmp_tmp_command;                           // store as last command, too
 
-                    repetition_counter = 0;
+                    repetition_len = 0;
                 }
                 else
                 {
@@ -2616,7 +2658,7 @@ irmp_ISR (void)
 static void
 print_timings (void)
 {
-    printf ("IRMP_TIMEOUT_LEN:        %d\n", IRMP_TIMEOUT_LEN);
+    printf ("IRMP_TIMEOUT_LEN:        %d [%d byte(s)]\n", IRMP_TIMEOUT_LEN, sizeof (PAUSE_LEN));
     printf ("IRMP_KEY_REPETITION_LEN  %d\n", IRMP_KEY_REPETITION_LEN);
     puts ("");
     printf ("PROTOCOL       S  S-PULSE    S-PAUSE    PULSE-0    PAUSE-0    PULSE-1    PAUSE-1\n");
@@ -2665,9 +2707,9 @@ print_timings (void)
             DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_0_PAUSE_LEN_MIN, DENON_0_PAUSE_LEN_MAX,
             DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_1_PAUSE_LEN_MIN, DENON_1_PAUSE_LEN_MAX);
 
-    printf ("RC6            1  %3d - %3d  %3d - %3d  %3d - %3d\n",
+    printf ("RC6            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             RC6_START_BIT_PULSE_LEN_MIN, RC6_START_BIT_PULSE_LEN_MAX, RC6_START_BIT_PAUSE_LEN_MIN, RC6_START_BIT_PAUSE_LEN_MAX,
-            RC6_BIT_LEN_MIN, RC6_BIT_LEN_MAX);
+            RC6_BIT_PULSE_LEN_MIN, RC6_BIT_PULSE_LEN_MAX, RC6_BIT_PAUSE_LEN_MIN, RC6_BIT_PAUSE_LEN_MAX);
 
     printf ("RECS80EXT      1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             RECS80EXT_START_BIT_PULSE_LEN_MIN, RECS80EXT_START_BIT_PULSE_LEN_MAX, RECS80EXT_START_BIT_PAUSE_LEN_MIN, RECS80EXT_START_BIT_PAUSE_LEN_MAX,
@@ -2934,12 +2976,96 @@ get_fdc_key (uint16_t cmd)
     return (key);
 }
 
+static int         analyze = FALSE;
+static int         list = FALSE;
+static IRMP_DATA   irmp_data;
+
+static void
+next_tick (void)
+{
+    if (! analyze && ! list)
+    {
+        (void) irmp_ISR ();
+
+        if (irmp_get_data (&irmp_data))
+        {
+            uint8_t key;
+
+            ANALYZE_ONLY_NORMAL_PUTCHAR (' ');
+
+            if (verbose)
+            {
+                printf ("%8d ", time_counter);
+            }
+
+            if (irmp_data.protocol == IRMP_FDC_PROTOCOL && (key = get_fdc_key (irmp_data.command)) != 0)
+            {
+                if ((key >= 0x20 && key < 0x7F) || key >= 0xA0)
+                {
+                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = '%c'\n",
+                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, key);
+                }
+                else if (key == '\r' || key == '\t' || key == KEY_ESCAPE || (key >= 0x80 && key <= 0x9F))                 // function keys
+                {
+                    char * p = (char *) NULL;
+
+                    switch (key)
+                    {
+                        case '\t'                : p = "TAB";           break;
+                        case '\r'                : p = "CR";            break;
+                        case KEY_ESCAPE          : p = "ESCAPE";        break;
+                        case KEY_MENUE           : p = "MENUE";         break;
+                        case KEY_BACK            : p = "BACK";          break;
+                        case KEY_FORWARD         : p = "FORWARD";       break;
+                        case KEY_ADDRESS         : p = "ADDRESS";       break;
+                        case KEY_WINDOW          : p = "WINDOW";        break;
+                        case KEY_1ST_PAGE        : p = "1ST_PAGE";      break;
+                        case KEY_STOP            : p = "STOP";          break;
+                        case KEY_MAIL            : p = "MAIL";          break;
+                        case KEY_FAVORITES       : p = "FAVORITES";     break;
+                        case KEY_NEW_PAGE        : p = "NEW_PAGE";      break;
+                        case KEY_SETUP           : p = "SETUP";         break;
+                        case KEY_FONT            : p = "FONT";          break;
+                        case KEY_PRINT           : p = "PRINT";         break;
+                        case KEY_ON_OFF          : p = "ON_OFF";        break;
+
+                        case KEY_INSERT          : p = "INSERT";        break;
+                        case KEY_DELETE          : p = "DELETE";        break;
+                        case KEY_LEFT            : p = "LEFT";          break;
+                        case KEY_HOME            : p = "HOME";          break;
+                        case KEY_END             : p = "END";           break;
+                        case KEY_UP              : p = "UP";            break;
+                        case KEY_DOWN            : p = "DOWN";          break;
+                        case KEY_PAGE_UP         : p = "PAGE_UP";       break;
+                        case KEY_PAGE_DOWN       : p = "PAGE_DOWN";     break;
+                        case KEY_RIGHT           : p = "RIGHT";         break;
+                        case KEY_MOUSE_1         : p = "KEY_MOUSE_1";   break;
+                        case KEY_MOUSE_2         : p = "KEY_MOUSE_2";   break;
+                        default                  : p = "<UNKNWON>";     break;
+                    }
+
+                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = %s\n",
+                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, p);
+                }
+                else
+                {
+                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x\n",
+                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key);
+                }
+            }
+            else
+            {
+                printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x\n",
+                        irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags);
+            }
+        }
+    }
+}
+
 int
 main (int argc, char ** argv)
 {
     int         i;
-    int         analyze = FALSE;
-    int         list = FALSE;
     int         ch;
     int         last_ch = 0;
     int         pulse = 0;
@@ -2952,8 +3078,6 @@ main (int argc, char ** argv)
 
     int         first_pulse = TRUE;
     int         first_pause = TRUE;
-
-    IRMP_DATA   irmp_data;
 
     if (argc == 2)
     {
@@ -3074,7 +3198,7 @@ main (int argc, char ** argv)
             {
                 for (i = 0; i < (int) ((8000.0 * F_INTERRUPTS) / 10000); i++)               // newline: long pause of 800 msec
                 {
-                    (void) irmp_ISR ();
+                    next_tick ();
                 }
             }
             first_pulse = TRUE;
@@ -3108,78 +3232,7 @@ main (int argc, char ** argv)
 
         last_ch = ch;
 
-        if (! analyze && ! list)
-        {
-            (void) irmp_ISR ();
-
-            if (irmp_get_data (&irmp_data))
-            {
-                uint8_t key;
-
-                ANALYZE_ONLY_NORMAL_PUTCHAR (' ');
-
-                if (irmp_data.protocol == IRMP_FDC_PROTOCOL && (key = get_fdc_key (irmp_data.command)) != 0)
-                {
-                    if ((key >= 0x20 && key < 0x7F) || key >= 0xA0)
-                    {
-                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = '%c'\n",
-                                irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, key);
-                    }
-                    else if (key == '\r' || key == '\t' || key == KEY_ESCAPE || (key >= 0x80 && key <= 0x9F))                 // function keys
-                    {
-                        char * p = (char *) NULL;
-
-                        switch (key)
-                        {
-                            case '\t'                : p = "TAB";           break;
-                            case '\r'                : p = "CR";            break;
-                            case KEY_ESCAPE          : p = "ESCAPE";        break;
-                            case KEY_MENUE           : p = "MENUE";         break;
-                            case KEY_BACK            : p = "BACK";          break;
-                            case KEY_FORWARD         : p = "FORWARD";       break;
-                            case KEY_ADDRESS         : p = "ADDRESS";       break;
-                            case KEY_WINDOW          : p = "WINDOW";        break;
-                            case KEY_1ST_PAGE        : p = "1ST_PAGE";      break;
-                            case KEY_STOP            : p = "STOP";          break;
-                            case KEY_MAIL            : p = "MAIL";          break;
-                            case KEY_FAVORITES       : p = "FAVORITES";     break;
-                            case KEY_NEW_PAGE        : p = "NEW_PAGE";      break;
-                            case KEY_SETUP           : p = "SETUP";         break;
-                            case KEY_FONT            : p = "FONT";          break;
-                            case KEY_PRINT           : p = "PRINT";         break;
-                            case KEY_ON_OFF          : p = "ON_OFF";        break;
-
-                            case KEY_INSERT          : p = "INSERT";        break;
-                            case KEY_DELETE          : p = "DELETE";        break;
-                            case KEY_LEFT            : p = "LEFT";          break;
-                            case KEY_HOME            : p = "HOME";          break;
-                            case KEY_END             : p = "END";           break;
-                            case KEY_UP              : p = "UP";            break;
-                            case KEY_DOWN            : p = "DOWN";          break;
-                            case KEY_PAGE_UP         : p = "PAGE_UP";       break;
-                            case KEY_PAGE_DOWN       : p = "PAGE_DOWN";     break;
-                            case KEY_RIGHT           : p = "RIGHT";         break;
-                            case KEY_MOUSE_1         : p = "KEY_MOUSE_1";   break;
-                            case KEY_MOUSE_2         : p = "KEY_MOUSE_2";   break;
-                            default                  : p = "<UNKNWON>";     break;
-                        }
-
-                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = %s\n",
-                                irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, p);
-                    }
-                    else
-                    {
-                        printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x\n",
-                                irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key);
-                    }
-                }
-                else
-                {
-                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x\n",
-                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags);
-                }
-            }
-        }
+        next_tick ();
     }
 
     if (analyze)

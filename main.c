@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.7 2010/06/22 08:33:21 fm Exp $
+ * $Id: main.c,v 1.8 2010/08/30 15:45:27 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -108,9 +108,7 @@ main (void)
   #ifdef _OPTIMIZE_SIZE_
   #pragma optsize+
   #endif
-  static uint8_t *Proto[]={"SIRCS","NEC","SAMSUNG","MATSUSH","KASEIKYO","RECS80","RC5(x)","DENON","RC6","SAMSG32","APPLE"};
-  #define IRMP_APPLE_ADDRESS 0x77E1 
-
+  static uint8_t *Proto[]={"SIRCS","NEC","SAMSUNG","MATSUSH","KASEIKYO","RECS80","RC5(x)","DENON","RC6","SAMSG32","APPLE","RECS80X","NUBERT","B&O","GRUNDIG","NOKIA","SIEMENS","FDC","RCCAR","JVC","RC6A"};
 
   #if IRMP_LOGGING == 0
   // USART initialization has to be done here if Logging is off
@@ -146,9 +144,7 @@ main (void)
         // irmp_data.address is the address/manufacturer code of ir sender
         // irmp_data.command is the command code
         #if IRMP_LOGGING != 1
-        if((irmp_data.protocol == IRMP_NEC_PROTOCOL) && (irmp_data.address == IRMP_APPLE_ADDRESS))
-          printf("Code: Apple\n");
-        else printf("Code: %s\n",Proto[irmp_data.protocol-1]);
+        printf("Code: %s\n",Proto[irmp_data.protocol-1]);
         printf("Address: 0x%.2X\n",irmp_data.address);
         printf("Command: 0x%.2X\n\n",irmp_data.command);
         #endif

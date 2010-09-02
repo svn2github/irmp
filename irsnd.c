@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.21 2010/08/18 12:03:26 fm Exp $
+ * $Id: irsnd.c,v 1.24 2010/09/02 10:22:26 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,9 @@
 
 #ifdef WIN32                                                                 // test/debug on windows
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define F_CPU 8000000L
 typedef unsigned char    uint8_t;
 typedef unsigned short    uint16_t;
@@ -174,6 +177,14 @@ typedef unsigned short    uint16_t;
 #define RCCAR_1_PAUSE_LEN                       (uint8_t)(F_INTERRUPTS * RCCAR_1_PAUSE_TIME + 0.5)
 #define RCCAR_0_PAUSE_LEN                       (uint8_t)(F_INTERRUPTS * RCCAR_0_PAUSE_TIME + 0.5)
 #define RCCAR_FRAME_REPEAT_PAUSE_LEN            (uint16_t)(F_INTERRUPTS * RCCAR_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
+
+#define JVC_START_BIT_PULSE_LEN                 (uint8_t)(F_INTERRUPTS * JVC_START_BIT_PULSE_TIME + 0.5)
+#define JVC_START_BIT_PAUSE_LEN                 (uint8_t)(F_INTERRUPTS * JVC_START_BIT_PAUSE_TIME + 0.5)
+#define JVC_REPEAT_START_BIT_PAUSE_LEN          (uint8_t)(F_INTERRUPTS * JVC_REPEAT_START_BIT_PAUSE_TIME + 0.5)
+#define JVC_PULSE_LEN                           (uint8_t)(F_INTERRUPTS * JVC_PULSE_TIME + 0.5)
+#define JVC_1_PAUSE_LEN                         (uint8_t)(F_INTERRUPTS * JVC_1_PAUSE_TIME + 0.5)
+#define JVC_0_PAUSE_LEN                         (uint8_t)(F_INTERRUPTS * JVC_0_PAUSE_TIME + 0.5)
+#define JVC_FRAME_REPEAT_PAUSE_LEN              (uint16_t)(F_INTERRUPTS * JVC_FRAME_REPEAT_PAUSE_TIME + 0.5)                // use uint16_t!
 
 static volatile uint8_t                         irsnd_busy;
 static volatile uint8_t                         irsnd_protocol;
@@ -334,8 +345,25 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
         }
 #endif
 #if IRSND_SUPPORT_NEC_PROTOCOL == 1
-        case IRMP_NEC_PROTOCOL:
         case IRMP_APPLE_PROTOCOL:
+        {
+            command = irmp_data_p->command | (irmp_data_p->address << 8);                               // store address as ID in upper byte of command
+            address = 0x87EE;                                                                           // set fixed NEC-lookalike address (customer ID of apple)
+
+            address = bitsrevervse (address, NEC_ADDRESS_LEN);
+            command = bitsrevervse (command, NEC_COMMAND_LEN);
+
+            irsnd_protocol = IRMP_NEC_PROTOCOL;                                                         // APPLE protocol is NEC with id instead of inverted command
+
+            irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                  // AAAAAAAA
+            irsnd_buffer[1] = (address & 0x00FF);                                                       // AAAAAAAA
+            irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                  // CCCCCCCC
+            irsnd_buffer[3] = (command & 0x00FF);                                                       // CCCCCCCC
+
+            irsnd_busy      = TRUE;
+            break;
+        }
+        case IRMP_NEC_PROTOCOL:
         {
             address = bitsrevervse (irmp_data_p->address, NEC_ADDRESS_LEN);
             command = bitsrevervse (irmp_data_p->command, NEC_COMMAND_LEN);
@@ -344,12 +372,8 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
             irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
 
-            if (irsnd_protocol == IRMP_APPLE_PROTOCOL)
-            {
-                irsnd_protocol = IRMP_NEC_PROTOCOL; // APPLE protocol is NEC with fix bitmask instead of inverted command
-                irsnd_buffer[3] = 0x8B;                                                                         // 10001011
-            }
-            else
+            irsnd_protocol = IRMP_NEC_PROTOCOL; // APPLE protocol is NEC with fix bitmask instead of inverted command
+            irsnd_buffer[3] = 0x8B;                                                                         // 10001011
             {
                 irsnd_buffer[3] = ~((command & 0xFF00) >> 8);                                                   // cccccccc
             }
@@ -552,6 +576,19 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             irsnd_buffer[0] = ((command & 0x06) << 5) | ((address & 0x0003) << 4) | ((command & 0x0780) >> 7);  //          C0 C1 A0 A1 D0 D1 D2 D3
             irsnd_buffer[1] = ((command & 0x78) << 1) | ((command & 0x0001) << 3);                              //          D4 D5 D6 D7 V  0  0  0
                                                                                                                 
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_JVC_PROTOCOL == 1
+        case IRMP_JVC_PROTOCOL:
+        {
+            address = bitsrevervse (irmp_data_p->address, JVC_ADDRESS_LEN);
+            command = bitsrevervse (irmp_data_p->command, JVC_COMMAND_LEN);
+
+            irsnd_buffer[0] = ((address & 0x000F) << 4) | (command & 0x0F00) >> 8;                              // AAAACCCC
+            irsnd_buffer[1] = (command & 0x00FF);                                                               // CCCCCCCC
+
             irsnd_busy      = TRUE;
             break;
         }
@@ -984,6 +1021,30 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_JVC_PROTOCOL == 1
+                    case IRMP_JVC_PROTOCOL:
+                    {
+                        if (repeat_counter != 0)                                                    // skip start bit if repetition frame
+                        {
+                            current_bit = 0;
+                        }
+
+                        startbit_pulse_len          = JVC_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = JVC_START_BIT_PAUSE_LEN;
+                        complete_data_len           = JVC_COMPLETE_DATA_LEN;
+                        pulse_1_len                 = JVC_PULSE_LEN;
+                        pause_1_len                 = JVC_1_PAUSE_LEN;
+                        pulse_0_len                 = JVC_PULSE_LEN;
+                        pause_0_len                 = JVC_0_PAUSE_LEN;
+                        has_stop_bit                = JVC_STOP_BIT;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = JVC_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+
+                        break;
+                    }
+#endif
                     default:
                     {
                         irsnd_busy = FALSE;
@@ -1036,11 +1097,15 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_RCCAR_PROTOCOL == 1
                 case IRMP_RCCAR_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_JVC_PROTOCOL == 1
+                case IRMP_JVC_PROTOCOL:
+#endif
 
 
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
-    IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1
+    IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 ||   \
+    IRSND_SUPPORT_JVC_PROTOCOL == 1
                 {
                     if (pulse_counter == 0)
                     {

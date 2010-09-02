@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.41 2010/08/18 12:03:26 fm Exp $
+ * $Id: irmp.h,v 1.43 2010/08/31 15:22:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -21,6 +21,21 @@
 extern "C"
 {
 #endif
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * timing constants:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define IRMP_TIMEOUT_TIME                       16500.0e-6                  // timeout after 16.5 ms darkness
+#define IRMP_TIMEOUT_TIME_MS                    16500L                      // timeout after 16.5 ms darkness
+
+#if (F_INTERRUPTS * IRMP_TIMEOUT_TIME_MS) / 1000000 >= 254
+typedef uint16_t    PAUSE_LEN;
+#else
+typedef uint8_t     PAUSE_LEN;
+#endif
+
+#define IRMP_TIMEOUT_LEN                        (PAUSE_LEN)(F_INTERRUPTS * IRMP_TIMEOUT_TIME + 0.5)
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * IR protocols
@@ -46,6 +61,7 @@ extern "C"
 #define IRMP_FDC_PROTOCOL                       18              // FDC keyboard
 #define IRMP_RCCAR_PROTOCOL                     19              // RC Car
 #define IRMP_JVC_PROTOCOL                       20              // JVC
+#define IRMP_RC6A_PROTOCOL                      21              // RC6A, e.g. Kathrein, XBOX
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -322,7 +338,7 @@ extern "C"
 #define JVC_PULSE_TIME                           560.0e-6                       //  560 usec pulse
 #define JVC_1_PAUSE_TIME                        1690.0e-6                       // 1690 usec pause
 #define JVC_0_PAUSE_TIME                         560.0e-6                       //  560 usec pause
-#define JVC_FRAME_REPEAT_PAUSE_TIME               25.0e-3                       // frame repeat after 25ms
+#define JVC_FRAME_REPEAT_PAUSE_TIME               22.0e-3                       // frame repeat after 22ms
 #define JVC_ADDRESS_OFFSET                       0                              // skip 0 bits
 #define JVC_ADDRESS_LEN                          4                              // read 4 address bits
 #define JVC_COMMAND_OFFSET                       4                              // skip 4 bits

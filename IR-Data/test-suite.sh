@@ -28,6 +28,7 @@ for j in                            \
     Grundig_TP715.txt               \
     Grundig_TP715_SatTV.txt         \
     Grundig_TP715_Video.txt         \
+    Kathrein-UFS-912-Remote.txt     \
     Matsushita.txt                  \
     Nokia.txt                       \
     Panasonic-Blue-Ray.txt          \
@@ -62,28 +63,30 @@ for j in                            \
     rc6-hold.txt                    \
     rc6.txt                         \
     sharp-denon.txt                 \
-    sharp-denon2.txt
+    sharp-denon2.txt                \
+    xbox360-10kHz.txt
 do
     echo "testing $j ..."
     if tmpsrc/irmp -v < $j | grep -q error
     then
-        tmpsrc/irmp -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp -v < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
 
 for j in                                \
     Siemens-Gigaset-M740AV-15kHz.txt    \
     bo_beolink1000-15kHz.txt            \
-    denon-15kHz.txt
+    denon-15kHz.txt                     \
+    xbox360-15kHz.txt
 do
     echo "testing $j ..."
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-15kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-15kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
 
@@ -95,9 +98,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-20kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-20kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
 
