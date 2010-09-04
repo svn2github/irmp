@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.82 2010/08/31 15:22:24 fm Exp $
+ * $Id: irmp.c,v 1.83 2010/09/04 18:11:52 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -325,10 +325,10 @@ typedef unsigned int16  uint16_t;
 #endif // windows
 #endif // unix
 
-#include "irmp.h"
 #ifndef IRMP_USE_AS_LIB
 #include "irmpconfig.h"
 #endif
+#include "irmp.h"
 
 #if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRMP_SUPPORT_NOKIA_PROTOCOL == 1
 #define IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL  1
