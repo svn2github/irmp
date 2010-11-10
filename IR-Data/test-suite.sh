@@ -53,6 +53,7 @@ for j in                            \
     nec-repetition.txt              \
     nec-skymaster-dt500.txt         \
     nec.txt                         \
+    nikon.txt                       \
     nubert-subwoofer.txt            \
     orion_vcr_07660BM070.txt        \
     panasonic-scan.txt              \
@@ -69,9 +70,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp -v < $j | grep -q error
     then
-	tmpsrc/irmp -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 
@@ -84,9 +85,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-15kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-15kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 
@@ -98,9 +99,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-20kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-20kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 
