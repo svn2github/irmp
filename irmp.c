@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.84 2010/11/09 19:18:32 fm Exp $
+ * $Id: irmp.c,v 1.86 2011/01/13 15:54:57 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -2035,17 +2035,18 @@ irmp_ISR (void)
                     }
                     else
                     {
-                        irmp_pause_time++;                                      // increment counter
+                        irmp_pause_time++;                                                          // increment counter
 
 #if IRMP_SUPPORT_SIRCS_PROTOCOL == 1
-                        if (irmp_param.protocol == IRMP_SIRCS_PROTOCOL &&       // Sony has a variable number of bits:
-                            irmp_pause_time > SIRCS_PAUSE_LEN_MAX &&            // minimum is 12
-                            irmp_bit >= 12 - 1)                                 // pause too long?
-                        {                                                       // yes, break and close this frame
-                            irmp_param.complete_len = irmp_bit + 1;             // set new complete length
-                            got_light = TRUE;                                   // this is a lie, but helps (generates stop bit)
-                            irmp_param.command_end = irmp_param.command_offset + irmp_bit + 1;        // correct command length
-                            irmp_pause_time = SIRCS_PAUSE_LEN_MAX - 1;          // correct pause length
+                        if (irmp_param.protocol == IRMP_SIRCS_PROTOCOL &&                           // Sony has a variable number of bits:
+                            irmp_pause_time > SIRCS_PAUSE_LEN_MAX &&                                // minimum is 12
+                            irmp_bit >= 12 - 1)                                                     // pause too long?
+                        {                                                                           // yes, break and close this frame
+                            irmp_param.complete_len = irmp_bit + 1;                                 // set new complete length
+                            got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
+                            irmp_tmp_address |= (irmp_bit - SIRCS_MINIMUM_DATA_LEN + 1) << 8;       // new: store number of additional bits in upper byte of address!
+                            irmp_param.command_end = irmp_param.command_offset + irmp_bit + 1;      // correct command length
+                            irmp_pause_time = SIRCS_PAUSE_LEN_MAX - 1;                              // correct pause length
                         }
                         else
 #endif
@@ -2214,7 +2215,7 @@ irmp_ISR (void)
                                 irmp_param.address_end = irmp_param.address_offset + 15;
                                 irmp_param.command_offset = irmp_param.address_end + 1;                                 // skip 1 system bit, changes like a toggle bit
                                 irmp_param.command_end = irmp_param.command_offset + 16 - 1;
-                                irmp_tmp_address = 1;                                                                   // addr 0 - 32767 --> 32768 - 65535
+                                irmp_tmp_address = 0;
                             }
 #endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
 

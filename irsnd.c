@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.26 2010/11/09 21:14:31 fm Exp $
+ * $Id: irsnd.c,v 1.28 2011/01/13 15:54:57 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -315,6 +315,10 @@ bitsrevervse (uint16_t x, uint8_t len)
 }
 
 
+#if IRSND_SUPPORT_SIRCS_PROTOCOL == 1
+static uint8_t  sircs_additional_bitlen;
+#endif // IRSND_SUPPORT_SIRCS_PROTOCOL == 1
+
 uint8_t
 irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 {
@@ -326,6 +330,9 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 #endif
 #if IRSND_SUPPORT_RC5_PROTOCOL == 1
     static uint8_t  toggle_bit_rc5;
+#endif
+#if IRSND_SUPPORT_RC5_PROTOCOL == 1
+    static uint8_t  toggle_bit_rc6;
 #endif
     uint16_t        address;
     uint16_t        command;
@@ -350,10 +357,33 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1
         case IRMP_SIRCS_PROTOCOL:
         {
-            command = bitsrevervse (irmp_data_p->command, SIRCS_MINIMUM_DATA_LEN);
+            uint8_t  sircs_additional_command_len;
+            uint8_t  sircs_additional_address_len;
 
-            irsnd_buffer[0] = (command & 0x0FF0) >> 4;                                                         // CCCCCCCC
-            irsnd_buffer[1] = (command & 0x000F) << 4;                                                         // CCCC0000
+            sircs_additional_bitlen = (irmp_data_p->address & 0xFF00) >> 8;                             // additional bitlen
+
+            if (sircs_additional_bitlen > 15 - SIRCS_MINIMUM_DATA_LEN)
+            {
+                sircs_additional_command_len = 15 - SIRCS_MINIMUM_DATA_LEN;
+                sircs_additional_address_len = sircs_additional_bitlen - (15 - SIRCS_MINIMUM_DATA_LEN);
+            }
+            else
+            {
+                sircs_additional_command_len = sircs_additional_bitlen;
+                sircs_additional_address_len = 0;
+            }
+
+            command = bitsrevervse (irmp_data_p->command, 15);
+
+            irsnd_buffer[0] = (command & 0x7F80) >> 7;                                                  // CCCCCCCC
+            irsnd_buffer[1] = (command & 0x007F) << 1;                                                  // CCCC****
+
+            if (sircs_additional_address_len > 0)
+            {
+                address = bitsrevervse (irmp_data_p->address, 5);
+                irsnd_buffer[1] |= (address & 0x0010) >> 4;
+                irsnd_buffer[2] =  (address & 0x000F) << 4;
+            }
             irsnd_busy      = TRUE;
             break;
         }
@@ -491,6 +521,32 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             irsnd_buffer[0] = ((irmp_data_p->command & 0x40) ? 0x00 : 0x80) | toggle_bit_rc5 |
                                 ((irmp_data_p->address & 0x001F) << 1) | ((irmp_data_p->command & 0x20) >> 5);  // CTAAAAAC
             irsnd_buffer[1] = (irmp_data_p->command & 0x1F) << 3;                                               // CCCCC000
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_RC6_PROTOCOL == 1
+        case IRMP_RC6_PROTOCOL:
+        {
+            toggle_bit_rc6 = toggle_bit_rc6 ? 0x00 : 0x08;
+
+            irsnd_buffer[0] = 0x80 | toggle_bit_rc6 | ((irmp_data_p->address & 0x00E0) >> 5);                   // 1MMMTAAA, MMM = 000
+            irsnd_buffer[1] = ((irmp_data_p->address & 0x001F) << 3) | ((irmp_data_p->command & 0xE0) >> 5);    // AAAAACCC
+            irsnd_buffer[2] = (irmp_data_p->command & 0x1F) << 3;                                               // CCCCC
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_RC6A_PROTOCOL == 1
+        case IRMP_RC6A_PROTOCOL:
+        {
+            toggle_bit_rc6 = toggle_bit_rc6 ? 0x00 : 0x08;
+
+            irsnd_buffer[0] = 0x80 | 0x60 | ((irmp_data_p->address & 0x3000) >> 12);                                                // 1MMMT0AA, MMM = 110
+            irsnd_buffer[1] = ((irmp_data_p->address & 0x0FFF) >> 4) ;                                                              // AAAAAAAA
+            irsnd_buffer[2] = ((irmp_data_p->address & 0x000F) << 4) | ((irmp_data_p->command & 0xF000) >> 12) | toggle_bit_rc6;    // AAAACCCC
+            irsnd_buffer[3] = (irmp_data_p->command & 0x0FF0) >> 4;                                                                 // CCCCCCCC
+            irsnd_buffer[4] = (irmp_data_p->command & 0x000F) << 4;                                                                 // CCCC
             irsnd_busy      = TRUE;
             break;
         }
@@ -745,7 +801,7 @@ irsnd_ISR (void)
                         pulse_0_len                 = SIRCS_0_PULSE_LEN;
                         pause_0_len                 = SIRCS_PAUSE_LEN;
                         has_stop_bit                = SIRCS_STOP_BIT;
-                        complete_data_len           = SIRCS_MINIMUM_DATA_LEN;
+                        complete_data_len           = SIRCS_MINIMUM_DATA_LEN + sircs_additional_bitlen;
                         n_auto_repetitions          = (repeat_counter == 0) ? SIRCS_FRAMES : 1;     // 3 frames auto repetition if first frame
                         auto_repetition_pause_len   = SIRCS_AUTO_REPETITION_PAUSE_LEN;              // 25ms pause
                         repeat_frame_pause_len      = SIRCS_FRAME_REPEAT_PAUSE_LEN;
@@ -900,6 +956,38 @@ irsnd_ISR (void)
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
                         repeat_frame_pause_len      = RC5_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_36_KHZ);
+                        break;
+                    }
+#endif
+#if IRSND_SUPPORT_RC6_PROTOCOL == 1
+                    case IRMP_RC6_PROTOCOL:
+                    {
+                        startbit_pulse_len          = RC6_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = RC6_START_BIT_PAUSE_LEN;
+                        pulse_len                   = RC6_BIT_LEN;
+                        pause_len                   = RC6_BIT_LEN;
+                        has_stop_bit                = RC6_STOP_BIT;
+                        complete_data_len           = RC6_COMPLETE_DATA_LEN_SHORT;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = RC6_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_36_KHZ);
+                        break;
+                    }
+#endif
+#if IRSND_SUPPORT_RC6A_PROTOCOL == 1
+                    case IRMP_RC6A_PROTOCOL:
+                    {
+                        startbit_pulse_len          = RC6_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = RC6_START_BIT_PAUSE_LEN;
+                        pulse_len                   = RC6_BIT_LEN;
+                        pause_len                   = RC6_BIT_LEN;
+                        has_stop_bit                = RC6_STOP_BIT;
+                        complete_data_len           = RC6_COMPLETE_DATA_LEN_LONG;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = RC6_FRAME_REPEAT_PAUSE_LEN;
                         irsnd_set_freq (IRSND_FREQ_36_KHZ);
                         break;
                     }
@@ -1297,6 +1385,12 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_RC5_PROTOCOL == 1
                 case IRMP_RC5_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_RC6_PROTOCOL == 1
+                case IRMP_RC6_PROTOCOL:
+#endif
+#if IRSND_SUPPORT_RC6A_PROTOCOL == 1
+                case IRMP_RC6A_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_SIEMENS_PROTOCOL == 1
                 case IRMP_SIEMENS_PROTOCOL:
 #endif
@@ -1307,7 +1401,8 @@ irsnd_ISR (void)
                 case IRMP_NOKIA_PROTOCOL:
 #endif
 
-#if IRSND_SUPPORT_RC5_PROTOCOL == 1 || IRSND_SUPPORT_SIEMENS_PROTOCOL == 1 || IRSND_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRSND_SUPPORT_NOKIA_PROTOCOL == 1
+#if IRSND_SUPPORT_RC5_PROTOCOL == 1 || IRSND_SUPPORT_RC6_PROTOCOL == 1 || IRSND_SUPPORT_RC6A_PROTOCOL == 1 || IRSND_SUPPORT_SIEMENS_PROTOCOL == 1 || \
+    IRSND_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRSND_SUPPORT_NOKIA_PROTOCOL == 1
                 {
                     if (pulse_counter == pulse_len && pause_counter == pause_len)
                     {
@@ -1374,15 +1469,51 @@ irsnd_ISR (void)
                                 first_pulse = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ? TRUE : FALSE;
                             }
                         }
-                        else // if (irsnd_protocol == IRMP_RC5_PROTOCOL || irsnd_protocol == IRMP_SIEMENS_PROTOCOL)
+                        else // if (irsnd_protocol == IRMP_RC5_PROTOCOL || irsnd_protocol == IRMP_RC6_PROTOCOL || irsnd_protocol == IRMP_RC6A_PROTOCOL ||
+                             //     irsnd_protocol == IRMP_SIEMENS_PROTOCOL)
 #endif
                         {
                             if (current_bit == 0xFF)                                                    // 1 start bit
                             {
+#if IRSND_SUPPORT_RC6_PROTOCOL == 1 || IRSND_SUPPORT_RC6A_PROTOCOL == 1
+                                if (irsnd_protocol == IRMP_RC6_PROTOCOL || irsnd_protocol == IRMP_RC6A_PROTOCOL)
+                                {
+                                    pulse_len = startbit_pulse_len;
+                                    pause_len = startbit_pause_len;
+                                }
+#endif
                                 first_pulse = TRUE;
                             }
                             else                                                                        // send n'th bit
                             {
+#if IRSND_SUPPORT_RC6_PROTOCOL == 1 || IRSND_SUPPORT_RC6A_PROTOCOL == 1
+                                if (irsnd_protocol == IRMP_RC6_PROTOCOL || irsnd_protocol == IRMP_RC6A_PROTOCOL)
+                                {
+                                    pulse_len = RC6_BIT_LEN;
+                                    pause_len = RC6_BIT_LEN;
+
+                                    if (irsnd_protocol == IRMP_RC6_PROTOCOL)
+                                    {
+                                        if (current_bit == 4)                                           // toggle bit (double len)
+                                        {
+                                            pulse_len = 2 * RC6_BIT_LEN;
+                                            pause_len = 2 * RC6_BIT_LEN;
+                                        }
+                                    }
+                                    else // if (irsnd_protocol == IRMP_RC6A_PROTOCOL)
+                                    {
+                                        if (current_bit == 4)                                           // toggle bit (double len)
+                                        {
+                                            pulse_len = 2 * RC6_BIT_LEN + RC6_BIT_LEN;                  // hack!
+                                            pause_len = 2 * RC6_BIT_LEN;
+                                        }
+                                        else if (current_bit == 5)                                      // toggle bit (double len)
+                                        {
+                                            pause_len = 2 * RC6_BIT_LEN;
+                                        }
+                                    }
+                                }
+#endif
                                 first_pulse = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ? TRUE : FALSE;
                             }
 
@@ -1433,7 +1564,8 @@ irsnd_ISR (void)
                     }
                     break;
                 }
-#endif // IRSND_SUPPORT_RC5_PROTOCOL == 1 || IRSND_SUPPORT_SIEMENS_PROTOCOL == 1 || IRSND_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRSND_SUPPORT_NOKIA_PROTOCOL == 1
+#endif // IRSND_SUPPORT_RC5_PROTOCOL == 1 || IRSND_SUPPORT_RC6_PROTOCOL == 1 || || IRSND_SUPPORT_RC6A_PROTOCOL == 1 || IRSND_SUPPORT_SIEMENS_PROTOCOL == 1 ||
+       // IRSND_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRSND_SUPPORT_NOKIA_PROTOCOL == 1
 
                 default:
                 {
