@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.86 2011/01/13 15:54:57 fm Exp $
+ * $Id: irmp.c,v 1.87 2011/01/18 13:02:15 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -17,7 +17,7 @@
  * KASEIKYO   - Panasonic, Denon & other Japanese manufacturers (members of "Japan's Association for Electric Home Application")
  * RECS80     - Philips, Nokia, Thomson, Nordmende, Telefunken, Saba
  * RC5        - Philips and other European manufacturers
- * DENON      - Denon
+ * DENON      - Denon, Sharp
  * RC6        - Philips and other European manufacturers
  * APPLE      - Apple
  * NUBERT     - Nubert Subwoofer System
@@ -153,9 +153,17 @@
  *   frame: 0 start bits + 16 data bits + stop bit + 65ms pause + 16 inverted data bits + stop bit
  *   data:  5 address bits + 10 command bits
  *
+ *   Theory:
+ *
  *   data "0":                 data "1":
  *   ------________________    ------______________
  *   275us       775us         275us   1900us
+ *
+ *   Practice:
+ *
+ *   data "0":                 data "1":
+ *   ------________________    ------______________
+ *   310us       745us         310us   1780us
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
@@ -2860,7 +2868,7 @@ print_spectrum (char * text, int * buf, int is_pulse)
         }
     }
 
-    for (i = 0; i < 100; i++)
+    for (i = 1; i < 100; i++)
     {
         if (buf[i] > 0)
         {

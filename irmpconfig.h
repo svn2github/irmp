@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.46 2011/01/13 16:01:41 fm Exp $
+ * $Id: irmpconfig.h,v 1.47 2011/01/18 13:02:15 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -48,7 +48,7 @@
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // Samsung + Samsung32  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // Matsushita           >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // Kaseikyo             >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON                >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON, Sharp         >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_JVC_PROTOCOL               1       // JVC                  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_RC5_PROTOCOL               1       // RC5                  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_RC6_PROTOCOL               1       // RC6 & RC6A           >= 10000                 ~200 bytes

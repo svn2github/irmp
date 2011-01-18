@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.28 2011/01/13 15:54:57 fm Exp $
+ * $Id: irsnd.c,v 1.29 2011/01/18 13:02:15 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -795,11 +795,11 @@ irsnd_ISR (void)
                     case IRMP_SIRCS_PROTOCOL:
                     {
                         startbit_pulse_len          = SIRCS_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = SIRCS_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = SIRCS_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = SIRCS_1_PULSE_LEN;
-                        pause_1_len                 = SIRCS_PAUSE_LEN;
+                        pause_1_len                 = SIRCS_PAUSE_LEN - 1;
                         pulse_0_len                 = SIRCS_0_PULSE_LEN;
-                        pause_0_len                 = SIRCS_PAUSE_LEN;
+                        pause_0_len                 = SIRCS_PAUSE_LEN - 1;
                         has_stop_bit                = SIRCS_STOP_BIT;
                         complete_data_len           = SIRCS_MINIMUM_DATA_LEN + sircs_additional_bitlen;
                         n_auto_repetitions          = (repeat_counter == 0) ? SIRCS_FRAMES : 1;     // 3 frames auto repetition if first frame
@@ -816,19 +816,19 @@ irsnd_ISR (void)
 
                         if (repeat_counter > 0)
                         {
-                            startbit_pause_len      = NEC_REPEAT_START_BIT_PAUSE_LEN;
+                            startbit_pause_len      = NEC_REPEAT_START_BIT_PAUSE_LEN - 1;
                             complete_data_len       = 0;
                         }
                         else
                         {
-                            startbit_pause_len      = NEC_START_BIT_PAUSE_LEN;
+                            startbit_pause_len      = NEC_START_BIT_PAUSE_LEN - 1;
                             complete_data_len       = NEC_COMPLETE_DATA_LEN;
                         }
 
                         pulse_1_len                 = NEC_PULSE_LEN;
-                        pause_1_len                 = NEC_1_PAUSE_LEN;
+                        pause_1_len                 = NEC_1_PAUSE_LEN - 1;
                         pulse_0_len                 = NEC_PULSE_LEN;
-                        pause_0_len                 = NEC_0_PAUSE_LEN;
+                        pause_0_len                 = NEC_0_PAUSE_LEN - 1;
                         has_stop_bit                = NEC_STOP_BIT;
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
@@ -841,11 +841,11 @@ irsnd_ISR (void)
                     case IRMP_SAMSUNG_PROTOCOL:
                     {
                         startbit_pulse_len          = SAMSUNG_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = SAMSUNG_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = SAMSUNG_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = SAMSUNG_PULSE_LEN;
-                        pause_1_len                 = SAMSUNG_1_PAUSE_LEN;
+                        pause_1_len                 = SAMSUNG_1_PAUSE_LEN - 1;
                         pulse_0_len                 = SAMSUNG_PULSE_LEN;
-                        pause_0_len                 = SAMSUNG_0_PAUSE_LEN;
+                        pause_0_len                 = SAMSUNG_0_PAUSE_LEN - 1;
                         has_stop_bit                = SAMSUNG_STOP_BIT;
                         complete_data_len           = SAMSUNG_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = 1;                                            // 1 frame
@@ -858,11 +858,11 @@ irsnd_ISR (void)
                     case IRMP_SAMSUNG32_PROTOCOL:
                     {
                         startbit_pulse_len          = SAMSUNG_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = SAMSUNG_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = SAMSUNG_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = SAMSUNG_PULSE_LEN;
-                        pause_1_len                 = SAMSUNG_1_PAUSE_LEN;
+                        pause_1_len                 = SAMSUNG_1_PAUSE_LEN - 1;
                         pulse_0_len                 = SAMSUNG_PULSE_LEN;
-                        pause_0_len                 = SAMSUNG_0_PAUSE_LEN;
+                        pause_0_len                 = SAMSUNG_0_PAUSE_LEN - 1;
                         has_stop_bit                = SAMSUNG_STOP_BIT;
                         complete_data_len           = SAMSUNG32_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = SAMSUNG32_FRAMES;                             // 2 frames
@@ -876,11 +876,11 @@ irsnd_ISR (void)
                     case IRMP_MATSUSHITA_PROTOCOL:
                     {
                         startbit_pulse_len          = MATSUSHITA_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = MATSUSHITA_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = MATSUSHITA_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = MATSUSHITA_PULSE_LEN;
-                        pause_1_len                 = MATSUSHITA_1_PAUSE_LEN;
+                        pause_1_len                 = MATSUSHITA_1_PAUSE_LEN - 1;
                         pulse_0_len                 = MATSUSHITA_PULSE_LEN;
-                        pause_0_len                 = MATSUSHITA_0_PAUSE_LEN;
+                        pause_0_len                 = MATSUSHITA_0_PAUSE_LEN - 1;
                         has_stop_bit                = MATSUSHITA_STOP_BIT;
                         complete_data_len           = MATSUSHITA_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = 1;                                            // 1 frame
@@ -894,11 +894,11 @@ irsnd_ISR (void)
                     case IRMP_KASEIKYO_PROTOCOL:
                     {
                         startbit_pulse_len          = KASEIKYO_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = KASEIKYO_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = KASEIKYO_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = KASEIKYO_PULSE_LEN;
-                        pause_1_len                 = KASEIKYO_1_PAUSE_LEN;
+                        pause_1_len                 = KASEIKYO_1_PAUSE_LEN - 1;
                         pulse_0_len                 = KASEIKYO_PULSE_LEN;
-                        pause_0_len                 = KASEIKYO_0_PAUSE_LEN;
+                        pause_0_len                 = KASEIKYO_0_PAUSE_LEN - 1;
                         has_stop_bit                = KASEIKYO_STOP_BIT;
                         complete_data_len           = KASEIKYO_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = (repeat_counter == 0) ? KASEIKYO_FRAMES : 1;  // 2 frames auto repetition if first frame
@@ -912,11 +912,11 @@ irsnd_ISR (void)
                     case IRMP_RECS80_PROTOCOL:
                     {
                         startbit_pulse_len          = RECS80_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = RECS80_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = RECS80_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = RECS80_PULSE_LEN;
-                        pause_1_len                 = RECS80_1_PAUSE_LEN;
+                        pause_1_len                 = RECS80_1_PAUSE_LEN - 1;
                         pulse_0_len                 = RECS80_PULSE_LEN;
-                        pause_0_len                 = RECS80_0_PAUSE_LEN;
+                        pause_0_len                 = RECS80_0_PAUSE_LEN - 1;
                         has_stop_bit                = RECS80_STOP_BIT;
                         complete_data_len           = RECS80_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = 1;                                            // 1 frame
@@ -930,11 +930,11 @@ irsnd_ISR (void)
                     case IRMP_RECS80EXT_PROTOCOL:
                     {
                         startbit_pulse_len          = RECS80EXT_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = RECS80EXT_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = RECS80EXT_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = RECS80EXT_PULSE_LEN;
-                        pause_1_len                 = RECS80EXT_1_PAUSE_LEN;
+                        pause_1_len                 = RECS80EXT_1_PAUSE_LEN - 1;
                         pulse_0_len                 = RECS80EXT_PULSE_LEN;
-                        pause_0_len                 = RECS80EXT_0_PAUSE_LEN;
+                        pause_0_len                 = RECS80EXT_0_PAUSE_LEN - 1;
                         has_stop_bit                = RECS80EXT_STOP_BIT;
                         complete_data_len           = RECS80EXT_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = 1;                                            // 1 frame
@@ -964,7 +964,7 @@ irsnd_ISR (void)
                     case IRMP_RC6_PROTOCOL:
                     {
                         startbit_pulse_len          = RC6_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = RC6_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = RC6_START_BIT_PAUSE_LEN - 1;
                         pulse_len                   = RC6_BIT_LEN;
                         pause_len                   = RC6_BIT_LEN;
                         has_stop_bit                = RC6_STOP_BIT;
@@ -980,7 +980,7 @@ irsnd_ISR (void)
                     case IRMP_RC6A_PROTOCOL:
                     {
                         startbit_pulse_len          = RC6_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = RC6_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = RC6_START_BIT_PAUSE_LEN - 1;
                         pulse_len                   = RC6_BIT_LEN;
                         pause_len                   = RC6_BIT_LEN;
                         has_stop_bit                = RC6_STOP_BIT;
@@ -998,15 +998,15 @@ irsnd_ISR (void)
                         startbit_pulse_len          = 0x00;
                         startbit_pause_len          = 0x00;
                         pulse_1_len                 = DENON_PULSE_LEN;
-                        pause_1_len                 = DENON_1_PAUSE_LEN;
+                        pause_1_len                 = DENON_1_PAUSE_LEN - 1;
                         pulse_0_len                 = DENON_PULSE_LEN;
-                        pause_0_len                 = DENON_0_PAUSE_LEN;
+                        pause_0_len                 = DENON_0_PAUSE_LEN - 1;
                         has_stop_bit                = DENON_STOP_BIT;
                         complete_data_len           = DENON_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = DENON_FRAMES;                                 // 2 frames, 2nd with inverted command
                         auto_repetition_pause_len   = DENON_AUTO_REPETITION_PAUSE_LEN;              // 65 ms pause after 1st frame
                         repeat_frame_pause_len      = DENON_FRAME_REPEAT_PAUSE_LEN;
-                        irsnd_set_freq (IRSND_FREQ_32_KHZ);
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);                                         // in theory 32kHz, in practice 38kHz
                         break;
                     }
 #endif
@@ -1014,11 +1014,11 @@ irsnd_ISR (void)
                     case IRMP_NUBERT_PROTOCOL:
                     {
                         startbit_pulse_len          = NUBERT_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = NUBERT_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = NUBERT_START_BIT_PAUSE_LEN - 1;
                         pulse_1_len                 = NUBERT_1_PULSE_LEN;
-                        pause_1_len                 = NUBERT_1_PAUSE_LEN;
+                        pause_1_len                 = NUBERT_1_PAUSE_LEN - 1;
                         pulse_0_len                 = NUBERT_0_PULSE_LEN;
-                        pause_0_len                 = NUBERT_0_PAUSE_LEN;
+                        pause_0_len                 = NUBERT_0_PAUSE_LEN - 1;
                         has_stop_bit                = NUBERT_STOP_BIT;
                         complete_data_len           = NUBERT_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = NUBERT_FRAMES;                                // 2 frames
@@ -1032,11 +1032,11 @@ irsnd_ISR (void)
                     case IRMP_BANG_OLUFSEN_PROTOCOL:
                     {
                         startbit_pulse_len          = BANG_OLUFSEN_START_BIT1_PULSE_LEN;
-                        startbit_pause_len          = BANG_OLUFSEN_START_BIT1_PAUSE_LEN;
+                        startbit_pause_len          = BANG_OLUFSEN_START_BIT1_PAUSE_LEN - 1;
                         pulse_1_len                 = BANG_OLUFSEN_PULSE_LEN;
-                        pause_1_len                 = BANG_OLUFSEN_1_PAUSE_LEN;
+                        pause_1_len                 = BANG_OLUFSEN_1_PAUSE_LEN - 1;
                         pulse_0_len                 = BANG_OLUFSEN_PULSE_LEN;
-                        pause_0_len                 = BANG_OLUFSEN_0_PAUSE_LEN;
+                        pause_0_len                 = BANG_OLUFSEN_0_PAUSE_LEN - 1;
                         has_stop_bit                = BANG_OLUFSEN_STOP_BIT;
                         complete_data_len           = BANG_OLUFSEN_COMPLETE_DATA_LEN;
                         n_auto_repetitions          = 1;                                            // 1 frame
@@ -1051,7 +1051,7 @@ irsnd_ISR (void)
                     case IRMP_GRUNDIG_PROTOCOL:
                     {
                         startbit_pulse_len          = GRUNDIG_OR_NOKIA_BIT_LEN;
-                        startbit_pause_len          = GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN;
+                        startbit_pause_len          = GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN - 1;
                         pulse_len                   = GRUNDIG_OR_NOKIA_BIT_LEN;
                         pause_len                   = GRUNDIG_OR_NOKIA_BIT_LEN;
                         has_stop_bit                = GRUNDIG_OR_NOKIA_STOP_BIT;
@@ -1068,7 +1068,7 @@ irsnd_ISR (void)
                     case IRMP_NOKIA_PROTOCOL:
                     {
                         startbit_pulse_len          = GRUNDIG_OR_NOKIA_BIT_LEN;
-                        startbit_pause_len          = GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN;
+                        startbit_pause_len          = GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN - 1;
                         pulse_len                   = GRUNDIG_OR_NOKIA_BIT_LEN;
                         pause_len                   = GRUNDIG_OR_NOKIA_BIT_LEN;
                         has_stop_bit                = GRUNDIG_OR_NOKIA_STOP_BIT;
@@ -1100,12 +1100,12 @@ irsnd_ISR (void)
                     case IRMP_FDC_PROTOCOL:
                     {
                         startbit_pulse_len          = FDC_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = FDC_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = FDC_START_BIT_PAUSE_LEN - 1;
                         complete_data_len           = FDC_COMPLETE_DATA_LEN;
                         pulse_1_len                 = FDC_PULSE_LEN;
-                        pause_1_len                 = FDC_1_PAUSE_LEN;
+                        pause_1_len                 = FDC_1_PAUSE_LEN - 1;
                         pulse_0_len                 = FDC_PULSE_LEN;
-                        pause_0_len                 = FDC_0_PAUSE_LEN;
+                        pause_0_len                 = FDC_0_PAUSE_LEN - 1;
                         has_stop_bit                = FDC_STOP_BIT;
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
@@ -1118,12 +1118,12 @@ irsnd_ISR (void)
                     case IRMP_RCCAR_PROTOCOL:
                     {
                         startbit_pulse_len          = RCCAR_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = RCCAR_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = RCCAR_START_BIT_PAUSE_LEN - 1;
                         complete_data_len           = RCCAR_COMPLETE_DATA_LEN;
                         pulse_1_len                 = RCCAR_PULSE_LEN;
-                        pause_1_len                 = RCCAR_1_PAUSE_LEN;
+                        pause_1_len                 = RCCAR_1_PAUSE_LEN - 1;
                         pulse_0_len                 = RCCAR_PULSE_LEN;
-                        pause_0_len                 = RCCAR_0_PAUSE_LEN;
+                        pause_0_len                 = RCCAR_0_PAUSE_LEN - 1;
                         has_stop_bit                = RCCAR_STOP_BIT;
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
@@ -1141,12 +1141,12 @@ irsnd_ISR (void)
                         }
 
                         startbit_pulse_len          = JVC_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = JVC_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = JVC_START_BIT_PAUSE_LEN - 1;
                         complete_data_len           = JVC_COMPLETE_DATA_LEN;
                         pulse_1_len                 = JVC_PULSE_LEN;
-                        pause_1_len                 = JVC_1_PAUSE_LEN;
+                        pause_1_len                 = JVC_1_PAUSE_LEN - 1;
                         pulse_0_len                 = JVC_PULSE_LEN;
-                        pause_0_len                 = JVC_0_PAUSE_LEN;
+                        pause_0_len                 = JVC_0_PAUSE_LEN - 1;
                         has_stop_bit                = JVC_STOP_BIT;
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
@@ -1160,12 +1160,12 @@ irsnd_ISR (void)
                     case IRMP_NIKON_PROTOCOL:
                     {
                         startbit_pulse_len          = NIKON_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = 271; // NIKON_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = 271 - 1; // NIKON_START_BIT_PAUSE_LEN;
                         complete_data_len           = NIKON_COMPLETE_DATA_LEN;
                         pulse_1_len                 = NIKON_PULSE_LEN;
-                        pause_1_len                 = NIKON_1_PAUSE_LEN;
+                        pause_1_len                 = NIKON_1_PAUSE_LEN - 1;
                         pulse_0_len                 = NIKON_PULSE_LEN;
-                        pause_0_len                 = NIKON_0_PAUSE_LEN;
+                        pause_0_len                 = NIKON_0_PAUSE_LEN - 1;
                         has_stop_bit                = NIKON_STOP_BIT;
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
@@ -1256,12 +1256,12 @@ irsnd_ISR (void)
                                 {
                                     pulse_len = SAMSUNG_PULSE_LEN;
                                     pause_len = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ?
-                                                    SAMSUNG_1_PAUSE_LEN : SAMSUNG_0_PAUSE_LEN;
+                                                    (SAMSUNG_1_PAUSE_LEN - 1) : (SAMSUNG_0_PAUSE_LEN - 1);
                                 }
                                 else if (current_bit == SAMSUNG_ADDRESS_LEN)                        // send SYNC bit (16th bit)
                                 {
                                     pulse_len = SAMSUNG_PULSE_LEN;
-                                    pause_len = SAMSUNG_START_BIT_PAUSE_LEN;
+                                    pause_len = SAMSUNG_START_BIT_PAUSE_LEN - 1;
                                 }
                                 else if (current_bit < SAMSUNG_COMPLETE_DATA_LEN)                   // send n'th bit
                                 {
@@ -1269,7 +1269,7 @@ irsnd_ISR (void)
 
                                     pulse_len = SAMSUNG_PULSE_LEN;
                                     pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
-                                                    SAMSUNG_1_PAUSE_LEN : SAMSUNG_0_PAUSE_LEN;
+                                                    (SAMSUNG_1_PAUSE_LEN - 1) : (SAMSUNG_0_PAUSE_LEN - 1);
                                 }
                             }
                             else
@@ -1281,22 +1281,22 @@ irsnd_ISR (void)
                                 if (current_bit == 0)                                               // send 2nd start bit
                                 {
                                     pulse_len = BANG_OLUFSEN_START_BIT2_PULSE_LEN;
-                                    pause_len = BANG_OLUFSEN_START_BIT2_PAUSE_LEN;
+                                    pause_len = BANG_OLUFSEN_START_BIT2_PAUSE_LEN - 1;
                                 }
                                 else if (current_bit == 1)                                          // send 3rd start bit
                                 {
                                     pulse_len = BANG_OLUFSEN_START_BIT3_PULSE_LEN;
-                                    pause_len = BANG_OLUFSEN_START_BIT3_PAUSE_LEN;
+                                    pause_len = BANG_OLUFSEN_START_BIT3_PAUSE_LEN - 1;
                                 }
                                 else if (current_bit == 2)                                          // send 4th start bit
                                 {
                                     pulse_len = BANG_OLUFSEN_START_BIT2_PULSE_LEN;
-                                    pause_len = BANG_OLUFSEN_START_BIT2_PAUSE_LEN;
+                                    pause_len = BANG_OLUFSEN_START_BIT2_PAUSE_LEN - 1;
                                 }
                                 else if (current_bit == 19)                                          // send trailer bit
                                 {
                                     pulse_len = BANG_OLUFSEN_PULSE_LEN;
-                                    pause_len = BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN;
+                                    pause_len = BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN - 1;
                                 }
                                 else if (current_bit < BANG_OLUFSEN_COMPLETE_DATA_LEN)              // send n'th bit
                                 {
@@ -1305,11 +1305,11 @@ irsnd_ISR (void)
 
                                     if (cur_bit_value == last_bit_value)
                                     {
-                                        pause_len = BANG_OLUFSEN_R_PAUSE_LEN;
+                                        pause_len = BANG_OLUFSEN_R_PAUSE_LEN - 1;
                                     }
                                     else
                                     {
-                                        pause_len = cur_bit_value ? BANG_OLUFSEN_1_PAUSE_LEN : BANG_OLUFSEN_0_PAUSE_LEN;
+                                        pause_len = cur_bit_value ? (BANG_OLUFSEN_1_PAUSE_LEN - 1) : (BANG_OLUFSEN_0_PAUSE_LEN - 1);
                                         last_bit_value = cur_bit_value;
                                     }
                                 }

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.16 2010/11/17 10:33:10 fm Exp $
+ * $Id: irsndconfig.h,v 1.17 2011/01/18 13:02:15 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -36,7 +36,7 @@
 #define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // Matsushita           >= 10000                    uses ~200 bytes
 #define IRSND_SUPPORT_KASEIKYO_PROTOCOL         1       // Kaseikyo             >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_RC5_PROTOCOL              1       // RC5                  >= 10000                    uses ~150 bytes
-#define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON                >= 10000                    uses ~200 bytes
+#define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON, Sharp         >= 10000                    uses ~200 bytes
 #define IRSND_SUPPORT_JVC_PROTOCOL              1       // JVC                  >= 10000                    uses ~150 bytes
 #define IRSND_SUPPORT_RC6_PROTOCOL              1       // RC6                  >= 10000                    uses ~250 bytes
 #define IRSND_SUPPORT_RC6A_PROTOCOL             1       // RC6A                 >= 10000                    uses ~250 bytes
