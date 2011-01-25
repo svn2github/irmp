@@ -55,7 +55,7 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_KASEIKYO_PROTOCOL                   5              // Kaseikyo (Panasonic etc)
 #define IRMP_RECS80_PROTOCOL                     6              // Philips, Thomson, Nordmende, Telefunken, Saba
 #define IRMP_RC5_PROTOCOL                        7              // Philips etc
-#define IRMP_DENON_PROTOCOL                      8              // Denon
+#define IRMP_DENON_PROTOCOL                      8              // Denon, Sharp
 #define IRMP_RC6_PROTOCOL                        9              // Philips etc
 #define IRMP_SAMSUNG32_PROTOCOL                 10              // Samsung32: no sync pulse at bit 16, length 32 instead of 37
 #define IRMP_APPLE_PROTOCOL                     11              // Apple, very similar to NEC

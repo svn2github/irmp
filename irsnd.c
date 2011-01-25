@@ -331,7 +331,7 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 #if IRSND_SUPPORT_RC5_PROTOCOL == 1
     static uint8_t  toggle_bit_rc5;
 #endif
-#if IRSND_SUPPORT_RC5_PROTOCOL == 1
+#if IRSND_SUPPORT_RC6_PROTOCOL == 1 || IRSND_SUPPORT_RC6A_PROTOCOL == 1
     static uint8_t  toggle_bit_rc6;
 #endif
     uint16_t        address;
@@ -1006,7 +1006,7 @@ irsnd_ISR (void)
                         n_auto_repetitions          = DENON_FRAMES;                                 // 2 frames, 2nd with inverted command
                         auto_repetition_pause_len   = DENON_AUTO_REPETITION_PAUSE_LEN;              // 65 ms pause after 1st frame
                         repeat_frame_pause_len      = DENON_FRAME_REPEAT_PAUSE_LEN;
-                        irsnd_set_freq (IRSND_FREQ_38_KHZ);                                         // in theory 32kHz, in practice 38kHz
+                        irsnd_set_freq (IRSND_FREQ_36_KHZ);                                         // in theory 32kHz, in practice 36kHz is better
                         break;
                     }
 #endif
