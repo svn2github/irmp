@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.47 2011/01/18 13:02:15 fm Exp $
+ * $Id: irmpconfig.h,v 1.48 2011/02/08 08:40:27 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -51,9 +51,10 @@
 #define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON, Sharp         >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_JVC_PROTOCOL               1       // JVC                  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_RC5_PROTOCOL               1       // RC5                  >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_RC6_PROTOCOL               1       // RC6 & RC6A           >= 10000                 ~200 bytes
-#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           1       // Grundig              >= 10000                 ~150 bytes
-#define IRMP_SUPPORT_NOKIA_PROTOCOL             1       // Nokia                >= 10000                 ~150 bytes
+#define IRMP_SUPPORT_RC6_PROTOCOL               0       // RC6 & RC6A           >= 10000                 ~200 bytes
+#define IRMP_SUPPORT_RUWIDO_PROTOCOL            0       // RUWIDO, T-Home       >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_GRUNDIG_PROTOCOL           0       // Grundig              >= 10000                 ~150 bytes
+#define IRMP_SUPPORT_NOKIA_PROTOCOL             0       // Nokia                >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_NUBERT_PROTOCOL            0       // NUBERT               >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      0       // Bang & Olufsen       >= 10000                 ~200 bytes
 #define IRMP_SUPPORT_NIKON_PROTOCOL             0       // NIKON                >= 10000                 ~250 bytes
@@ -89,6 +90,10 @@
 #define IRMP_LOGGING                            0       // 1: log IR signal (scan), 0: do not (default)
 #endif
 
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * DO NOT CHANGE THE FOLLOWING LINES !
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
 #if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 && F_INTERRUPTS < 15000
 #warning F_INTERRUPTS too low, SIEMENS protocol disabled (should be at least 15000)
 #undef IRMP_SUPPORT_SIEMENS_PROTOCOL

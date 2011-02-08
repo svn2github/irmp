@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.29 2011/01/18 13:02:15 fm Exp $
+ * $Id: irsnd.c,v 1.30 2011/02/08 08:46:22 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

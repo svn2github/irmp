@@ -63,6 +63,7 @@ for j in                            \
     rc5x.txt                        \
     rc6-hold.txt                    \
     rc6.txt                         \
+    t-home-mediareceiver.txt        \
     sharp-denon.txt                 \
     sharp-denon2.txt                \
     xbox360-10kHz.txt
