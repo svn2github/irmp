@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.47 2011/02/08 08:46:22 fm Exp $
+ * $Id: irmp.h,v 1.49 2011/02/21 11:49:37 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -302,16 +302,28 @@ typedef uint8_t     PAUSE_LEN;
 #define NOKIA_COMMAND_LEN                       8                               // read 8 command bits
 #define NOKIA_COMPLETE_DATA_LEN                 17                              // complete length: 1 start bit + 8 address bits + 8 command bits
 
-#define SIEMENS_BIT_TIME                        250.0e-6                        // 250 usec pulse/pause
-#define SIEMENS_FRAME_REPEAT_PAUSE_TIME          45.0e-3                        // frame repeat after 45ms
-#define SIEMENS_ADDRESS_OFFSET                  2                               // skip 2 start bits
-#define SIEMENS_ADDRESS_LEN                     12                              // read 12 address bits
-#define SIEMENS_COMMAND_OFFSET                  15                              // skip 15 bits (2 start bits + 12 address bits + 1 inverted bit)
-#define SIEMENS_COMMAND_LEN                     8                               // read 7 + 1 command bits, last bit is only check bit.
-#define SIEMENS_COMPLETE_DATA_LEN               23                              // complete length
-#define SIEMENS_STOP_BIT                        0                               // has no stop bit
-#define SIEMENS_LSB                             0                               // MSB...LSB
-#define SIEMENS_FLAGS                           (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME    275.0e-6                      //  275 usec pulse
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME    550.0e-6                      //  550 usec pause
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_TIME          275.0e-6                      //  275 usec short pulse
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2        550.0e-6                      //  550 usec long pulse
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME          275.0e-6                      //  275 usec short pause
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2        550.0e-6                      //  550 usec long pause
+#define SIEMENS_OR_RUWIDO_FRAME_REPEAT_PAUSE_TIME 45.0e-3                       // frame repeat after 45ms
+#define SIEMENS_OR_RUWIDO_STOP_BIT                0                             // has no stop bit
+#define SIEMENS_OR_RUWIDO_LSB                     0                             // MSB...LSB
+#define SIEMENS_OR_RUWIDO_FLAGS                   (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
+
+#define RUWIDO_ADDRESS_OFFSET                   0                               // skip 0 bits
+#define RUWIDO_ADDRESS_LEN                      9                               // read 9 address bits
+#define RUWIDO_COMMAND_OFFSET                   9                               // skip 9 bits
+#define RUWIDO_COMMAND_LEN                      8                               // read 7 + 1 command bits, last bit is only check bit
+#define RUWIDO_COMPLETE_DATA_LEN                17                              // complete length
+
+#define SIEMENS_ADDRESS_OFFSET                  0                               // skip 0 bits
+#define SIEMENS_ADDRESS_LEN                     11                              // read 11 bits
+#define SIEMENS_COMMAND_OFFSET                  11                              // skip 11 bits
+#define SIEMENS_COMMAND_LEN                     11                              // read 10 + 1 command bits, last bit is only check bit
+#define SIEMENS_COMPLETE_DATA_LEN               22                              // complete length
 
 #define FDC_START_BIT_PULSE_TIME                 2085.0e-6                      // 2085 usec pulse
 #define FDC_START_BIT_PAUSE_TIME                  966.0e-6                      //  966 usec pause
@@ -372,22 +384,6 @@ typedef uint8_t     PAUSE_LEN;
 #define NIKON_STOP_BIT                          1                               // has stop bit
 #define NIKON_LSB                               0                               // LSB...MSB
 #define NIKON_FLAGS                             0                               // flags
-
-#define RUWIDO_START_BIT_PULSE_TIME              889.0e-6                       //  900 usec pulse
-#define RUWIDO_START_BIT_PAUSE_TIME             1400.0e-6                       // 1400 usec pause
-#define RUWIDO_BIT_PULSE_TIME                    889.0e-6                       //  889 usec short pulse
-#define RUWIDO_BIT_PULSE_TIME_2                 1622.0e-6                       // 1622 usec long pulse
-#define RUWIDO_BIT_PAUSE_TIME                    611.0e-6                       //  611 usec short pause
-#define RUWIDO_BIT_PAUSE_TIME_2                 1361.0e-6                       // 1361 usec long pause
-#define RUWIDO_FRAME_REPEAT_PAUSE_TIME            45.0e-3                       // frame repeat after 45ms
-#define RUWIDO_ADDRESS_OFFSET                   2                               // skip 2 start bits
-#define RUWIDO_ADDRESS_LEN                      8                               // read 8 address bits
-#define RUWIDO_COMMAND_OFFSET                   10                              // skip 10 bits (2 start + 8 address)
-#define RUWIDO_COMMAND_LEN                      7                               // read 7 command bits, ignore last parity bit
-#define RUWIDO_COMPLETE_DATA_LEN                18                              // complete length
-#define RUWIDO_STOP_BIT                         0                               // has no stop bit
-#define RUWIDO_LSB                              0                               // MSB...LSB
-#define RUWIDO_FLAGS                            (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
 #define AUTO_FRAME_REPETITION_TIME              80.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
                                                                                 // KASEIKYO: automatic repetition after 75ms

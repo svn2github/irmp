@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.88 2011/02/08 08:40:27 fm Exp $
+ * $Id: irmp.c,v 1.90 2011/02/21 11:49:37 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -244,8 +244,8 @@
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
- *   SIEMENS:
- *   --------
+ *   SIEMENS or RUWIDO:
+ *   ------------------
  *
  *   SIEMENS frame:  1 start bit + 22 data bits + no stop bit
  *   SIEMENS data:   13 address bits + 1 repeat bit + 7 data bits + 1 unknown bit
@@ -344,7 +344,16 @@ typedef unsigned int16  uint16_t;
 #define IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL  0
 #endif
 
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_RC6_PROTOCOL == 1 || IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1 || IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 
+#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 || IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
+#define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL 1
+#else
+#define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL 0
+#endif
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||               \
+    IRMP_SUPPORT_RC6_PROTOCOL == 1 ||               \
+    IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1 ||  \
+    IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
 #define IRMP_SUPPORT_MANCHESTER                 1
 #else
 #define IRMP_SUPPORT_MANCHESTER                 0
@@ -470,7 +479,11 @@ typedef unsigned int16  uint16_t;
 #define DENON_PULSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define DENON_1_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_1_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define DENON_1_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * DENON_1_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
+#define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5))     // no -1, avoid conflict with RUWIDO
+#else
+#define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1) // be more tolerant
+#endif
 #define DENON_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define RC6_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * RC6_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
@@ -549,12 +562,22 @@ typedef unsigned int16  uint16_t;
 #define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) + 1)
 #define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
-#define SIEMENS_START_BIT_LEN_MIN               ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) - 1)
-#define SIEMENS_START_BIT_LEN_MAX               ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) + 1)
-#define SIEMENS_BIT_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) - 1)
-#define SIEMENS_BIT_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME * 1 + 0.5) + 1)
-#define SIEMENS_BIT_LEN_MIN_2                   ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_BIT_TIME * 1 + 0.5) - 1)
-#define SIEMENS_BIT_LEN_MAX_2                   ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_BIT_TIME * 1 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define FDC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -608,19 +631,6 @@ typedef unsigned int16  uint16_t;
 #define NIKON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * NIKON_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define NIKON_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * NIKON_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define NIKON_FRAME_REPEAT_PAUSE_LEN_MAX        (uint16_t)(F_INTERRUPTS * NIKON_FRAME_REPEAT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5)
-
-#define RUWIDO_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define RUWIDO_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define RUWIDO_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define RUWIDO_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define RUWIDO_BIT_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RUWIDO_BIT_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define RUWIDO_BIT_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RUWIDO_BIT_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define RUWIDO_BIT_PULSE_LEN_MIN_2              ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PULSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RUWIDO_BIT_PULSE_LEN_MAX_2              ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PULSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
-#define RUWIDO_BIT_PAUSE_LEN_MIN_2              ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PAUSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
-#define RUWIDO_BIT_PAUSE_LEN_MAX_2              ((uint8_t)(F_INTERRUPTS * RUWIDO_BIT_PAUSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -1173,27 +1183,27 @@ static PROGMEM IRMP_PARAMETER grundig_param =
 
 #endif
 
-#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+#if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
 
-static PROGMEM IRMP_PARAMETER siemens_param =
+static PROGMEM IRMP_PARAMETER ruwido_param =
 {
-    IRMP_SIEMENS_PROTOCOL,                                              // protocol:        ir protocol
-    SIEMENS_BIT_LEN_MIN,                                                // pulse_1_len_min: here: minimum length of short pulse
-    SIEMENS_BIT_LEN_MAX,                                                // pulse_1_len_max: here: maximum length of short pulse
-    SIEMENS_BIT_LEN_MIN,                                                // pause_1_len_min: here: minimum length of short pause
-    SIEMENS_BIT_LEN_MAX,                                                // pause_1_len_max: here: maximum length of short pause
-    SIEMENS_BIT_LEN_MIN_2,                                              // pulse_0_len_min: here: minimum length of long pulse
-    SIEMENS_BIT_LEN_MAX_2,                                              // pulse_0_len_max: here: maximum length of long pulse
-    SIEMENS_BIT_LEN_MIN_2,                                              // pause_0_len_min: here: minimum length of long pause
-    SIEMENS_BIT_LEN_MAX_2,                                              // pause_0_len_max: here: maximum length of long pause
-    SIEMENS_ADDRESS_OFFSET,                                             // address_offset:  address offset
-    SIEMENS_ADDRESS_OFFSET + SIEMENS_ADDRESS_LEN,                       // address_end:     end of address
-    SIEMENS_COMMAND_OFFSET,                                             // command_offset:  command offset
-    SIEMENS_COMMAND_OFFSET + SIEMENS_COMMAND_LEN,                       // command_end:     end of command
-    SIEMENS_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame
-    SIEMENS_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
-    SIEMENS_LSB,                                                        // lsb_first:       flag: LSB first
-    SIEMENS_FLAGS                                                       // flags:           some flags
+    IRMP_RUWIDO_PROTOCOL,                                               // protocol:        ir protocol
+    SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN,                                // pulse_1_len_min: here: minimum length of short pulse
+    SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX,                                // pulse_1_len_max: here: maximum length of short pulse
+    SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN,                                // pause_1_len_min: here: minimum length of short pause
+    SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX,                                // pause_1_len_max: here: maximum length of short pause
+    SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN_2,                              // pulse_0_len_min: here: minimum length of long pulse
+    SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX_2,                              // pulse_0_len_max: here: maximum length of long pulse
+    SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN_2,                              // pause_0_len_min: here: minimum length of long pause
+    SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX_2,                              // pause_0_len_max: here: maximum length of long pause
+    RUWIDO_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    RUWIDO_ADDRESS_OFFSET + RUWIDO_ADDRESS_LEN,                         // address_end:     end of address
+    RUWIDO_COMMAND_OFFSET,                                              // command_offset:  command offset
+    RUWIDO_COMMAND_OFFSET + RUWIDO_COMMAND_LEN,                         // command_end:     end of command
+    SIEMENS_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame, here: SIEMENS instead of RUWIDO!
+    SIEMENS_OR_RUWIDO_STOP_BIT,                                         // stop_bit:        flag: frame has stop bit
+    SIEMENS_OR_RUWIDO_LSB,                                              // lsb_first:       flag: LSB first
+    SIEMENS_OR_RUWIDO_FLAGS                                             // flags:           some flags
 };
 
 #endif
@@ -1269,31 +1279,6 @@ static PROGMEM IRMP_PARAMETER nikon_param =
     NIKON_STOP_BIT,                                                     // stop_bit:        flag: frame has stop bit
     NIKON_LSB,                                                          // lsb_first:       flag: LSB first
     NIKON_FLAGS                                                         // flags:           some flags
-};
-
-#endif
-
-#if IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
-
-static PROGMEM IRMP_PARAMETER ruwido_param =
-{
-    IRMP_RUWIDO_PROTOCOL,                                               // protocol:        ir protocol
-    RUWIDO_BIT_PULSE_LEN_MIN,                                           // pulse_1_len_min: here: minimum length of short pulse
-    RUWIDO_BIT_PULSE_LEN_MAX,                                           // pulse_1_len_max: here: maximum length of short pulse
-    RUWIDO_BIT_PAUSE_LEN_MIN,                                           // pause_1_len_min: here: minimum length of short pause
-    RUWIDO_BIT_PAUSE_LEN_MAX,                                           // pause_1_len_max: here: maximum length of short pause
-    RUWIDO_BIT_PULSE_LEN_MIN_2,                                         // pulse_0_len_min: here: minimum length of long pulse
-    RUWIDO_BIT_PULSE_LEN_MAX_2,                                         // pulse_0_len_max: here: maximum length of long pulse
-    RUWIDO_BIT_PAUSE_LEN_MIN_2,                                         // pause_0_len_min: here: minimum length of long pause
-    RUWIDO_BIT_PAUSE_LEN_MAX_2,                                         // pause_0_len_max: here: maximum length of long pause
-    RUWIDO_ADDRESS_OFFSET,                                              // address_offset:  address offset
-    RUWIDO_ADDRESS_OFFSET + RUWIDO_ADDRESS_LEN,                         // address_end:     end of address
-    RUWIDO_COMMAND_OFFSET,                                              // command_offset:  command offset
-    RUWIDO_COMMAND_OFFSET + RUWIDO_COMMAND_LEN,                         // command_end:     end of command
-    RUWIDO_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
-    RUWIDO_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
-    RUWIDO_LSB,                                                         // lsb_first:       flag: LSB first
-    RUWIDO_FLAGS                                                        // flags:           some flags
 };
 
 #endif
@@ -1378,8 +1363,9 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 break;
 #endif
-#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+#if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
             case IRMP_SIEMENS_PROTOCOL:
+            case IRMP_RUWIDO_PROTOCOL:
                 if (((irmp_command >> 1) & 0x0001) == (~irmp_command & 0x0001))
                 {
                     irmp_command >>= 1;
@@ -1789,6 +1775,7 @@ irmp_ISR (void)
                         }
                         else
 #endif // IRMP_SUPPORT_FDC_PROTOCOL == 1
+
 #if IRMP_SUPPORT_RCCAR_PROTOCOL == 1
                         if (irmp_pulse_time >= RCCAR_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RCCAR_START_BIT_PULSE_LEN_MAX &&
                             irmp_pause_time >= RCCAR_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_START_BIT_PAUSE_LEN_MAX)
@@ -1918,21 +1905,24 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
 
-#if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
-                    if (((irmp_pulse_time >= SIEMENS_START_BIT_LEN_MIN && irmp_pulse_time <= SIEMENS_START_BIT_LEN_MAX) ||
-                         (irmp_pulse_time >= 2 * SIEMENS_START_BIT_LEN_MIN && irmp_pulse_time <= 2 * SIEMENS_START_BIT_LEN_MAX)) &&
-                        ((irmp_pause_time >= SIEMENS_START_BIT_LEN_MIN && irmp_pause_time <= SIEMENS_START_BIT_LEN_MAX) ||
-                         (irmp_pause_time >= 2 * SIEMENS_START_BIT_LEN_MIN && irmp_pause_time <= 2 * SIEMENS_START_BIT_LEN_MAX)))
-                    {                                                           // it's SIEMENS
-                        ANALYZE_PRINTF ("protocol = SIEMENS, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX,
-                                        SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX);
-                        irmp_param_p = (IRMP_PARAMETER *) &siemens_param;
+#if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
+                    if (((irmp_pulse_time >= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX) ||
+                         (irmp_pulse_time >= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN_2 && irmp_pulse_time <= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX_2)) &&
+                        ((irmp_pause_time >= SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX) ||
+                         (irmp_pause_time >= SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN_2 && irmp_pause_time <= SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX_2)))
+                    {                                                           // it's RUWIDO or SIEMENS
+                        ANALYZE_PRINTF ("protocol = RUWIDO, start bit timings: pulse: %3d - %3d or %3d - %3d, pause: %3d - %3d or %3d - %3d\n",
+                                        SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN,   SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX,
+                                        SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN_2, SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX_2,
+                                        SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN,   SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX,
+                                        SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN_2, SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX_2);
+                        irmp_param_p = (IRMP_PARAMETER *) &ruwido_param;
                         last_pause = irmp_pause_time;
                         last_value  = 1;
                     }
                     else
-#endif // IRMP_SUPPORT_SIEMENS_PROTOCOL == 1
+#endif // IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
+
 #if IRMP_SUPPORT_FDC_PROTOCOL == 1
                     if (irmp_pulse_time >= FDC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= FDC_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= FDC_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= FDC_START_BIT_PAUSE_LEN_MAX)
@@ -1944,6 +1934,7 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_FDC_PROTOCOL == 1
+
 #if IRMP_SUPPORT_RCCAR_PROTOCOL == 1
                     if (irmp_pulse_time >= RCCAR_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RCCAR_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= RCCAR_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RCCAR_START_BIT_PAUSE_LEN_MAX)
@@ -1952,23 +1943,6 @@ irmp_ISR (void)
                                         RCCAR_START_BIT_PULSE_LEN_MIN, RCCAR_START_BIT_PULSE_LEN_MAX,
                                         RCCAR_START_BIT_PAUSE_LEN_MIN, RCCAR_START_BIT_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &rccar_param;
-                    }
-                    else
-#endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
-#if IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
-                    if ((irmp_pulse_time >= RUWIDO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RUWIDO_START_BIT_PULSE_LEN_MAX) &&
-                        (irmp_pause_time >= RUWIDO_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RUWIDO_START_BIT_PAUSE_LEN_MAX))
-                    {                                                           // it's RUWIDO
-                        {
-                            ANALYZE_PRINTF ("protocol = RUWIDO, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                            RUWIDO_START_BIT_PULSE_LEN_MIN, RUWIDO_START_BIT_PULSE_LEN_MAX,
-                                            RUWIDO_START_BIT_PAUSE_LEN_MIN, RUWIDO_START_BIT_PAUSE_LEN_MAX);
-                        }
-
-                        irmp_param_p = (IRMP_PARAMETER *) &ruwido_param;
-                        last_pause = irmp_pause_time;
-
-                        last_value  = 1;
                     }
                     else
 #endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
@@ -1990,9 +1964,9 @@ irmp_ISR (void)
                         else
                         {
                             ANALYZE_PRINTF ("pulse: %3d - %3d or %3d - %3d\n", irmp_param.pulse_1_len_min, irmp_param.pulse_1_len_max,
-                                            irmp_param.pulse_0_len_max + 1, irmp_param.pulse_0_len_max);
+                                            irmp_param.pulse_0_len_min, irmp_param.pulse_0_len_max);
                             ANALYZE_PRINTF ("pause: %3d - %3d or %3d - %3d\n", irmp_param.pause_1_len_min, irmp_param.pause_1_len_max,
-                                            irmp_param.pause_0_len_max + 1, 2 * irmp_param.pause_0_len_max);
+                                            irmp_param.pause_0_len_min, irmp_param.pause_0_len_max);
                         }
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
@@ -2037,9 +2011,11 @@ irmp_ISR (void)
                     irmp_bit = 0;
 
 #if IRMP_SUPPORT_MANCHESTER == 1
-                    if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) && irmp_param.protocol != IRMP_RC6_PROTOCOL)    // Manchester, but not RC6
+                    if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) &&
+                         irmp_param.protocol != IRMP_RUWIDO_PROTOCOL && // Manchester, but not RUWIDO
+                         irmp_param.protocol != IRMP_RC6_PROTOCOL)      // Manchester, but not RC6
                     {
-                        if (irmp_pause_time > irmp_param.pulse_1_len_max && irmp_pause_time <= irmp_param.pulse_0_len_max)
+                        if (irmp_pause_time > irmp_param.pulse_1_len_max && irmp_pause_time <= irmp_param.pulse_0_len_max)      // XXXXXXXX!!!
                         {
                             ANALYZE_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
                             ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '0' : '1');
@@ -2155,6 +2131,36 @@ irmp_ISR (void)
                                     irmp_tmp_address = (irmp_tmp_command >> 8);
                                     irmp_tmp_command &= 0xFF;
                                 }
+                            }
+                        }
+                        else
+#endif
+#if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_RUWIDO_PROTOCOL && !irmp_param.stop_bit)
+                        {
+                            if (irmp_pause_time > irmp_param.pause_0_len_max && irmp_bit >= RUWIDO_COMPLETE_DATA_LEN - 2)
+                            {                                                           // special manchester decoder
+                                irmp_param.complete_len = RUWIDO_COMPLETE_DATA_LEN;     // correct complete len
+                                got_light = TRUE;                                       // this is a lie, but generates a stop bit ;-)
+                                irmp_param.stop_bit = TRUE;                             // set flag
+                            }
+                            else if (irmp_bit >= RUWIDO_COMPLETE_DATA_LEN)
+                            {
+                                ANALYZE_PRINTF ("Switching to SIEMENS protocol\n");
+                                irmp_param.protocol         = IRMP_SIEMENS_PROTOCOL;    // change protocol
+                                irmp_param.address_offset   = SIEMENS_ADDRESS_OFFSET;
+                                irmp_param.address_end      = SIEMENS_ADDRESS_OFFSET + SIEMENS_ADDRESS_LEN;
+                                irmp_param.command_offset   = SIEMENS_COMMAND_OFFSET;
+                                irmp_param.command_end      = SIEMENS_COMMAND_OFFSET + SIEMENS_COMMAND_LEN;
+
+                                //                   76543210
+                                // RUWIDO:  AAAAAAAAACCCCCCCp
+                                // SIEMENS: AAAAAAAAAAACCCCCCCCCCp
+                                irmp_tmp_address <<= 2;
+                                irmp_tmp_address |= (irmp_tmp_command >> 6);
+                                irmp_tmp_command &= 0x003F;
+                                irmp_tmp_command <<= 4;
+                                irmp_tmp_command |= last_value;
                             }
                         }
                         else
@@ -2896,9 +2902,13 @@ print_timings (void)
             GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX,
             GRUNDIG_OR_NOKIA_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_BIT_LEN_MAX);
 
-    printf ("SIEMENS        1  %3d - %3d  %3d - %3d  %3d - %3d\n",
-            SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX, SIEMENS_START_BIT_LEN_MIN, SIEMENS_START_BIT_LEN_MAX,
-            SIEMENS_BIT_LEN_MIN, SIEMENS_BIT_LEN_MAX);
+    printf ("SIEMENS/RUWIDO 1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN, SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX,
+            SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN, SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX,
+            SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN, SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX,
+            SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN, SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX,
+            SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN_2, SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX_2,
+            SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN_2, SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX_2);
 
     printf ("FDC            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX, FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX,
