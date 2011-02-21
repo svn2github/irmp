@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.49 2011/02/21 11:49:37 fm Exp $
+ * $Id: irmp.h,v 1.51 2011/02/21 15:05:40 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -71,6 +71,7 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_RC6A_PROTOCOL                      21              // RC6A, e.g. Kathrein, XBOX
 #define IRMP_NIKON_PROTOCOL                     22              // Nikon
 #define IRMP_RUWIDO_PROTOCOL                    23              // Ruwido, e.g. T-Home Mediareceiver
+#define IRMP_IR60_PROTOCOL                      24              // IR60 (SAB2008)
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -279,12 +280,12 @@ typedef uint8_t     PAUSE_LEN;
 #define BANG_OLUFSEN_LSB                        0                               // MSB...LSB
 #define BANG_OLUFSEN_FLAGS                      0                               // flags
 
-#define GRUNDIG_OR_NOKIA_BIT_TIME               528.0e-6                        // 528 usec pulse/pause
-#define GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME         2639.0e-6                       // 2639 usec pause after pre bit
-#define GRUNDIG_OR_NOKIA_FRAME_REPEAT_PAUSE_TIME  117.76e-3                     // info frame repeat after 117.76 ms
-#define GRUNDIG_OR_NOKIA_STOP_BIT               0                               // has no stop bit
-#define GRUNDIG_OR_NOKIA_LSB                    1                               // MSB...LSB
-#define GRUNDIG_OR_NOKIA_FLAGS                  (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
+#define GRUNDIG_NOKIA_IR60_BIT_TIME             528.0e-6                        // 528 usec pulse/pause
+#define GRUNDIG_NOKIA_IR60_PRE_PAUSE_TIME       2639.0e-6                       // 2639 usec pause after pre bit
+#define GRUNDIG_NOKIA_IR60_FRAME_REPEAT_PAUSE_TIME  117.76e-3                   // info frame repeat after 117.76 ms
+#define GRUNDIG_NOKIA_IR60_STOP_BIT             0                               // has no stop bit
+#define GRUNDIG_NOKIA_IR60_LSB                  1                               // MSB...LSB
+#define GRUNDIG_NOKIA_IR60_FLAGS                (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
 #define GRUNDIG_FRAMES                          2                               // GRUNDIG sends each frame 1+1 times
 #define GRUNDIG_AUTO_REPETITION_PAUSE_TIME        20.0e-3                       // repetition after 20ms
@@ -301,6 +302,13 @@ typedef uint8_t     PAUSE_LEN;
 #define NOKIA_COMMAND_OFFSET                    1                               // skip 1 bit (1 start bit)
 #define NOKIA_COMMAND_LEN                       8                               // read 8 command bits
 #define NOKIA_COMPLETE_DATA_LEN                 17                              // complete length: 1 start bit + 8 address bits + 8 command bits
+
+#define IR60_TIMEOUT_TIME                       5000.0e-6                       // timeout grundig frame, switch to IR60
+#define IR60_ADDRESS_OFFSET                     0                               // skip 1 bits
+#define IR60_ADDRESS_LEN                        0                               // read 0 address bits
+#define IR60_COMMAND_OFFSET                     0                               // skip 1 bit (start bit after pre bit, always 1)
+#define IR60_COMMAND_LEN                        7                               // read 6 command bits
+#define IR60_COMPLETE_DATA_LEN                  7                               // complete length
 
 #define SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME    275.0e-6                      //  275 usec pulse
 #define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME    550.0e-6                      //  550 usec pause

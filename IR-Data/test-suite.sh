@@ -80,6 +80,7 @@ for j in                                \
     Siemens-Gigaset-M740AV-15kHz.txt    \
     bo_beolink1000-15kHz.txt            \
     denon-15kHz.txt                     \
+    irc-15kHz.txt			\
     t-home-mediareceiver-15kHz.txt      \
     xbox360-15kHz.txt
 do

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.90 2011/02/21 11:49:37 fm Exp $
+ * $Id: irmp.c,v 1.92 2011/02/21 15:05:40 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -338,10 +338,10 @@ typedef unsigned int16  uint16_t;
 #endif
 #include "irmp.h"
 
-#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRMP_SUPPORT_NOKIA_PROTOCOL == 1
-#define IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL  1
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRMP_SUPPORT_NOKIA_PROTOCOL == 1 || IRMP_SUPPORT_IR60_PROTOCOL == 1
+#define IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL  1
 #else
-#define IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL  0
+#define IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL  0
 #endif
 
 #if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 || IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
@@ -352,8 +352,9 @@ typedef unsigned int16  uint16_t;
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||               \
     IRMP_SUPPORT_RC6_PROTOCOL == 1 ||               \
-    IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1 ||  \
-    IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
+    IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||  \
+    IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 || \
+    IRMP_SUPPORT_IR60_PROTOCOL
 #define IRMP_SUPPORT_MANCHESTER                 1
 #else
 #define IRMP_SUPPORT_MANCHESTER                 0
@@ -553,31 +554,32 @@ typedef unsigned int16  uint16_t;
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MIN  ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN_MAX  ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
-#define GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_BIT_LEN_MIN            ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define GRUNDIG_OR_NOKIA_BIT_LEN_MAX            ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_BIT_LEN_MIN_2          ((uint8_t)(F_INTERRUPTS * 2 * GRUNDIG_OR_NOKIA_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define GRUNDIG_OR_NOKIA_BIT_LEN_MAX_2          ((uint8_t)(F_INTERRUPTS * 2 * GRUNDIG_OR_NOKIA_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) + 1)
-#define GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * GRUNDIG_OR_NOKIA_PRE_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define IR60_TIMEOUT_LEN                        ((uint8_t)(F_INTERRUPTS * IR60_TIMEOUT_TIME * 0.5))
+#define GRUNDIG_NOKIA_IR60_START_BIT_LEN_MIN    ((uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_NOKIA_IR60_START_BIT_LEN_MAX    ((uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_NOKIA_IR60_BIT_LEN_MIN          ((uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_NOKIA_IR60_BIT_LEN_MAX          ((uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_NOKIA_IR60_BIT_LEN_MIN_2        ((uint8_t)(F_INTERRUPTS * 2 * GRUNDIG_NOKIA_IR60_BIT_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GRUNDIG_NOKIA_IR60_BIT_LEN_MAX_2        ((uint8_t)(F_INTERRUPTS * 2 * GRUNDIG_NOKIA_IR60_BIT_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MIN    ((uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_PRE_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) + 1)
+#define GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MAX    ((uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_PRE_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
-#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX_2        ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
-#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
-#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX_2              ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN       ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX       ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN       ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX       ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN_2     ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX_2     ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN_2     ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX_2     ((uint8_t)(F_INTERRUPTS * 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN_2           ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX_2           ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN_2           ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX_2           ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define FDC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -1156,29 +1158,31 @@ static PROGMEM IRMP_PARAMETER bang_olufsen_param =
 
 #endif
 
-#if IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
+#if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
+
+static uint8_t first_bit;
 
 static PROGMEM IRMP_PARAMETER grundig_param =
 {
     IRMP_GRUNDIG_PROTOCOL,                                              // protocol:        ir protocol
 
-    GRUNDIG_OR_NOKIA_BIT_LEN_MIN,                                       // pulse_1_len_min: here: minimum length of short pulse
-    GRUNDIG_OR_NOKIA_BIT_LEN_MAX,                                       // pulse_1_len_max: here: maximum length of short pulse
-    GRUNDIG_OR_NOKIA_BIT_LEN_MIN,                                       // pause_1_len_min: here: minimum length of short pause
-    GRUNDIG_OR_NOKIA_BIT_LEN_MAX,                                       // pause_1_len_max: here: maximum length of short pause
-    GRUNDIG_OR_NOKIA_BIT_LEN_MIN_2,                                     // pulse_0_len_min: here: minimum length of long pulse
-    GRUNDIG_OR_NOKIA_BIT_LEN_MAX_2,                                     // pulse_0_len_max: here: maximum length of long pulse
-    GRUNDIG_OR_NOKIA_BIT_LEN_MIN_2,                                     // pause_0_len_min: here: minimum length of long pause
-    GRUNDIG_OR_NOKIA_BIT_LEN_MAX_2,                                     // pause_0_len_max: here: maximum length of long pause
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MIN,                                     // pulse_1_len_min: here: minimum length of short pulse
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MAX,                                     // pulse_1_len_max: here: maximum length of short pulse
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MIN,                                     // pause_1_len_min: here: minimum length of short pause
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MAX,                                     // pause_1_len_max: here: maximum length of short pause
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MIN_2,                                   // pulse_0_len_min: here: minimum length of long pulse
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MAX_2,                                   // pulse_0_len_max: here: maximum length of long pulse
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MIN_2,                                   // pause_0_len_min: here: minimum length of long pause
+    GRUNDIG_NOKIA_IR60_BIT_LEN_MAX_2,                                   // pause_0_len_max: here: maximum length of long pause
 
     GRUNDIG_ADDRESS_OFFSET,                                             // address_offset:  address offset
     GRUNDIG_ADDRESS_OFFSET + GRUNDIG_ADDRESS_LEN,                       // address_end:     end of address
     GRUNDIG_COMMAND_OFFSET,                                             // command_offset:  command offset
     GRUNDIG_COMMAND_OFFSET + GRUNDIG_COMMAND_LEN + 1,                   // command_end:     end of command (USE 1 bit MORE to STORE NOKIA DATA!)
     NOKIA_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame, here: NOKIA instead of GRUNDIG!
-    GRUNDIG_OR_NOKIA_STOP_BIT,                                          // stop_bit:        flag: frame has stop bit
-    GRUNDIG_OR_NOKIA_LSB,                                               // lsb_first:       flag: LSB first
-    GRUNDIG_OR_NOKIA_FLAGS                                              // flags:           some flags
+    GRUNDIG_NOKIA_IR60_STOP_BIT,                                        // stop_bit:        flag: frame has stop bit
+    GRUNDIG_NOKIA_IR60_LSB,                                             // lsb_first:       flag: LSB first
+    GRUNDIG_NOKIA_IR60_FLAGS                                            // flags:           some flags
 };
 
 #endif
@@ -1373,6 +1377,14 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 break;
 #endif
+#if IRMP_SUPPORT_IR60_PROTOCOL == 1
+            case IRMP_IR60_PROTOCOL:
+                if (irmp_command != 0x007d)                         // 0x007d (== 62<<1 + 1) is start instruction frame
+                {
+                    rtc = TRUE;
+                }
+                break;
+#endif
 #if IRMP_SUPPORT_RCCAR_PROTOCOL == 1
             case IRMP_RCCAR_PROTOCOL:
                 // frame in irmp_data:
@@ -1436,6 +1448,13 @@ static uint8_t  irmp_bit;                                                       
 static void
 irmp_store_bit (uint8_t value)
 {
+#if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
+    if (irmp_bit == 0 && irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL)
+    {
+        first_bit = value;
+    }
+    else
+#endif
 
     if (irmp_bit >= irmp_param.address_offset && irmp_bit < irmp_param.address_end)
     {
@@ -1891,19 +1910,19 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
 
-#if IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
-                    if (irmp_pulse_time >= GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN && irmp_pulse_time <= GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX &&
-                        irmp_pause_time >= GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN && irmp_pause_time <= GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX)
+#if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
+                    if (irmp_pulse_time >= GRUNDIG_NOKIA_IR60_START_BIT_LEN_MIN && irmp_pulse_time <= GRUNDIG_NOKIA_IR60_START_BIT_LEN_MAX &&
+                        irmp_pause_time >= GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MIN && irmp_pause_time <= GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MAX)
                     {                                                           // it's GRUNDIG
                         ANALYZE_PRINTF ("protocol = GRUNDIG, pre bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX,
-                                        GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX);
+                                        GRUNDIG_NOKIA_IR60_START_BIT_LEN_MIN, GRUNDIG_NOKIA_IR60_START_BIT_LEN_MAX,
+                                        GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MIN, GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &grundig_param;
                         last_pause = irmp_pause_time;
                         last_value  = 1;
                     }
                     else
-#endif // IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
+#endif // IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
 
 #if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
                     if (((irmp_pulse_time >= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX) ||
@@ -1946,6 +1965,7 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
@@ -2108,10 +2128,26 @@ irmp_ISR (void)
                         }
                         else
 #endif
-#if IRMP_SUPPORT_GRUNDIG_OR_NOKIA_PROTOCOL == 1
+#if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL && !irmp_param.stop_bit)
                         {
-                            if (irmp_pause_time > irmp_param.pause_0_len_max && irmp_bit >= GRUNDIG_COMPLETE_DATA_LEN - 2)
+                            if (irmp_pause_time > IR60_TIMEOUT_LEN && irmp_bit == 6)
+                            {
+                                ANALYZE_PRINTF ("Switching to IR60 protocol\n");
+                                got_light = TRUE;                                       // this is a lie, but generates a stop bit ;-)
+                                irmp_param.stop_bit = TRUE;                             // set flag
+
+                                irmp_param.protocol         = IRMP_IR60_PROTOCOL;       // change protocol
+                                irmp_param.complete_len     = IR60_COMPLETE_DATA_LEN;   // correct complete len
+                                irmp_param.address_offset   = IR60_ADDRESS_OFFSET;
+                                irmp_param.address_end      = IR60_ADDRESS_OFFSET + IR60_ADDRESS_LEN;
+                                irmp_param.command_offset   = IR60_COMMAND_OFFSET;
+                                irmp_param.command_end      = IR60_COMMAND_OFFSET + IR60_COMMAND_LEN;
+
+                                irmp_tmp_command <<= 1;
+                                irmp_tmp_command |= first_bit;
+                            }
+                            else if (irmp_pause_time > irmp_param.pause_0_len_max && irmp_bit >= GRUNDIG_COMPLETE_DATA_LEN - 2)
                             {                                                           // special manchester decoder
                                 irmp_param.complete_len = GRUNDIG_COMPLETE_DATA_LEN;    // correct complete len
                                 got_light = TRUE;                                       // this is a lie, but generates a stop bit ;-)
@@ -2899,8 +2935,9 @@ print_timings (void)
             BANG_OLUFSEN_PULSE_LEN_MIN, BANG_OLUFSEN_PULSE_LEN_MAX, BANG_OLUFSEN_1_PAUSE_LEN_MIN, BANG_OLUFSEN_1_PAUSE_LEN_MAX);
 
     printf ("GRUNDIG/NOKIA  1  %3d - %3d  %3d - %3d  %3d - %3d\n",
-            GRUNDIG_OR_NOKIA_START_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_START_BIT_LEN_MAX, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MIN, GRUNDIG_OR_NOKIA_PRE_PAUSE_LEN_MAX,
-            GRUNDIG_OR_NOKIA_BIT_LEN_MIN, GRUNDIG_OR_NOKIA_BIT_LEN_MAX);
+            GRUNDIG_NOKIA_IR60_START_BIT_LEN_MIN, GRUNDIG_NOKIA_IR60_START_BIT_LEN_MAX,
+            GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MIN, GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN_MAX,
+            GRUNDIG_NOKIA_IR60_BIT_LEN_MIN, GRUNDIG_NOKIA_IR60_BIT_LEN_MAX);
 
     printf ("SIEMENS/RUWIDO 1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN, SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX,
