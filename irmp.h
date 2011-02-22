@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.52 2011/02/22 13:07:13 fm Exp $
+ * $Id: irmp.h,v 1.53 2011/02/22 14:24:00 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -404,10 +404,10 @@ typedef uint8_t     PAUSE_LEN;
 #define KATHREIN_FRAMES                         1                               // Kathrein sends 1 frame
 #define KATHREIN_AUTO_REPETITION_PAUSE_TIME     35.0e-3                         // auto repetition after 35ms
 #define KATHREIN_FRAME_REPEAT_PAUSE_TIME        35.0e-3                         // frame repeat after 35ms
-#define KATHREIN_ADDRESS_OFFSET                 0                               // skip 0 bits
-#define KATHREIN_ADDRESS_LEN                    0                               // read 0 address bits
-#define KATHREIN_COMMAND_OFFSET                 0                               // skip 0 bits
-#define KATHREIN_COMMAND_LEN                    12                              // read 10 bits
+#define KATHREIN_ADDRESS_OFFSET                 1                               // skip 1 bits
+#define KATHREIN_ADDRESS_LEN                    4                               // read 4 address bits
+#define KATHREIN_COMMAND_OFFSET                 5                               // skip 5 bits
+#define KATHREIN_COMMAND_LEN                    7                               // read 7 bits
 #define KATHREIN_COMPLETE_DATA_LEN              13                              // complete length
 #define KATHREIN_STOP_BIT                       1                               // has stop bit
 #define KATHREIN_LSB                            0                               // MSB

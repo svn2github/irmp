@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.93 2011/02/22 13:07:13 fm Exp $
+ * $Id: irmp.c,v 1.94 2011/02/22 14:24:00 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1420,7 +1420,7 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
 #endif
 #if IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
             case IRMP_KATHREIN_PROTOCOL:
-                if (irmp_command != 0x400)
+                if (irmp_command != 0x0000)
                 {
                     rtc = TRUE;
                 }
