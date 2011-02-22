@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.51 2011/02/21 15:05:40 fm Exp $
+ * $Id: irmp.h,v 1.52 2011/02/22 13:07:13 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -72,6 +72,7 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_NIKON_PROTOCOL                     22              // Nikon
 #define IRMP_RUWIDO_PROTOCOL                    23              // Ruwido, e.g. T-Home Mediareceiver
 #define IRMP_IR60_PROTOCOL                      24              // IR60 (SAB2008)
+#define IRMP_KATHREIN_PROTOCOL                  25              // Kathrein
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -392,6 +393,25 @@ typedef uint8_t     PAUSE_LEN;
 #define NIKON_STOP_BIT                          1                               // has stop bit
 #define NIKON_LSB                               0                               // LSB...MSB
 #define NIKON_FLAGS                             0                               // flags
+
+#define KATHREIN_START_BIT_PULSE_TIME            210.0e-6                       // 1340 usec pulse
+#define KATHREIN_START_BIT_PAUSE_TIME           6218.0e-6                       //  340 usec pause
+#define KATHREIN_1_PULSE_TIME                    210.0e-6                       // 1340 usec pulse
+#define KATHREIN_1_PAUSE_TIME                   3000.0e-6                       //  340 usec pause
+#define KATHREIN_0_PULSE_TIME                    210.0e-6                       //  500 usec pulse
+#define KATHREIN_0_PAUSE_TIME                   1400.0e-6                       // 1300 usec pause
+#define KATHREIN_SYNC_BIT_PAUSE_LEN_TIME        4600.0e-6                       // 4600 usec sync (on 6th and/or 8th bit)
+#define KATHREIN_FRAMES                         1                               // Kathrein sends 1 frame
+#define KATHREIN_AUTO_REPETITION_PAUSE_TIME     35.0e-3                         // auto repetition after 35ms
+#define KATHREIN_FRAME_REPEAT_PAUSE_TIME        35.0e-3                         // frame repeat after 35ms
+#define KATHREIN_ADDRESS_OFFSET                 0                               // skip 0 bits
+#define KATHREIN_ADDRESS_LEN                    0                               // read 0 address bits
+#define KATHREIN_COMMAND_OFFSET                 0                               // skip 0 bits
+#define KATHREIN_COMMAND_LEN                    12                              // read 10 bits
+#define KATHREIN_COMPLETE_DATA_LEN              13                              // complete length
+#define KATHREIN_STOP_BIT                       1                               // has stop bit
+#define KATHREIN_LSB                            0                               // MSB
+#define KATHREIN_FLAGS                          0                               // flags
 
 #define AUTO_FRAME_REPETITION_TIME              80.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
                                                                                 // KASEIKYO: automatic repetition after 75ms

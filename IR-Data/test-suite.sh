@@ -81,6 +81,7 @@ for j in                                \
     bo_beolink1000-15kHz.txt            \
     denon-15kHz.txt                     \
     irc-15kHz.txt			\
+    kathrein-15kHz.txt			\
     t-home-mediareceiver-15kHz.txt      \
     xbox360-15kHz.txt
 do

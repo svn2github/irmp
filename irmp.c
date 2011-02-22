@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.92 2011/02/21 15:05:40 fm Exp $
+ * $Id: irmp.c,v 1.93 2011/02/22 13:07:13 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -633,6 +633,22 @@ typedef unsigned int16  uint16_t;
 #define NIKON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * NIKON_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define NIKON_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * NIKON_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define NIKON_FRAME_REPEAT_PAUSE_LEN_MAX        (uint16_t)(F_INTERRUPTS * NIKON_FRAME_REPEAT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5)
+
+#define KATHREIN_START_BIT_PULSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KATHREIN_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_START_BIT_PULSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KATHREIN_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KATHREIN_START_BIT_PAUSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KATHREIN_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_START_BIT_PAUSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KATHREIN_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KATHREIN_1_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KATHREIN_1_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_1_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KATHREIN_1_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KATHREIN_1_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KATHREIN_1_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_1_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KATHREIN_1_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KATHREIN_0_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KATHREIN_0_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_0_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KATHREIN_0_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KATHREIN_0_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KATHREIN_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_0_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * KATHREIN_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KATHREIN_SYNC_BIT_PAUSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * KATHREIN_SYNC_BIT_PAUSE_LEN_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define KATHREIN_SYNC_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * KATHREIN_SYNC_BIT_PAUSE_LEN_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -1287,6 +1303,31 @@ static PROGMEM IRMP_PARAMETER nikon_param =
 
 #endif
 
+#if IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER kathrein_param =
+{
+    IRMP_KATHREIN_PROTOCOL,                                             // protocol:        ir protocol
+    KATHREIN_1_PULSE_LEN_MIN,                                           // pulse_1_len_min: minimum length of pulse with bit value 1
+    KATHREIN_1_PULSE_LEN_MAX,                                           // pulse_1_len_max: maximum length of pulse with bit value 1
+    KATHREIN_1_PAUSE_LEN_MIN,                                           // pause_1_len_min: minimum length of pause with bit value 1
+    KATHREIN_1_PAUSE_LEN_MAX,                                           // pause_1_len_max: maximum length of pause with bit value 1
+    KATHREIN_0_PULSE_LEN_MIN,                                           // pulse_0_len_min: minimum length of pulse with bit value 0
+    KATHREIN_0_PULSE_LEN_MAX,                                           // pulse_0_len_max: maximum length of pulse with bit value 0
+    KATHREIN_0_PAUSE_LEN_MIN,                                           // pause_0_len_min: minimum length of pause with bit value 0
+    KATHREIN_0_PAUSE_LEN_MAX,                                           // pause_0_len_max: maximum length of pause with bit value 0
+    KATHREIN_ADDRESS_OFFSET,                                            // address_offset:  address offset
+    KATHREIN_ADDRESS_OFFSET + KATHREIN_ADDRESS_LEN,                     // address_end:     end of address
+    KATHREIN_COMMAND_OFFSET,                                            // command_offset:  command offset
+    KATHREIN_COMMAND_OFFSET + KATHREIN_COMMAND_LEN,                     // command_end:     end of command
+    KATHREIN_COMPLETE_DATA_LEN,                                         // complete_len:    complete length of frame
+    KATHREIN_STOP_BIT,                                                  // stop_bit:        flag: frame has stop bit
+    KATHREIN_LSB,                                                       // lsb_first:       flag: LSB first
+    KATHREIN_FLAGS                                                      // flags:           some flags
+};
+
+#endif
+
 static uint8_t                              irmp_bit;                   // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
@@ -1373,6 +1414,14 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 if (((irmp_command >> 1) & 0x0001) == (~irmp_command & 0x0001))
                 {
                     irmp_command >>= 1;
+                    rtc = TRUE;
+                }
+                break;
+#endif
+#if IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
+            case IRMP_KATHREIN_PROTOCOL:
+                if (irmp_command != 0x400)
+                {
                     rtc = TRUE;
                 }
                 break;
@@ -1965,6 +2014,18 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_RCCAR_PROTOCOL == 1
+
+#if IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
+                    if (irmp_pulse_time >= KATHREIN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= KATHREIN_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= KATHREIN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= KATHREIN_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's KATHREIN
+                        ANALYZE_PRINTF ("protocol = KATHREIN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        KATHREIN_START_BIT_PULSE_LEN_MIN, KATHREIN_START_BIT_PULSE_LEN_MAX,
+                                        KATHREIN_START_BIT_PAUSE_LEN_MIN, KATHREIN_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &kathrein_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
 
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
@@ -2580,6 +2641,34 @@ irmp_ISR (void)
                         wait_for_space = 0;
                     }
                     else
+#if IRMP_SUPPORT_KATHREIN_PROTOCOL
+
+                    if (irmp_param.protocol == IRMP_KATHREIN_PROTOCOL &&
+                        irmp_pulse_time >= KATHREIN_1_PULSE_LEN_MIN && irmp_pulse_time <= KATHREIN_1_PULSE_LEN_MAX &&
+                        (((irmp_bit == 8 || irmp_bit == 6) &&
+                                irmp_pause_time >= KATHREIN_SYNC_BIT_PAUSE_LEN_MIN && irmp_pause_time <= KATHREIN_SYNC_BIT_PAUSE_LEN_MAX) ||
+                         (irmp_bit == 12 &&
+                                irmp_pause_time >= KATHREIN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= KATHREIN_START_BIT_PAUSE_LEN_MAX)))
+
+                    {
+                        if (irmp_bit == 8)
+                        {
+                            irmp_bit++;
+                            ANALYZE_PUTCHAR ('S');
+                            ANALYZE_NEWLINE ();
+                            irmp_tmp_id = 0;
+                            irmp_tmp_command <<= 1;
+                        }
+                        else
+                        {
+                            ANALYZE_PUTCHAR ('S');
+                            ANALYZE_NEWLINE ();
+                            irmp_store_bit (1);
+                        }
+                        wait_for_space = 0;
+                    }
+                    else
+#endif // IRMP_SUPPORT_KATHREIN_PROTOCOL
                     {                                                               // timing incorrect!
                         ANALYZE_PRINTF ("error 3: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                         ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
