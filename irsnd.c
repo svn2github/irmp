@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.31 2011/02/21 14:59:15 fm Exp $
+ * $Id: irsnd.c,v 1.32 2011/02/22 17:05:57 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -159,9 +159,9 @@ typedef uint8_t     IRSND_PAUSE_LEN;
 #define NOKIA_AUTO_REPETITION_PAUSE_LEN         (uint16_t)(F_INTERRUPTS * NOKIA_AUTO_REPETITION_PAUSE_TIME + 0.5)           // use uint16_t!
 #define GRUNDIG_NOKIA_IR60_FRAME_REPEAT_PAUSE_LEN (uint16_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_FRAME_REPEAT_PAUSE_TIME + 0.5)   // use uint16_t!
 
-#define SIEMENS_START_BIT_LEN                   (uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME + 0.5)
-#define SIEMENS_BIT_LEN                         (uint8_t)(F_INTERRUPTS * SIEMENS_BIT_TIME + 0.5)
-#define SIEMENS_FRAME_REPEAT_PAUSE_LEN          (uint16_t)(F_INTERRUPTS * SIEMENS_FRAME_REPEAT_PAUSE_TIME + 0.5)            // use uint16_t!
+#define SIEMENS_START_BIT_LEN                   (uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME + 0.5)
+#define SIEMENS_BIT_LEN                         (uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME + 0.5)
+#define SIEMENS_FRAME_REPEAT_PAUSE_LEN          (uint16_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_FRAME_REPEAT_PAUSE_TIME + 0.5)  // use uint16_t!
 
 #define IRSND_FREQ_32_KHZ                       (uint8_t) ((F_CPU / 32000 / 2) - 1)
 #define IRSND_FREQ_36_KHZ                       (uint8_t) ((F_CPU / 36000 / 2) - 1)
@@ -1087,7 +1087,7 @@ irsnd_ISR (void)
                         startbit_pause_len          = SIEMENS_BIT_LEN;
                         pulse_len                   = SIEMENS_BIT_LEN;
                         pause_len                   = SIEMENS_BIT_LEN;
-                        has_stop_bit                = SIEMENS_STOP_BIT;
+                        has_stop_bit                = SIEMENS_OR_RUWIDO_STOP_BIT;
                         complete_data_len           = SIEMENS_COMPLETE_DATA_LEN - 1;
                         n_auto_repetitions          = 1;                                            // 1 frame
                         auto_repetition_pause_len   = 0;
