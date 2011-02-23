@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.53 2011/02/22 14:24:00 fm Exp $
+ * $Id: irmp.h,v 1.54 2011/02/23 15:03:27 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -73,10 +73,13 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_RUWIDO_PROTOCOL                    23              // Ruwido, e.g. T-Home Mediareceiver
 #define IRMP_IR60_PROTOCOL                      24              // IR60 (SAB2008)
 #define IRMP_KATHREIN_PROTOCOL                  25              // Kathrein
+#define IRMP_NETBOX_PROTOCOL                    26              // Netbox keyboard (bitserial)
+#define IRMP_IMON_PROTOCOL                      27              // Imon (bitserial)
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
 #define IRMP_PARAM_FLAG_1ST_PULSE_IS_1          0x02
+#define IRMP_PARAM_FLAG_IS_SERIAL               0x04
 
 #define SIRCS_START_BIT_PULSE_TIME              2400.0e-6                       // 2400 usec pulse
 #define SIRCS_START_BIT_PAUSE_TIME               600.0e-6                       //  600 usec pause
@@ -412,6 +415,38 @@ typedef uint8_t     PAUSE_LEN;
 #define KATHREIN_STOP_BIT                       1                               // has stop bit
 #define KATHREIN_LSB                            0                               // MSB
 #define KATHREIN_FLAGS                          0                               // flags
+
+#define NETBOX_START_BIT_PULSE_TIME             2500.0e-6                       // 2500 usec pulse
+#define NETBOX_START_BIT_PAUSE_TIME              833.0e-6                       //  833 usec pause
+#define NETBOX_PULSE_TIME                        833.0e-6                       //  833 usec pulse
+#define NETBOX_PAUSE_TIME                        833.0e-6                       //  833 usec pause
+#define NETBOX_FRAMES                           1                               // Netbox sends 1 frame
+#define NETBOX_AUTO_REPETITION_PAUSE_TIME       35.0e-3                         // auto repetition after 35ms
+#define NETBOX_FRAME_REPEAT_PAUSE_TIME          35.0e-3                         // frame repeat after 35ms
+#define NETBOX_ADDRESS_OFFSET                   0                               // skip 0 bits
+#define NETBOX_ADDRESS_LEN                      3                               // read 3 address bits
+#define NETBOX_COMMAND_OFFSET                   3                               // skip 3 bits
+#define NETBOX_COMMAND_LEN                      13                              // read 13 bits
+#define NETBOX_COMPLETE_DATA_LEN                16                              // complete length, last is stop bit
+#define NETBOX_STOP_BIT                         0                               // has no stop bit
+#define NETBOX_LSB                              1                               // LSB
+#define NETBOX_FLAGS                            IRMP_PARAM_FLAG_IS_SERIAL       // flags
+
+#define IMON_START_BIT_PULSE_TIME               1333.0e-6                       // 1333 usec pulse
+#define IMON_START_BIT_PAUSE_TIME               1172.0e-6                       // 1333 usec pause
+#define IMON_PULSE_TIME                          500.0e-6                       //  500 usec pulse
+#define IMON_PAUSE_TIME                          500.0e-6                       //  500 usec pause
+#define IMON_FRAMES                             1                               // Imon sends 1 frame
+#define IMON_AUTO_REPETITION_PAUSE_TIME         35.0e-3                         // auto repetition after 35ms
+#define IMON_FRAME_REPEAT_PAUSE_TIME            35.0e-3                         // frame repeat after 35ms
+#define IMON_ADDRESS_OFFSET                     0                               // skip 0 bits
+#define IMON_ADDRESS_LEN                        0                               // read 0 address bits
+#define IMON_COMMAND_OFFSET                     26                              // skip 26 bits
+#define IMON_COMMAND_LEN                        16                              // read last 16 bits, ignore rest
+#define IMON_COMPLETE_DATA_LEN                  42                              // complete length, last is stop bit
+#define IMON_STOP_BIT                           1                               // has stop bit
+#define IMON_LSB                                1                               // LSB
+#define IMON_FLAGS                              IRMP_PARAM_FLAG_IS_SERIAL       // flags
 
 #define AUTO_FRAME_REPETITION_TIME              80.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
                                                                                 // KASEIKYO: automatic repetition after 75ms

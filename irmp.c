@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.94 2011/02/22 14:24:00 fm Exp $
+ * $Id: irmp.c,v 1.95 2011/02/23 15:03:27 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -350,14 +350,21 @@ typedef unsigned int16  uint16_t;
 #define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL 0
 #endif
 
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||               \
-    IRMP_SUPPORT_RC6_PROTOCOL == 1 ||               \
-    IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||  \
-    IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 || \
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||                   \
+    IRMP_SUPPORT_RC6_PROTOCOL == 1 ||                   \
+    IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
+    IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
     IRMP_SUPPORT_IR60_PROTOCOL
 #define IRMP_SUPPORT_MANCHESTER                 1
 #else
 #define IRMP_SUPPORT_MANCHESTER                 0
+#endif
+
+#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1 ||                \
+    IRMP_SUPPORT_IMON_PROTOCOL == 1 
+#define IRMP_SUPPORT_SERIAL                     1
+#else
+#define IRMP_SUPPORT_SERIAL                     0
 #endif
 
 #define IRMP_KEY_REPETITION_LEN                 (uint16_t)(F_INTERRUPTS * 150.0e-3 + 0.5)           // autodetect key repetition within 150 msec
@@ -395,7 +402,11 @@ typedef unsigned int16  uint16_t;
 #define SIRCS_START_BIT_PULSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SIRCS_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define SIRCS_START_BIT_PAUSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
-#define SIRCS_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1) // only 5% to avoid conflict with RC6
+#if IRMP_SUPPORT_NETBOX_PROTOCOL                // only 5% to avoid conflict with NETBOX:
+#define SIRCS_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5))
+#else                                           // only 5% + 1 to avoid conflict with RC6:
+#define SIRCS_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#endif
 #define SIRCS_1_PULSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * SIRCS_1_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SIRCS_1_PULSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * SIRCS_1_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define SIRCS_0_PULSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * SIRCS_0_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
@@ -649,6 +660,23 @@ typedef unsigned int16  uint16_t;
 #define KATHREIN_SYNC_BIT_PAUSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * KATHREIN_SYNC_BIT_PAUSE_LEN_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define KATHREIN_SYNC_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * KATHREIN_SYNC_BIT_PAUSE_LEN_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
+#define NETBOX_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * NETBOX_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define NETBOX_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * NETBOX_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define NETBOX_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * NETBOX_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define NETBOX_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * NETBOX_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define NETBOX_PULSE_LEN                        ((uint8_t)(F_INTERRUPTS * NETBOX_PULSE_TIME))
+#define NETBOX_PAUSE_LEN                        ((uint8_t)(F_INTERRUPTS * NETBOX_PAUSE_TIME))
+#define NETBOX_PULSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * NETBOX_PULSE_TIME / 4))
+#define NETBOX_PAUSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * NETBOX_PAUSE_TIME / 4))
+
+#define IMON_START_BIT_PULSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define IMON_START_BIT_PULSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define IMON_START_BIT_PAUSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define IMON_START_BIT_PAUSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define IMON_PULSE_LEN                          ((uint8_t)(F_INTERRUPTS * IMON_PULSE_TIME))
+#define IMON_PAUSE_LEN                          ((uint8_t)(F_INTERRUPTS * IMON_PAUSE_TIME))
+#define IMON_PULSE_REST_LEN                     ((uint8_t)(F_INTERRUPTS * IMON_PULSE_TIME / 4))
+#define IMON_PAUSE_REST_LEN                     ((uint8_t)(F_INTERRUPTS * IMON_PAUSE_TIME / 4))
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -1328,6 +1356,56 @@ static PROGMEM IRMP_PARAMETER kathrein_param =
 
 #endif
 
+#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER netbox_param =
+{
+    IRMP_NETBOX_PROTOCOL,                                               // protocol:        ir protocol
+    NETBOX_PULSE_LEN,                                                   // pulse_1_len_min: minimum length of pulse with bit value 1
+    NETBOX_PULSE_REST_LEN,                                              // pulse_1_len_max: maximum length of pulse with bit value 1
+    NETBOX_PAUSE_LEN,                                                   // pause_1_len_min: minimum length of pause with bit value 1
+    NETBOX_PAUSE_REST_LEN,                                              // pause_1_len_max: maximum length of pause with bit value 1
+    NETBOX_PULSE_LEN,                                                   // pulse_0_len_min: minimum length of pulse with bit value 0
+    NETBOX_PULSE_REST_LEN,                                              // pulse_0_len_max: maximum length of pulse with bit value 0
+    NETBOX_PAUSE_LEN,                                                   // pause_0_len_min: minimum length of pause with bit value 0
+    NETBOX_PAUSE_REST_LEN,                                              // pause_0_len_max: maximum length of pause with bit value 0
+    NETBOX_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    NETBOX_ADDRESS_OFFSET + NETBOX_ADDRESS_LEN,                         // address_end:     end of address
+    NETBOX_COMMAND_OFFSET,                                              // command_offset:  command offset
+    NETBOX_COMMAND_OFFSET + NETBOX_COMMAND_LEN,                         // command_end:     end of command
+    NETBOX_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    NETBOX_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    NETBOX_LSB,                                                         // lsb_first:       flag: LSB first
+    NETBOX_FLAGS                                                        // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_IMON_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER imon_param =
+{
+    IRMP_IMON_PROTOCOL,                                                 // protocol:        ir protocol
+    IMON_PULSE_LEN,                                                     // pulse_1_len_min: minimum length of pulse with bit value 1
+    IMON_PULSE_REST_LEN,                                                // pulse_1_len_max: maximum length of pulse with bit value 1
+    IMON_PAUSE_LEN,                                                     // pause_1_len_min: minimum length of pause with bit value 1
+    IMON_PAUSE_REST_LEN,                                                // pause_1_len_max: maximum length of pause with bit value 1
+    IMON_PULSE_LEN,                                                     // pulse_0_len_min: minimum length of pulse with bit value 0
+    IMON_PULSE_REST_LEN,                                                // pulse_0_len_max: maximum length of pulse with bit value 0
+    IMON_PAUSE_LEN,                                                     // pause_0_len_min: minimum length of pause with bit value 0
+    IMON_PAUSE_REST_LEN,                                                // pause_0_len_max: maximum length of pause with bit value 0
+    IMON_ADDRESS_OFFSET,                                                // address_offset:  address offset
+    IMON_ADDRESS_OFFSET + IMON_ADDRESS_LEN,                             // address_end:     end of address
+    IMON_COMMAND_OFFSET,                                                // command_offset:  command offset
+    IMON_COMMAND_OFFSET + IMON_COMMAND_LEN,                             // command_end:     end of command
+    IMON_COMPLETE_DATA_LEN,                                             // complete_len:    complete length of frame
+    IMON_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
+    IMON_LSB,                                                           // lsb_first:       flag: LSB first
+    IMON_FLAGS                                                          // flags:           some flags
+};
+
+#endif
+
 static uint8_t                              irmp_bit;                   // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
@@ -1446,6 +1524,35 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 rtc = TRUE;                                     // Summe:  V  C1 C0 D7 D6 D5 D4 D3 D2 D1 D0
                 break;
 #endif
+#if 0 // LATER!
+#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+            case IRMP_NETBOX_PROTOCOL:
+                if (irmp_command & 0x1000)                      // last bit set?
+                {
+                    if ((irmp_command & 0x1f) == 0x15)          // key pressed: 101 01 (LSB)
+                    {
+                        irmp_command >>= 5;
+                        irmp_command &= 0x7F;
+                        rtc = TRUE;
+                    }
+                    else if ((irmp_command & 0x1f) == 0x10)     // key released: 000 01 (LSB)
+                    {
+                        irmp_command >>= 5;
+                        irmp_command |= 0x80;
+                        rtc = TRUE;
+                    }
+                    else
+                    {
+                        ANALYZE_PRINTF("error NETBOX: bit6/7 must be 0/1\n");
+                    }
+                }
+                else
+                {
+                    ANALYZE_PRINTF("error NETBOX: last bit not set\n");
+                }
+                break;
+#endif
+#endif // 0
             default:
                 rtc = TRUE;
         }
@@ -2027,6 +2134,30 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
 
+#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+                    if (irmp_pulse_time >= NETBOX_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NETBOX_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= NETBOX_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NETBOX_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's NETBOX
+                        ANALYZE_PRINTF ("protocol = NETBOX, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        NETBOX_START_BIT_PULSE_LEN_MIN, NETBOX_START_BIT_PULSE_LEN_MAX,
+                                        NETBOX_START_BIT_PAUSE_LEN_MIN, NETBOX_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &netbox_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+
+#if IRMP_SUPPORT_IMON_PROTOCOL == 1
+                    if (irmp_pulse_time >= IMON_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= IMON_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= IMON_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= IMON_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's IMON
+                        ANALYZE_PRINTF ("protocol = IMON, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        IMON_START_BIT_PULSE_LEN_MIN, IMON_START_BIT_PULSE_LEN_MAX,
+                                        IMON_START_BIT_PAUSE_LEN_MIN, IMON_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &imon_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_IMON_PROTOCOL == 1
+
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
@@ -2115,6 +2246,15 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_MANCHESTER == 1
 
+#if IRMP_SUPPORT_SERIAL == 1
+                    if (irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL)
+                    {
+                        ; // do nothing
+                    }
+                    else
+#endif // IRMP_SUPPORT_SERIAL == 1
+
+
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_DENON_PROTOCOL)
                     {
@@ -2153,6 +2293,7 @@ irmp_ISR (void)
                     if (irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 1)
                     {
                         if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) ||
+                            (irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL) ||
                             (irmp_pulse_time >= irmp_param.pulse_0_len_min && irmp_pulse_time <= irmp_param.pulse_0_len_max))
                         {
 #ifdef ANALYZE
@@ -2165,7 +2306,7 @@ irmp_ISR (void)
                         }
                         else
                         {
-                            ANALYZE_PRINTF ("stop bit timing wrong\n");
+                            ANALYZE_PRINTF ("error: stop bit timing wrong\n");
 
                             irmp_start_bit_detected = 0;                        // wait for another start bit...
                             irmp_pulse_time         = 0;
@@ -2186,6 +2327,14 @@ irmp_ISR (void)
                             irmp_tmp_address |= (irmp_bit - SIRCS_MINIMUM_DATA_LEN + 1) << 8;       // new: store number of additional bits in upper byte of address!
                             irmp_param.command_end = irmp_param.command_offset + irmp_bit + 1;      // correct command length
                             irmp_pause_time = SIRCS_PAUSE_LEN_MAX - 1;                              // correct pause length
+                        }
+                        else
+#endif
+#if IRMP_SUPPORT_SERIAL == 1
+                        if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL) && irmp_param.protocol == IRMP_NETBOX_PROTOCOL &&
+                            irmp_pause_time >= 100)
+                        {
+                            got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
                         }
                         else
 #endif
@@ -2495,6 +2644,43 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_MANCHESTER == 1
 
+#if IRMP_SUPPORT_SERIAL == 1
+                    if (irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL)
+                    {
+                        while (irmp_bit < irmp_param.complete_len && irmp_pulse_time > irmp_param.pulse_1_len_max)
+                        {
+                            ANALYZE_PUTCHAR ('1');
+                            irmp_store_bit (1);
+
+                            if (irmp_pulse_time >= irmp_param.pulse_1_len_min)
+                            {
+                                irmp_pulse_time -= irmp_param.pulse_1_len_min;
+                            }
+                            else
+                            {
+                                irmp_pulse_time = 0;
+                            }
+                        }
+
+                        while (irmp_bit < irmp_param.complete_len && irmp_pause_time > irmp_param.pause_1_len_max)
+                        {
+                            ANALYZE_PUTCHAR ('0');
+                            irmp_store_bit (0);
+
+                            if (irmp_pause_time >= irmp_param.pause_1_len_min)
+                            {
+                                irmp_pause_time -= irmp_param.pause_1_len_min;
+                            }
+                            else
+                            {
+                                irmp_pause_time = 0;
+                            }
+                        }
+                        ANALYZE_NEWLINE ();
+                        wait_for_space = 0;
+                    }
+                    else
+#endif // IRMP_SUPPORT_SERIAL == 1
 
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
                     if (irmp_param.protocol == IRMP_SAMSUNG_PROTOCOL && irmp_bit == 16)       // Samsung: 16th bit
