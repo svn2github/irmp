@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.55 2011/02/25 08:35:33 fm Exp $
+ * $Id: irmp.h,v 1.56 2011/02/25 09:19:54 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -179,11 +179,11 @@ typedef uint8_t     PAUSE_LEN;
 #define RECS80_FRAME_REPEAT_PAUSE_TIME            45.0e-3                       // frame repeat after 45ms
 #define RECS80_ADDRESS_OFFSET                   1                               // skip 1 bit (toggle bit)
 #define RECS80_ADDRESS_LEN                      3                               // read 3 address bits
-#define RECS80_COMMAND_OFFSET                   4                               // skip 5 bits (2nd start + 1 toggle + 3 address)
+#define RECS80_COMMAND_OFFSET                   4                               // skip 4 bits (1 toggle + 3 address)
 #define RECS80_COMMAND_LEN                      6                               // read 6 command bits
 #define RECS80_COMPLETE_DATA_LEN                10                              // complete length
 #define RECS80_STOP_BIT                         1                               // has stop bit
-#define RECS80_LSB                              0                               // MSB...LSB
+#define RECS80_LSB                              1                               // LSB...MSB
 #define RECS80_FLAGS                            0                               // flags
 
 #define RC5_BIT_TIME                             889.0e-6                       // 889 usec pulse/pause
@@ -235,12 +235,12 @@ typedef uint8_t     PAUSE_LEN;
 #define RECS80EXT_0_PAUSE_TIME                  4902.0e-6                       // 4902 usec pause
 #define RECS80EXT_FRAME_REPEAT_PAUSE_TIME         45.0e-3                       // frame repeat after 45ms
 #define RECS80EXT_ADDRESS_OFFSET                2                               // skip 2 bits (2nd start + 1 toggle)
-#define RECS80EXT_ADDRESS_LEN                   4                               // read 3 address bits
+#define RECS80EXT_ADDRESS_LEN                   4                               // read 4 address bits
 #define RECS80EXT_COMMAND_OFFSET                6                               // skip 6 bits (2nd start + 1 toggle + 4 address)
 #define RECS80EXT_COMMAND_LEN                   6                               // read 6 command bits
 #define RECS80EXT_COMPLETE_DATA_LEN             12                              // complete length
 #define RECS80EXT_STOP_BIT                      1                               // has stop bit
-#define RECS80EXT_LSB                           0                               // MSB...LSB
+#define RECS80EXT_LSB                           1                               // LSB...MSB
 #define RECS80EXT_FLAGS                         0                               // flags
 
 #define NUBERT_START_BIT_PULSE_TIME             1340.0e-6                       // 1340 usec pulse

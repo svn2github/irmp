@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.57 2011/02/25 08:35:33 fm Exp $
+ * $Id: irmpconfig.h,v 1.58 2011/02/25 09:19:54 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -66,7 +66,7 @@
 #define IRMP_SUPPORT_SIEMENS_PROTOCOL           0       // Siemens Gigaset      >= 15000                 ~550 bytes
 #define IRMP_SUPPORT_RUWIDO_PROTOCOL            0       // RUWIDO, T-Home       >= 15000                 ~550 bytes
 #define IRMP_SUPPORT_RECS80_PROTOCOL            0       // RECS80 (SAA3004)     >= 15000                  ~50 bytes
-#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         0       // RECS80EXT            >= 15000                  ~50 bytes
+#define IRMP_SUPPORT_RECS80EXT_PROTOCOL         0       // RECS80EXT (SAA3008)  >= 15000                  ~50 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here:
