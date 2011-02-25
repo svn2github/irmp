@@ -3,29 +3,35 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.95 2011/02/23 15:03:27 fm Exp $
+ * $Id: irmp.c,v 1.96 2011/02/25 08:35:32 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
  * Typical manufacturers:
  *
- * SIRCS      - Sony
- * NEC        - NEC, Yamaha, Canon, Tevion, Harman/Kardon, Hitachi, JVC, Pioneer, Toshiba, Xoro, Orion, and many other Japanese manufacturers
- * SAMSUNG    - Samsung
- * SAMSUNG32  - Samsung
- * MATSUSHITA - Matsushita
- * KASEIKYO   - Panasonic, Denon & other Japanese manufacturers (members of "Japan's Association for Electric Home Application")
- * RECS80     - Philips, Nokia, Thomson, Nordmende, Telefunken, Saba
- * RC5        - Philips and other European manufacturers
- * DENON      - Denon, Sharp
- * RC6        - Philips and other European manufacturers
- * APPLE      - Apple
- * NUBERT     - Nubert Subwoofer System
- * B&O        - Bang & Olufsen
- * PANASONIC  - Panasonic (older, yet not implemented)
- * GRUNDIG    - Grundig
- * NOKIA      - Nokia
- * SIEMENS    - Siemens, e.g. Gigaset M740AV
+ * SIRCS        - Sony
+ * NEC          - NEC, Yamaha, Canon, Tevion, Harman/Kardon, Hitachi, JVC, Pioneer, Toshiba, Xoro, Orion, and many other Japanese manufacturers
+ * SAMSUNG      - Samsung
+ * SAMSUNG32    - Samsung
+ * MATSUSHITA   - Matsushita
+ * KASEIKYO     - Panasonic, Denon & other Japanese manufacturers (members of "Japan's Association for Electric Home Application")
+ * RECS80       - Philips, Nokia, Thomson, Nordmende, Telefunken, Saba
+ * RC5          - Philips and other European manufacturers
+ * DENON        - Denon, Sharp
+ * RC6          - Philips and other European manufacturers
+ * APPLE        - Apple
+ * NUBERT       - Nubert Subwoofer System
+ * B&O          - Bang & Olufsen
+ * PANASONIC    - Panasonic (older, yet not implemented)
+ * GRUNDIG      - Grundig
+ * NOKIA        - Nokia
+ * SIEMENS      - Siemens, e.g. Gigaset M740AV
+ * FDC          - FDC IR keyboard
+ * RCCAR        - IR remote control for RC cars
+ * JVC          - JVC
+ * NIKON        - Nikon cameras
+ * RUWIDO       - T-Home
+ * KATHREIN     - Kathrein
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
@@ -592,10 +598,10 @@ typedef unsigned int16  uint16_t;
 #define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN_2           ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX_2           ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2 * MAX_TOLERANCE_10 + 0.5) + 1)
 
-#define FDC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define FDC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define FDC_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define FDC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)   // 5%: avoid conflict with NETBOX
+#define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5))
+#define FDC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define FDC_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5))
 #define FDC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define FDC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * FDC_PULSE_TIME * MAX_TOLERANCE_50 + 0.5) + 1)
 #define FDC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * FDC_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
@@ -1361,14 +1367,14 @@ static PROGMEM IRMP_PARAMETER kathrein_param =
 static PROGMEM IRMP_PARAMETER netbox_param =
 {
     IRMP_NETBOX_PROTOCOL,                                               // protocol:        ir protocol
-    NETBOX_PULSE_LEN,                                                   // pulse_1_len_min: minimum length of pulse with bit value 1
-    NETBOX_PULSE_REST_LEN,                                              // pulse_1_len_max: maximum length of pulse with bit value 1
-    NETBOX_PAUSE_LEN,                                                   // pause_1_len_min: minimum length of pause with bit value 1
-    NETBOX_PAUSE_REST_LEN,                                              // pause_1_len_max: maximum length of pause with bit value 1
-    NETBOX_PULSE_LEN,                                                   // pulse_0_len_min: minimum length of pulse with bit value 0
-    NETBOX_PULSE_REST_LEN,                                              // pulse_0_len_max: maximum length of pulse with bit value 0
-    NETBOX_PAUSE_LEN,                                                   // pause_0_len_min: minimum length of pause with bit value 0
-    NETBOX_PAUSE_REST_LEN,                                              // pause_0_len_max: maximum length of pause with bit value 0
+    NETBOX_PULSE_LEN,                                                   // pulse_1_len_min: minimum length of pulse with bit value 1, here: exact value
+    NETBOX_PULSE_REST_LEN,                                              // pulse_1_len_max: maximum length of pulse with bit value 1, here: rest value
+    NETBOX_PAUSE_LEN,                                                   // pause_1_len_min: minimum length of pause with bit value 1, here: exact value
+    NETBOX_PAUSE_REST_LEN,                                              // pause_1_len_max: maximum length of pause with bit value 1, here: rest value
+    NETBOX_PULSE_LEN,                                                   // pulse_0_len_min: minimum length of pulse with bit value 0, here: exact value
+    NETBOX_PULSE_REST_LEN,                                              // pulse_0_len_max: maximum length of pulse with bit value 0, here: rest value
+    NETBOX_PAUSE_LEN,                                                   // pause_0_len_min: minimum length of pause with bit value 0, here: exact value
+    NETBOX_PAUSE_REST_LEN,                                              // pause_0_len_max: maximum length of pause with bit value 0, here: rest value
     NETBOX_ADDRESS_OFFSET,                                              // address_offset:  address offset
     NETBOX_ADDRESS_OFFSET + NETBOX_ADDRESS_LEN,                         // address_end:     end of address
     NETBOX_COMMAND_OFFSET,                                              // command_offset:  command offset
@@ -1524,7 +1530,7 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 rtc = TRUE;                                     // Summe:  V  C1 C0 D7 D6 D5 D4 D3 D2 D1 D0
                 break;
 #endif
-#if 0 // LATER!
+#if 1 // squeeze code to 8 bit, upper bit indicates release-key
 #if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
             case IRMP_NETBOX_PROTOCOL:
                 if (irmp_command & 0x1000)                      // last bit set?
@@ -2292,8 +2298,13 @@ irmp_ISR (void)
                 {                                                               // yes...
                     if (irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 1)
                     {
-                        if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) ||
+                        if (
+#if IRMP_SUPPORT_MANCHESTER == 1
+                            (irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) ||
+#endif
+#if IRMP_SUPPORT_SERIAL == 1
                             (irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL) ||
+#endif
                             (irmp_pulse_time >= irmp_param.pulse_0_len_min && irmp_pulse_time <= irmp_param.pulse_0_len_max))
                         {
 #ifdef ANALYZE
@@ -2331,8 +2342,9 @@ irmp_ISR (void)
                         else
 #endif
 #if IRMP_SUPPORT_SERIAL == 1
+                        // NETBOX generates no stop bit, here is the timeout condition:
                         if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL) && irmp_param.protocol == IRMP_NETBOX_PROTOCOL &&
-                            irmp_pause_time >= 100)
+                            irmp_pause_time >= NETBOX_PULSE_LEN * (NETBOX_COMPLETE_DATA_LEN - irmp_bit))
                         {
                             got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
                         }
