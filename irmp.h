@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.56 2011/02/25 09:19:54 fm Exp $
+ * $Id: irmp.h,v 1.57 2011/02/25 09:23:05 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -183,7 +183,7 @@ typedef uint8_t     PAUSE_LEN;
 #define RECS80_COMMAND_LEN                      6                               // read 6 command bits
 #define RECS80_COMPLETE_DATA_LEN                10                              // complete length
 #define RECS80_STOP_BIT                         1                               // has stop bit
-#define RECS80_LSB                              1                               // LSB...MSB
+#define RECS80_LSB                              0                               // MSB...LSB
 #define RECS80_FLAGS                            0                               // flags
 
 #define RC5_BIT_TIME                             889.0e-6                       // 889 usec pulse/pause
@@ -240,7 +240,7 @@ typedef uint8_t     PAUSE_LEN;
 #define RECS80EXT_COMMAND_LEN                   6                               // read 6 command bits
 #define RECS80EXT_COMPLETE_DATA_LEN             12                              // complete length
 #define RECS80EXT_STOP_BIT                      1                               // has stop bit
-#define RECS80EXT_LSB                           1                               // LSB...MSB
+#define RECS80EXT_LSB                           0                               // MSB...LSB
 #define RECS80EXT_FLAGS                         0                               // flags
 
 #define NUBERT_START_BIT_PULSE_TIME             1340.0e-6                       // 1340 usec pulse
