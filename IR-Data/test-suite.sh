@@ -70,9 +70,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp -v < $j | grep -q error
     then
-        tmpsrc/irmp -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp -v < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
 
@@ -84,14 +84,15 @@ for j in                                \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
     t-home-mediareceiver-15kHz.txt      \
+    universal-15kHz.txt			\
     xbox360-15kHz.txt
 do
     echo "testing $j ..."
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-15kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-15kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
 
@@ -103,13 +104,13 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-20kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-20kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     fi
 done
 
-rm -rf tmpsrc
+# rm -rf tmpsrc
 
 echo "all tests successful"
 exit 0

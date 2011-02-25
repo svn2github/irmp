@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.60 2011/02/25 09:23:41 fm Exp $
+ * $Id: irmpconfig.h,v 1.61 2011/02/25 15:24:06 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -50,6 +50,7 @@
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // Kaseikyo             >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON, Sharp         >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_JVC_PROTOCOL               1       // JVC                  >= 10000                 ~150 bytes
+#define IRMP_SUPPORT_NEC16_PROTOCOL             1       // NEC16                >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_RC5_PROTOCOL               0       // RC5                  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_RC6_PROTOCOL               0       // RC6 & RC6A           >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_IR60_PROTOCOL              0       // IR60 (SAB2008)       >= 10000                 ~300 bytes

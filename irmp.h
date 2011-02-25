@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.57 2011/02/25 09:23:05 fm Exp $
+ * $Id: irmp.h,v 1.58 2011/02/25 15:24:06 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -74,7 +74,8 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_IR60_PROTOCOL                      24              // IR60 (SAB2008)
 #define IRMP_KATHREIN_PROTOCOL                  25              // Kathrein
 #define IRMP_NETBOX_PROTOCOL                    26              // Netbox keyboard (bitserial)
-#define IRMP_IMON_PROTOCOL                      27              // Imon (bitserial)
+#define IRMP_NEC16_PROTOCOL                     27              // NEC with 16 bits
+#define IRMP_IMON_PROTOCOL                      99              // Imon (bitserial) PROTOTYPE!
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -114,6 +115,15 @@ typedef uint8_t     PAUSE_LEN;
 #define NEC_STOP_BIT                            1                               // has stop bit
 #define NEC_LSB                                 1                               // LSB...MSB
 #define NEC_FLAGS                               0                               // flags
+
+#define NEC16_ADDRESS_OFFSET                    0                               // skip 0 bits
+#define NEC16_ADDRESS_LEN                       8                               // read 8 address bits
+#define NEC16_COMMAND_OFFSET                    8                               // skip 8 bits (8 address)
+#define NEC16_COMMAND_LEN                       8                               // read 8 bits (8 command)
+#define NEC16_COMPLETE_DATA_LEN                 16                              // complete length
+#define NEC16_STOP_BIT                          1                               // has stop bit
+#define NEC16_LSB                               1                               // LSB...MSB
+#define NEC16_FLAGS                             0                               // flags
 
 #define SAMSUNG_START_BIT_PULSE_TIME            4500.0e-6                       // 4500 usec pulse
 #define SAMSUNG_START_BIT_PAUSE_TIME            4500.0e-6                       // 4500 usec pause
