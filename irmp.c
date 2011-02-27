@@ -1621,8 +1621,6 @@ static uint16_t irmp_tmp_id;                                                    
 static uint8_t  xor_check[6];                                                           // check kaseikyo "parity" bits
 #endif
 
-static uint8_t  irmp_bit;                                                               // current bit position
-
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  store bit
  *  @details  store bit in temp address or temp command
@@ -2896,7 +2894,6 @@ irmp_ISR (void)
                             irmp_bit++;
                             ANALYZE_PUTCHAR ('S');
                             ANALYZE_NEWLINE ();
-                            irmp_tmp_id = 0;
                             irmp_tmp_command <<= 1;
                         }
                         else
