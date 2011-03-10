@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.61 2011/02/25 15:24:06 fm Exp $
+ * $Id: irmpconfig.h,v 1.63 2011/03/10 12:29:14 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -19,12 +19,12 @@
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change F_INTERRUPTS if you change the number of interrupts per second,
- * Normally, F_INTERRUPTS should be in the range from 10000 to 15000.
- * A value above 15000 costs additional program space, absolut maximum value is 20000.
+ * Normally, F_INTERRUPTS should be in the range from 10000 to 15000, typical is 15000
+ * A value above 15000 costs additional program space, absolute maximum value is 20000.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef F_INTERRUPTS
-#define F_INTERRUPTS                            10000   // interrupts per second, min: 10000, max: 20000
+#define F_INTERRUPTS                            15000   // interrupts per second, min: 10000, max: 20000, typ: 15000
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,16 +42,19 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
-//      Protocol                                Enable  Remarks                 F_INTERRUPTS            Program Space
+// Typical Protocols, disable here!             Enable  Remarks                 F_INTERRUPTS            Program Space
 #define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // Sony SIRCS           >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_NEC_PROTOCOL               1       // NEC + APPLE          >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // Samsung + Samsung32  >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // Matsushita           >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // Kaseikyo             >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON, Sharp         >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_JVC_PROTOCOL               1       // JVC                  >= 10000                 ~150 bytes
+#define IRMP_SUPPORT_RC5_PROTOCOL               1       // RC5                  >= 10000                 ~250 bytes
+
+// More Protocols, enable here!                 Enable  Remarks                 F_INTERRUPTS            Program Space
+#define IRMP_SUPPORT_JVC_PROTOCOL               0       // JVC                  >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_NEC16_PROTOCOL             0       // NEC16                >= 10000                 ~100 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               0       // RC5                  >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_NEC42_PROTOCOL             0       // NEC42                >= 10000                 ~100 bytes
 #define IRMP_SUPPORT_RC6_PROTOCOL               0       // RC6 & RC6A           >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_IR60_PROTOCOL              0       // IR60 (SAB2008)       >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_GRUNDIG_PROTOCOL           0       // Grundig              >= 10000                 ~300 bytes
@@ -129,8 +132,20 @@
 #define IRMP_SUPPORT_NEC_PROTOCOL               1
 #endif
 
+#if IRMP_SUPPORT_NEC16_PROTOCOL == 1 && IRMP_SUPPORT_NEC_PROTOCOL == 0
+#warning NEC16 protocol needs also NEC protocol, NEC protocol enabled
+#undef IRMP_SUPPORT_NEC_PROTOCOL
+#define IRMP_SUPPORT_NEC_PROTOCOL               1
+#endif
+
+#if IRMP_SUPPORT_NEC42_PROTOCOL == 1 && IRMP_SUPPORT_NEC_PROTOCOL == 0
+#warning NEC42 protocol needs also NEC protocol, NEC protocol enabled
+#undef IRMP_SUPPORT_NEC_PROTOCOL
+#define IRMP_SUPPORT_NEC_PROTOCOL               1
+#endif
+
 #if F_INTERRUPTS > 20000
-#error F_INTERRUPTS too high (should be not more than 20000)
+#error F_INTERRUPTS too high (should be not greater than 20000)
 #endif
 
 #endif /* _WC_IRMPCONFIG_H_ */

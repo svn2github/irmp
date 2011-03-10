@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.58 2011/02/25 15:24:06 fm Exp $
+ * $Id: irmp.h,v 1.59 2011/03/10 12:29:14 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -67,14 +67,15 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_SIEMENS_PROTOCOL                   17              // Siemens, e.g. Gigaset
 #define IRMP_FDC_PROTOCOL                       18              // FDC keyboard
 #define IRMP_RCCAR_PROTOCOL                     19              // RC Car
-#define IRMP_JVC_PROTOCOL                       20              // JVC
+#define IRMP_JVC_PROTOCOL                       20              // JVC (NEC with 16 bits)
 #define IRMP_RC6A_PROTOCOL                      21              // RC6A, e.g. Kathrein, XBOX
 #define IRMP_NIKON_PROTOCOL                     22              // Nikon
 #define IRMP_RUWIDO_PROTOCOL                    23              // Ruwido, e.g. T-Home Mediareceiver
 #define IRMP_IR60_PROTOCOL                      24              // IR60 (SAB2008)
 #define IRMP_KATHREIN_PROTOCOL                  25              // Kathrein
 #define IRMP_NETBOX_PROTOCOL                    26              // Netbox keyboard (bitserial)
-#define IRMP_NEC16_PROTOCOL                     27              // NEC with 16 bits
+#define IRMP_NEC16_PROTOCOL                     27              // NEC with 16 bits (incl. sync)
+#define IRMP_NEC42_PROTOCOL                     28              // NEC with 42 bits
 #define IRMP_IMON_PROTOCOL                      99              // Imon (bitserial) PROTOTYPE!
 
 // some flags of struct IRMP_PARAMETER:
@@ -116,21 +117,24 @@ typedef uint8_t     PAUSE_LEN;
 #define NEC_LSB                                 1                               // LSB...MSB
 #define NEC_FLAGS                               0                               // flags
 
+#define NEC42_ADDRESS_OFFSET                    0                               // skip 0 bits
+#define NEC42_ADDRESS_LEN                      13                               // read 13 address bits
+#define NEC42_COMMAND_OFFSET                   26                               // skip 26 bits (2 x 13 address bits)
+#define NEC42_COMMAND_LEN                       8                               // read 8 command bits
+#define NEC42_COMPLETE_DATA_LEN                42                               // complete length (2 x 13 + 2 x 8)
+
 #define NEC16_ADDRESS_OFFSET                    0                               // skip 0 bits
 #define NEC16_ADDRESS_LEN                       8                               // read 8 address bits
 #define NEC16_COMMAND_OFFSET                    8                               // skip 8 bits (8 address)
 #define NEC16_COMMAND_LEN                       8                               // read 8 bits (8 command)
 #define NEC16_COMPLETE_DATA_LEN                 16                              // complete length
-#define NEC16_STOP_BIT                          1                               // has stop bit
-#define NEC16_LSB                               1                               // LSB...MSB
-#define NEC16_FLAGS                             0                               // flags
 
 #define SAMSUNG_START_BIT_PULSE_TIME            4500.0e-6                       // 4500 usec pulse
 #define SAMSUNG_START_BIT_PAUSE_TIME            4500.0e-6                       // 4500 usec pause
 #define SAMSUNG_PULSE_TIME                       550.0e-6                       //  550 usec pulse
 #define SAMSUNG_1_PAUSE_TIME                    1450.0e-6                       // 1450 usec pause
 #define SAMSUNG_0_PAUSE_TIME                     450.0e-6                       //  450 usec pause
-#define SAMSUNG_FRAME_REPEAT_PAUSE_TIME           45.0e-3                       // frame repeat after 45ms
+#define SAMSUNG_FRAME_REPEAT_PAUSE_TIME           25.0e-3                       // frame repeat after 25ms
 #define SAMSUNG_ADDRESS_OFFSET                   0                              // skip 0 bits
 #define SAMSUNG_ADDRESS_LEN                     16                              // read 16 address bits
 #define SAMSUNG_ID_OFFSET                       17                              // skip 16 + 1 sync bit
