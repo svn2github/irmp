@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.63 2011/03/10 12:29:14 fm Exp $
+ * $Id: irmpconfig.h,v 1.64 2011/03/10 12:54:37 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -35,26 +35,26 @@
  * 0 disable decoder
  *
  * The standard decoders are enabled per default.
- * Some less common protocols are disabled here, you need to enable them manually.
+ * Less common protocols are disabled here, you need to enable them manually.
  *
  * If you want to use FDC or RCCAR simultaneous with RC5 protocol, additional program space is required.
  * If you don't need RC5 when using FDC/RCCAR, you should disable RC5.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
-// Typical Protocols, disable here!             Enable  Remarks                 F_INTERRUPTS            Program Space
+// typical protocols, disable here!             Enable  Remarks                 F_INTERRUPTS            Program Space
 #define IRMP_SUPPORT_SIRCS_PROTOCOL             1       // Sony SIRCS           >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_NEC_PROTOCOL               1       // NEC + APPLE          >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL           1       // Samsung + Samsung32  >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_MATSUSHITA_PROTOCOL        1       // Matsushita           >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL          1       // Kaseikyo             >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_DENON_PROTOCOL             1       // DENON, Sharp         >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL               1       // RC5                  >= 10000                 ~250 bytes
 
-// More Protocols, enable here!                 Enable  Remarks                 F_INTERRUPTS            Program Space
+// more protocols, enable here!                 Enable  Remarks                 F_INTERRUPTS            Program Space
+#define IRMP_SUPPORT_RC5_PROTOCOL               0       // RC5                  >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_JVC_PROTOCOL               0       // JVC                  >= 10000                 ~150 bytes
-#define IRMP_SUPPORT_NEC16_PROTOCOL             0       // NEC16                >= 10000                 ~100 bytes
-#define IRMP_SUPPORT_NEC42_PROTOCOL             0       // NEC42                >= 10000                 ~100 bytes
+#define IRMP_SUPPORT_NEC16_PROTOCOL             0       // NEC16                >= 10000                  ~50 bytes
+#define IRMP_SUPPORT_NEC42_PROTOCOL             0       // NEC42                >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_RC6_PROTOCOL               0       // RC6 & RC6A           >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_IR60_PROTOCOL              0       // IR60 (SAB2008)       >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_GRUNDIG_PROTOCOL           0       // Grundig              >= 10000                 ~300 bytes
@@ -62,7 +62,7 @@
 #define IRMP_SUPPORT_KATHREIN_PROTOCOL          0       // Kathrein             >= 10000                 ~200 bytes
 #define IRMP_SUPPORT_NUBERT_PROTOCOL            0       // NUBERT               >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      0       // Bang & Olufsen       >= 10000                 ~200 bytes
-#define IRMP_SUPPORT_NIKON_PROTOCOL             0       // NIKON                >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_NIKON_PROTOCOL             0       // NIKON camera         >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_NETBOX_PROTOCOL            0       // Netbox keyboard      >= 10000                 ~400 bytes (PROTOTYPE!)
 #define IRMP_SUPPORT_IMON_PROTOCOL              0       // IMON keyboard        >= 10000                 ~400 bytes (PROTOTYPE!)
 #define IRMP_SUPPORT_FDC_PROTOCOL               0       // FDC3402 keyboard     >= 10000 (better 15000)  ~150 bytes (~400 in combination with RC5)
