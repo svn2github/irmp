@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.h
  *
- * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.59 2011/03/10 12:29:14 fm Exp $
+ * $Id: irmp.h,v 1.60 2011/04/11 12:54:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -76,6 +76,7 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_NETBOX_PROTOCOL                    26              // Netbox keyboard (bitserial)
 #define IRMP_NEC16_PROTOCOL                     27              // NEC with 16 bits (incl. sync)
 #define IRMP_NEC42_PROTOCOL                     28              // NEC with 42 bits
+#define IRMP_LEGO_PROTOCOL                      29              // LEGO Power Functions RC
 #define IRMP_IMON_PROTOCOL                      99              // Imon (bitserial) PROTOTYPE!
 
 // some flags of struct IRMP_PARAMETER:
@@ -445,6 +446,21 @@ typedef uint8_t     PAUSE_LEN;
 #define NETBOX_STOP_BIT                         0                               // has no stop bit
 #define NETBOX_LSB                              1                               // LSB
 #define NETBOX_FLAGS                            IRMP_PARAM_FLAG_IS_SERIAL       // flags
+
+#define LEGO_START_BIT_PULSE_TIME                158.0e-6                       //  158 usec pulse ( 6 x 1/38kHz)
+#define LEGO_START_BIT_PAUSE_TIME               1026.0e-6                       // 1026 usec pause (39 x 1/38kHz)
+#define LEGO_PULSE_TIME                          158.0e-6                       //  158 usec pulse ( 6 x 1/38kHz)
+#define LEGO_1_PAUSE_TIME                        553.0e-6                       //  553 usec pause (21 x 1/38kHz)
+#define LEGO_0_PAUSE_TIME                        263.0e-6                       //  263 usec pause (10 x 1/38kHz)
+#define LEGO_FRAME_REPEAT_PAUSE_TIME              40.0e-3                       // frame repeat after 40ms
+#define LEGO_ADDRESS_OFFSET                     0                               // skip 0 bits
+#define LEGO_ADDRESS_LEN                        0                               // read 0 address bits
+#define LEGO_COMMAND_OFFSET                     0                               // skip 0 bits
+#define LEGO_COMMAND_LEN                        16                              // read 16 bits (12 command + 4 CRC)
+#define LEGO_COMPLETE_DATA_LEN                  16                              // complete length
+#define LEGO_STOP_BIT                           1                               // has stop bit
+#define LEGO_LSB                                0                               // MSB...LSB
+#define LEGO_FLAGS                              0                               // flags
 
 #define IMON_START_BIT_PULSE_TIME               1333.0e-6                       // 1333 usec pulse
 #define IMON_START_BIT_PAUSE_TIME               1172.0e-6                       // 1333 usec pause

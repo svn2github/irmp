@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.c - infrared multi-protocol decoder, supports several remote control protocols
  *
- * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.99 2011/03/10 12:29:13 fm Exp $
+ * $Id: irmp.c,v 1.100 2011/04/11 12:54:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -32,6 +32,7 @@
  * NIKON        - Nikon cameras
  * RUWIDO       - T-Home
  * KATHREIN     - Kathrein
+ * LEGO         - Lego Power Functions RC
  *
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  *
@@ -674,6 +675,17 @@ typedef unsigned int16  uint16_t;
 #define NETBOX_PAUSE_LEN                        ((uint8_t)(F_INTERRUPTS * NETBOX_PAUSE_TIME))
 #define NETBOX_PULSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * NETBOX_PULSE_TIME / 4))
 #define NETBOX_PAUSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * NETBOX_PAUSE_TIME / 4))
+
+#define LEGO_START_BIT_PULSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * LEGO_START_BIT_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define LEGO_START_BIT_PULSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * LEGO_START_BIT_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define LEGO_START_BIT_PAUSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * LEGO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define LEGO_START_BIT_PAUSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * LEGO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define LEGO_PULSE_LEN_MIN                      ((uint8_t)(F_INTERRUPTS * LEGO_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define LEGO_PULSE_LEN_MAX                      ((uint8_t)(F_INTERRUPTS * LEGO_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define LEGO_1_PAUSE_LEN_MIN                    ((uint8_t)(F_INTERRUPTS * LEGO_1_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define LEGO_1_PAUSE_LEN_MAX                    ((uint8_t)(F_INTERRUPTS * LEGO_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define LEGO_0_PAUSE_LEN_MIN                    ((uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define LEGO_0_PAUSE_LEN_MAX                    ((uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 
 #define IMON_START_BIT_PULSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define IMON_START_BIT_PULSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -1412,6 +1424,31 @@ static PROGMEM IRMP_PARAMETER netbox_param =
 
 #endif
 
+#if IRMP_SUPPORT_LEGO_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER lego_param =
+{
+    IRMP_LEGO_PROTOCOL,                                                 // protocol:        ir protocol
+    LEGO_PULSE_LEN_MIN,                                                 // pulse_1_len_min: minimum length of pulse with bit value 1
+    LEGO_PULSE_LEN_MAX,                                                 // pulse_1_len_max: maximum length of pulse with bit value 1
+    LEGO_1_PAUSE_LEN_MIN,                                               // pause_1_len_min: minimum length of pause with bit value 1
+    LEGO_1_PAUSE_LEN_MAX,                                               // pause_1_len_max: maximum length of pause with bit value 1
+    LEGO_PULSE_LEN_MIN,                                                 // pulse_0_len_min: minimum length of pulse with bit value 0
+    LEGO_PULSE_LEN_MAX,                                                 // pulse_0_len_max: maximum length of pulse with bit value 0
+    LEGO_0_PAUSE_LEN_MIN,                                               // pause_0_len_min: minimum length of pause with bit value 0
+    LEGO_0_PAUSE_LEN_MAX,                                               // pause_0_len_max: maximum length of pause with bit value 0
+    LEGO_ADDRESS_OFFSET,                                                // address_offset:  address offset
+    LEGO_ADDRESS_OFFSET + LEGO_ADDRESS_LEN,                             // address_end:     end of address
+    LEGO_COMMAND_OFFSET,                                                // command_offset:  command offset
+    LEGO_COMMAND_OFFSET + LEGO_COMMAND_LEN,                             // command_end:     end of command
+    LEGO_COMPLETE_DATA_LEN,                                             // complete_len:    complete length of frame
+    LEGO_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
+    LEGO_LSB,                                                           // lsb_first:       flag: LSB first
+    LEGO_FLAGS                                                          // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_IMON_PROTOCOL == 1
 
 static PROGMEM IRMP_PARAMETER imon_param =
@@ -1584,6 +1621,24 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 break;
 #endif
 #endif // 0
+#if IRMP_SUPPORT_LEGO_PROTOCOL == 1
+            case IRMP_LEGO_PROTOCOL:
+            {
+                uint8_t crc = 0x0F ^ ((irmp_command & 0xF000) >> 12) ^ ((irmp_command & 0x0F00) >> 8) ^ ((irmp_command & 0x00F0) >> 4);
+
+                if ((irmp_command & 0x000F) == crc)
+                {
+                    irmp_command >>= 4;
+                    rtc = TRUE;
+                }
+                else
+                {
+                    ANALYZE_PRINTF ("CRC error in LEGO protocol\n");
+                    rtc = TRUE;
+                }
+                break;
+            }
+#endif
             default:
                 rtc = TRUE;
         }
@@ -2189,6 +2244,18 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+
+#if IRMP_SUPPORT_LEGO_PROTOCOL == 1
+                    if (irmp_pulse_time >= LEGO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= LEGO_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= LEGO_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= LEGO_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        ANALYZE_PRINTF ("protocol = LEGO, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        LEGO_START_BIT_PULSE_LEN_MIN, LEGO_START_BIT_PULSE_LEN_MAX,
+                                        LEGO_START_BIT_PAUSE_LEN_MIN, LEGO_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &lego_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
 
 #if IRMP_SUPPORT_IMON_PROTOCOL == 1
                     if (irmp_pulse_time >= IMON_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= IMON_START_BIT_PULSE_LEN_MAX &&
@@ -3344,6 +3411,12 @@ print_timings (void)
             NIKON_START_BIT_PULSE_LEN_MIN, NIKON_START_BIT_PULSE_LEN_MAX, NIKON_START_BIT_PAUSE_LEN_MIN, NIKON_START_BIT_PAUSE_LEN_MAX,
             NIKON_PULSE_LEN_MIN, NIKON_PULSE_LEN_MAX, NIKON_0_PAUSE_LEN_MIN, NIKON_0_PAUSE_LEN_MAX,
             NIKON_PULSE_LEN_MIN, NIKON_PULSE_LEN_MAX, NIKON_1_PAUSE_LEN_MIN, NIKON_1_PAUSE_LEN_MAX);
+
+    printf ("LEGO           1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            LEGO_START_BIT_PULSE_LEN_MIN, LEGO_START_BIT_PULSE_LEN_MAX, LEGO_START_BIT_PAUSE_LEN_MIN, LEGO_START_BIT_PAUSE_LEN_MAX,
+            LEGO_PULSE_LEN_MIN, LEGO_PULSE_LEN_MAX, LEGO_0_PAUSE_LEN_MIN, LEGO_0_PAUSE_LEN_MAX,
+            LEGO_PULSE_LEN_MIN, LEGO_PULSE_LEN_MAX, LEGO_1_PAUSE_LEN_MIN, LEGO_1_PAUSE_LEN_MAX);
+
 }
 
 void

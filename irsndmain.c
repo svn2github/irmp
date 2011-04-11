@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irsndmain.c - demo main module to test irmp decoder
  *
- * Copyright (c) 2010 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
  * ATMEGA88 @ 8 MHz
  *

@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * main.c - demo main module to test irmp decoder
  *
- * Copyright (c) 2009-2010 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.8 2010/08/30 15:45:27 fm Exp $
+ * $Id: main.c,v 1.9 2011/04/11 12:54:25 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
