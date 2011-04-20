@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.35 2011/04/11 13:26:17 fm Exp $
+ * $Id: irsnd.c,v 1.36 2011/04/20 09:09:48 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@
 #include <string.h>
 
 #define F_CPU 8000000L
-typedef unsigned char    uint8_t;
-typedef unsigned short    uint16_t;
+typedef unsigned char   uint8_t;
+typedef unsigned short  uint16_t;
 #define DEBUG
 
 #else
