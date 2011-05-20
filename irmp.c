@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.101 2011/04/20 09:09:48 fm Exp $
+ * $Id: irmp.c,v 1.103 2011/05/20 09:31:25 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -29,6 +29,7 @@
  * FDC          - FDC IR keyboard
  * RCCAR        - IR remote control for RC cars
  * JVC          - JVC
+ * THOMSON      - Thomson
  * NIKON        - Nikon cameras
  * RUWIDO       - T-Home
  * KATHREIN     - Kathrein
@@ -368,6 +369,7 @@ typedef unsigned int16  uint16_t;
 #endif
 
 #if IRMP_SUPPORT_NETBOX_PROTOCOL == 1 ||                \
+    IRMP_SUPPORT_MERLIN_PROTOCOL == 1 ||                \
     IRMP_SUPPORT_IMON_PROTOCOL == 1 
 #define IRMP_SUPPORT_SERIAL                     1
 #else
@@ -501,6 +503,13 @@ typedef unsigned int16  uint16_t;
 #define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1) // be more tolerant
 #endif
 #define DENON_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+
+#define THOMSON_PULSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * THOMSON_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define THOMSON_PULSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * THOMSON_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define THOMSON_1_PAUSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * THOMSON_1_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define THOMSON_1_PAUSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * THOMSON_1_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define THOMSON_0_PAUSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * THOMSON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define THOMSON_0_PAUSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * THOMSON_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define RC6_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * RC6_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RC6_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * RC6_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -668,6 +677,15 @@ typedef unsigned int16  uint16_t;
 #define LEGO_1_PAUSE_LEN_MAX                    ((uint8_t)(F_INTERRUPTS * LEGO_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 #define LEGO_0_PAUSE_LEN_MIN                    ((uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define LEGO_0_PAUSE_LEN_MAX                    ((uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+
+#define MERLIN_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define MERLIN_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define MERLIN_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define MERLIN_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define MERLIN_PULSE_LEN                        ((uint8_t)(F_INTERRUPTS * MERLIN_PULSE_TIME))
+#define MERLIN_PAUSE_LEN                        ((uint8_t)(F_INTERRUPTS * MERLIN_PAUSE_TIME))
+#define MERLIN_PULSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * MERLIN_PULSE_TIME / 4))
+#define MERLIN_PAUSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * MERLIN_PAUSE_TIME / 4))
 
 #define IMON_START_BIT_PULSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define IMON_START_BIT_PULSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -1430,6 +1448,56 @@ static PROGMEM IRMP_PARAMETER lego_param =
 
 #endif
 
+#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER netbox_param =
+{
+    IRMP_MERLIN_PROTOCOL,                                               // protocol:        ir protocol
+    MERLIN_PULSE_LEN,                                                   // pulse_1_len_min: minimum length of pulse with bit value 1, here: exact value
+    MERLIN_PULSE_REST_LEN,                                              // pulse_1_len_max: maximum length of pulse with bit value 1, here: rest value
+    MERLIN_PAUSE_LEN,                                                   // pause_1_len_min: minimum length of pause with bit value 1, here: exact value
+    MERLIN_PAUSE_REST_LEN,                                              // pause_1_len_max: maximum length of pause with bit value 1, here: rest value
+    MERLIN_PULSE_LEN,                                                   // pulse_0_len_min: minimum length of pulse with bit value 0, here: exact value
+    MERLIN_PULSE_REST_LEN,                                              // pulse_0_len_max: maximum length of pulse with bit value 0, here: rest value
+    MERLIN_PAUSE_LEN,                                                   // pause_0_len_min: minimum length of pause with bit value 0, here: exact value
+    MERLIN_PAUSE_REST_LEN,                                              // pause_0_len_max: maximum length of pause with bit value 0, here: rest value
+    MERLIN_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    MERLIN_ADDRESS_OFFSET + MERLIN_ADDRESS_LEN,                         // address_end:     end of address
+    MERLIN_COMMAND_OFFSET,                                              // command_offset:  command offset
+    MERLIN_COMMAND_OFFSET + MERLIN_COMMAND_LEN,                         // command_end:     end of command
+    MERLIN_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    MERLIN_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    MERLIN_LSB,                                                         // lsb_first:       flag: LSB first
+    MERLIN_FLAGS                                                        // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_THOMSON_PROTOCOL == 1
+
+static PROGMEM IRMP_PARAMETER thomson_param =
+{
+    IRMP_THOMSON_PROTOCOL,                                              // protocol:        ir protocol
+    THOMSON_PULSE_LEN_MIN,                                              // pulse_1_len_min: minimum length of pulse with bit value 1
+    THOMSON_PULSE_LEN_MAX,                                              // pulse_1_len_max: maximum length of pulse with bit value 1
+    THOMSON_1_PAUSE_LEN_MIN,                                            // pause_1_len_min: minimum length of pause with bit value 1
+    THOMSON_1_PAUSE_LEN_MAX,                                            // pause_1_len_max: maximum length of pause with bit value 1
+    THOMSON_PULSE_LEN_MIN,                                              // pulse_0_len_min: minimum length of pulse with bit value 0
+    THOMSON_PULSE_LEN_MAX,                                              // pulse_0_len_max: maximum length of pulse with bit value 0
+    THOMSON_0_PAUSE_LEN_MIN,                                            // pause_0_len_min: minimum length of pause with bit value 0
+    THOMSON_0_PAUSE_LEN_MAX,                                            // pause_0_len_max: maximum length of pause with bit value 0
+    THOMSON_ADDRESS_OFFSET,                                             // address_offset:  address offset
+    THOMSON_ADDRESS_OFFSET + THOMSON_ADDRESS_LEN,                       // address_end:     end of address
+    THOMSON_COMMAND_OFFSET,                                             // command_offset:  command offset
+    THOMSON_COMMAND_OFFSET + THOMSON_COMMAND_LEN,                       // command_end:     end of command
+    THOMSON_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame
+    THOMSON_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
+    THOMSON_LSB,                                                        // lsb_first:       flag: LSB first
+    THOMSON_FLAGS                                                       // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_IMON_PROTOCOL == 1
 
 static PROGMEM IRMP_PARAMETER imon_param =
@@ -1573,8 +1641,8 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 rtc = TRUE;                                     // Summe:  V  C1 C0 D7 D6 D5 D4 D3 D2 D1 D0
                 break;
 #endif
-#if 1 // squeeze code to 8 bit, upper bit indicates release-key
-#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+
+#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1                           // squeeze code to 8 bit, upper bit indicates release-key
             case IRMP_NETBOX_PROTOCOL:
                 if (irmp_command & 0x1000)                      // last bit set?
                 {
@@ -1601,7 +1669,6 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 break;
 #endif
-#endif // 0
 #if IRMP_SUPPORT_LEGO_PROTOCOL == 1
             case IRMP_LEGO_PROTOCOL:
             {
@@ -2085,6 +2152,20 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_DENON_PROTOCOL == 1
 
+#if IRMP_SUPPORT_THOMSON_PROTOCOL == 1
+                    if ( (irmp_pulse_time >= THOMSON_PULSE_LEN_MIN && irmp_pulse_time <= THOMSON_PULSE_LEN_MAX) &&
+                        ((irmp_pause_time >= THOMSON_1_PAUSE_LEN_MIN && irmp_pause_time <= THOMSON_1_PAUSE_LEN_MAX) ||
+                         (irmp_pause_time >= THOMSON_0_PAUSE_LEN_MIN && irmp_pause_time <= THOMSON_0_PAUSE_LEN_MAX)))
+                    {                                                           // it's THOMSON
+                        ANALYZE_PRINTF ("protocol = THOMSON, start bit timings: pulse: %3d - %3d, pause: %3d - %3d or %3d - %3d\n",
+                                        THOMSON_PULSE_LEN_MIN, THOMSON_PULSE_LEN_MAX,
+                                        THOMSON_1_PAUSE_LEN_MIN, THOMSON_1_PAUSE_LEN_MAX,
+                                        THOMSON_0_PAUSE_LEN_MIN, THOMSON_0_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &thomson_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_THOMSON_PROTOCOL == 1
+
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
                     if (irmp_pulse_time >= RC6_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RC6_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= RC6_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RC6_START_BIT_PAUSE_LEN_MAX)
@@ -2225,6 +2306,18 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_NETBOX_PROTOCOL == 1
+
+#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
+                    if (irmp_pulse_time >= MERLIN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MERLIN_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= MERLIN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= MERLIN_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's MERLIN
+                        ANALYZE_PRINTF ("protocol = MERLIN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        MERLIN_START_BIT_PULSE_LEN_MIN, MERLIN_START_BIT_PULSE_LEN_MAX,
+                                        MERLIN_START_BIT_PAUSE_LEN_MIN, MERLIN_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &netbox_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_MERLIN_PROTOCOL == 1
 
 #if IRMP_SUPPORT_LEGO_PROTOCOL == 1
                     if (irmp_pulse_time >= LEGO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= LEGO_START_BIT_PULSE_LEN_MAX &&
@@ -2367,6 +2460,26 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_DENON_PROTOCOL == 1
+#if IRMP_SUPPORT_THOMSON_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_THOMSON_PROTOCOL)
+                    {
+                        ANALYZE_PRINTF ("%8d [bit %2d: pulse = %3d, pause = %3d] ", time_counter, irmp_bit, irmp_pulse_time, irmp_pause_time);
+
+                        if (irmp_pause_time >= THOMSON_1_PAUSE_LEN_MIN && irmp_pause_time <= THOMSON_1_PAUSE_LEN_MAX)
+                        {                                                       // pause timings correct for "1"?
+                          ANALYZE_PUTCHAR ('1');                                  // yes, store 1
+                          ANALYZE_NEWLINE ();
+                          irmp_store_bit (1);
+                        }
+                        else // if (irmp_pause_time >= THOMSON_0_PAUSE_LEN_MIN && irmp_pause_time <= THOMSON_0_PAUSE_LEN_MAX)
+                        {                                                       // pause timings correct for "0"?
+                          ANALYZE_PUTCHAR ('0');                                  // yes, store 0
+                          ANALYZE_NEWLINE ();
+                          irmp_store_bit (0);
+                        }
+                    }
+                    else
+#endif // IRMP_SUPPORT_THOMSON_PROTOCOL == 1
                     {
                         ;                                                       // else do nothing
                     }
@@ -2435,6 +2548,15 @@ irmp_ISR (void)
                             got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
                         }
                         else
+#if 1
+                        // MERLIN generates no stop bit, here is the timeout condition:
+                        if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL) && irmp_param.protocol == IRMP_MERLIN_PROTOCOL &&
+                            irmp_pause_time >= MERLIN_PULSE_LEN * (MERLIN_COMPLETE_DATA_LEN - irmp_bit))
+                        {
+                            got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
+                        }
+                        else
+#endif
 #endif
 #if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL && !irmp_param.stop_bit)
@@ -3331,6 +3453,11 @@ print_timings (void)
             DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX,
             DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_0_PAUSE_LEN_MIN, DENON_0_PAUSE_LEN_MAX,
             DENON_PULSE_LEN_MIN, DENON_PULSE_LEN_MAX, DENON_1_PAUSE_LEN_MIN, DENON_1_PAUSE_LEN_MAX);
+
+    printf ("THOMSON        1  %3d - %3d             %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            THOMSON_PULSE_LEN_MIN, THOMSON_PULSE_LEN_MAX,
+            THOMSON_PULSE_LEN_MIN, THOMSON_PULSE_LEN_MAX, THOMSON_0_PAUSE_LEN_MIN, THOMSON_0_PAUSE_LEN_MAX,
+            THOMSON_PULSE_LEN_MIN, THOMSON_PULSE_LEN_MAX, THOMSON_1_PAUSE_LEN_MIN, THOMSON_1_PAUSE_LEN_MAX);
 
     printf ("RC6            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             RC6_START_BIT_PULSE_LEN_MIN, RC6_START_BIT_PULSE_LEN_MAX, RC6_START_BIT_PAUSE_LEN_MIN, RC6_START_BIT_PAUSE_LEN_MAX,
