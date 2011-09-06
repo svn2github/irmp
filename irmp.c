@@ -316,8 +316,6 @@ typedef unsigned short  uint16_t;
 
 #else
 
-#ifndef CODEVISION
-
 #ifdef PIC_CCS_COMPILER
 
 #include <string.h>
@@ -336,7 +334,6 @@ typedef unsigned int16  uint16_t;
 #include <avr/pgmspace.h>
 
 #endif  // PIC_CCS_COMPILER
-#endif  // CODEVISION
 
 #endif // windows
 #endif // unix
@@ -713,6 +710,53 @@ static int      verbose;
 #define ANALYZE_NEWLINE()
 #endif
 
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ *  Protocol names
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#if IRMP_PROTOCOL_NAMES == 1
+char *
+irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
+{
+    "UNKNOWN",
+    "SIRCS",
+    "NEC",
+    "SAMSUNG",
+    "MATSUSH",
+    "KASEIKYO",
+    "RECS80",
+    "RC5",
+    "DENON",
+    "RC6",
+    "SAMSG32",
+    "APPLE",
+    "RECS80EX",
+    "NUBERT",
+    "BANG OLU",
+    "GRUNDIG",
+    "NOKIA",
+    "SIEMENS",
+    "FDC",
+    "RCCAR",
+    "JVC",
+    "RC6A",
+    "NIKON",
+    "RUWIDO",
+    "IR60",
+    "KATHREIN",
+    "NETBOX",
+    "NEC16",
+    "NEC42",
+    "LEGO",
+    "THOMSON",
+    "MERLIN"
+};
+#endif
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ *  Logging
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
 #if IRMP_LOGGING == 1
 #define BAUD                                    9600L
 #include <util/setbaud.h>
@@ -1536,6 +1580,7 @@ static volatile uint16_t                    irmp_address;
 static volatile uint16_t                    irmp_command;
 static volatile uint16_t                    irmp_id;                    // only used for SAMSUNG protocol
 static volatile uint8_t                     irmp_flags;
+// static volatile uint8_t                     irmp_busy_flag;
 
 #ifdef ANALYZE
 static uint8_t                              IRMP_PIN;
@@ -1714,6 +1759,12 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
     return rtc;
 }
 
+// uint8_t
+// irmp_is_busy (void)
+// {
+//     return irmp_busy_flag;
+// }
+
 // these statics must not be volatile, because they are only used by irmp_store_bit(), which is called by irmp_ISR()
 static uint16_t irmp_tmp_address;                                                       // ir address
 static uint16_t irmp_tmp_command;                                                       // ir command
@@ -1889,6 +1940,7 @@ irmp_ISR (void)
         {                                                                       // no...
             if (! irmp_input)                                                   // receiving burst?
             {                                                                   // yes...
+//              irmp_busy_flag = TRUE;
 #ifdef ANALYZE
                 if (! irmp_pulse_time)
                 {
@@ -1953,6 +2005,7 @@ irmp_ISR (void)
                             ANALYZE_PRINTF ("%8d error 1: pause after start bit pulse %d too long: %d\n", time_counter, irmp_pulse_time, irmp_pause_time);
                             ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
                         }
+//                      irmp_busy_flag = FALSE;
                         irmp_start_bit_detected = 0;                            // reset flags, let's wait for another start bit
                         irmp_pulse_time         = 0;
                         irmp_pause_time         = 0;
@@ -2351,6 +2404,7 @@ irmp_ISR (void)
 
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
+//                      irmp_busy_flag = FALSE;
                         irmp_start_bit_detected = 0;                            // wait for another start bit...
                     }
 
@@ -2524,6 +2578,7 @@ irmp_ISR (void)
                         {
                             ANALYZE_PRINTF ("error: stop bit timing wrong\n");
 
+//                          irmp_busy_flag = FALSE;
                             irmp_start_bit_detected = 0;                        // wait for another start bit...
                             irmp_pulse_time         = 0;
                             irmp_pause_time         = 0;
@@ -2702,6 +2757,7 @@ irmp_ISR (void)
                                 ANALYZE_PRINTF ("error 2: pause %d after data bit %d too long\n", irmp_pause_time, irmp_bit);
                                 ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
 
+//                              irmp_busy_flag = FALSE;
                                 irmp_start_bit_detected = 0;                    // wait for another start bit...
                                 irmp_pulse_time         = 0;
                                 irmp_pause_time         = 0;
@@ -2849,6 +2905,7 @@ irmp_ISR (void)
                                 ANALYZE_NEWLINE ();
                                 ANALYZE_PRINTF ("error 3 manchester: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                                 ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                              irmp_busy_flag = FALSE;
                                 irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                                 irmp_pause_time         = 0;
                             }
@@ -2986,6 +3043,7 @@ irmp_ISR (void)
                         {                                                           // timing incorrect!
                             ANALYZE_PRINTF ("error 3 Samsung: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                             ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                          irmp_busy_flag = FALSE;
                             irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                             irmp_pause_time         = 0;
                         }
@@ -3031,6 +3089,7 @@ printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                                 {                                                   // timing incorrect!
                                     ANALYZE_PRINTF ("error 3a B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                                     ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                                  irmp_busy_flag = FALSE;
                                     irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
@@ -3047,6 +3106,7 @@ printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                                 {                                                   // timing incorrect!
                                     ANALYZE_PRINTF ("error 3b B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                                     ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                                  irmp_busy_flag = FALSE;
                                     irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
@@ -3080,6 +3140,7 @@ printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                                 {                                                   // timing incorrect!
                                     ANALYZE_PRINTF ("error 3c B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                                     ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                                  irmp_busy_flag = FALSE;
                                     irmp_start_bit_detected = 0;                    // reset flags and wait for next start bit
                                     irmp_pause_time         = 0;
                                 }
@@ -3089,6 +3150,7 @@ printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                         {                                                           // timing incorrect!
                             ANALYZE_PRINTF ("error 3d B&O: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                             ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                          irmp_busy_flag = FALSE;
                             irmp_start_bit_detected = 0;                            // reset flags and wait for next start bit
                             irmp_pause_time         = 0;
                         }
@@ -3143,6 +3205,7 @@ printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                     {                                                               // timing incorrect!
                         ANALYZE_PRINTF ("error 3: timing not correct: data bit %d,  pulse: %d, pause: %d\n", irmp_bit, irmp_pulse_time, irmp_pause_time);
                         ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+//                      irmp_busy_flag = FALSE;
                         irmp_start_bit_detected = 0;                                // reset flags and wait for next start bit
                         irmp_pause_time         = 0;
                     }
@@ -3373,6 +3436,7 @@ printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                     ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
                 }
 
+//              irmp_busy_flag          = FALSE;
                 irmp_start_bit_detected = 0;                                        // and wait for next start bit
                 irmp_tmp_command        = 0;
                 irmp_pulse_time         = 0;

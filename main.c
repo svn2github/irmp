@@ -16,164 +16,55 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * uncomment this for codevision compiler:
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-// #define CODEVISION                                                   // to use Codevision Compiler instead of gcc
- 
-#ifdef CODEVISION 
-#include <mega88.h>
-#include <stdio.h>
-#define uint8_t     unsigned char
-#define uint16_t    unsigned int
-#define F_CPU       8000000            // change for Codevision here, if you use WinAVR, use Project -> Configuration Options instead
-
-// register values from datasheet for ATMega88
-#define OCIE1A      1
-#define WGM12       3
-#define CS10        0
-#define UDRE0       5
-#define TXEN0       3
-
-#include "irmp.h"
-#include "irmp.c"
-
-#else // gcc compiler
-
 #include <inttypes.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
-#include "irmp.h"
+
 #include "irmpconfig.h"
-
-
-#endif  // CODEVISION
-
+#include "irmp.h"
 
 #ifndef F_CPU
 #error F_CPU unkown
 #endif
 
 void
-timer_init (void)
+timer1_init (void)
 {
-#ifdef CODEVISION
-  OCR1AH  = ((F_CPU / F_INTERRUPTS) >> 8) & 0xFF;                           // compare value: 1/10000 of CPU frequency (upper byte)
-  OCR1AL  = ((F_CPU / F_INTERRUPTS) - 1)  & 0xFF;                           // compare value: 1/10000 of CPU frequency (lower byte)
-#else  // gcc
-  OCR1A   =  (F_CPU / F_INTERRUPTS) - 1;                                    // compare value: 1/10000 of CPU frequency
-#endif  // CODEVISION
-  TCCR1B  = (1 << WGM12) | (1 << CS10);                                     // switch CTC Mode on, set prescaler to 1
+#if defined (__AVR_ATtiny85__)                                      // ATtiny85:
+    OCR1A   =  (F_CPU / (2 * F_INTERRUPTS) / 2) - 1;                // compare value: 1/28800 of CPU frequency, presc = 2
+    TCCR1   = (1 << CTC1) | (1 << CS11);                            // switch CTC Mode on, set prescaler to 2
+#else                                                               // ATmegaXX:
+    OCR1A   =  (F_CPU / (2 * F_INTERRUPTS)) - 1;                    // compare value: 1/28800 of CPU frequency
+    TCCR1B  = (1 << WGM12) | (1 << CS10);                           // switch CTC Mode on, set prescaler to 1
+#endif
 
-#if defined (__AVR_ATmega8__) || defined (__AVR_ATmega16__) || defined (__AVR_ATmega32__) || defined (__AVR_ATmega64__) || defined (__AVR_ATmega162__) 
-  TIMSK  = 1 << OCIE1A;                                                     // OCIE1A: Interrupt by timer compare
+#ifdef TIMSK1
+    TIMSK1  = 1 << OCIE1A;                                          // OCIE1A: Interrupt by timer compare
 #else
-  TIMSK1  = 1 << OCIE1A;                                                    // OCIE1A: Interrupt by timer compare
-#endif  // __AVR...
+    TIMSK   = 1 << OCIE1A;                                          // OCIE1A: Interrupt by timer compare
+#endif
 }
 
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * timer 1 compare handler, called every 1/10000 sec
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-// Timer 1 output compare A interrupt service routine
-#ifdef CODEVISION
-interrupt [TIM1_COMPA] void timer1_compa_isr(void)
-#else  // CODEVISION
-ISR(TIMER1_COMPA_vect)
-#endif  // CODEVISION
-{
-  (void) irmp_ISR();                                                        // call irmp ISR
-  // call other timer interrupt routines...
-}
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * MAIN: main routine
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#ifdef CODEVISION
-// This is the main routine if you use Codevision C Compiler
-void
-main (void)
-{
-  IRMP_DATA irmp_data;
-
-  #pragma optsize-
-  // crystal oscillator division factor: 1
-  CLKPR=0x80;
-  CLKPR=0x00;
-  #ifdef _OPTIMIZE_SIZE_
-  #pragma optsize+
-  #endif
-  static uint8_t *Proto[]={"SIRCS","NEC","SAMSUNG","MATSUSH","KASEIKYO","RECS80","RC5(x)","DENON","RC6","SAMSG32","APPLE","RECS80X","NUBERT","B&O","GRUNDIG","NOKIA","SIEMENS","FDC","RCCAR","JVC","RC6A"};
-
-  #if IRMP_LOGGING == 0
-  // USART initialization has to be done here if Logging is off
-  // Communication Parameters: 8 Data, 1 Stop, No Parity
-  // USART Receiver: Off
-  // USART Transmitter: On
-  // USART0 Mode: Asynchronous
-  // USART Baud Rate: 9600
-  #define BAUDRATE 9600L
-  UCSR0A=0x00;
-  UCSR0B=0x08;
-  UCSR0C=0x06;
-  UBRR0H = ((F_CPU+BAUDRATE*8)/(BAUDRATE*16)-1) >> 8;            // store baudrate (upper byte)
-  UBRR0L = ((F_CPU+BAUDRATE*8)/(BAUDRATE*16)-1) & 0xFF;    
-  #endif
-
-  irmp_init();         // initialize rc5
-
-  printf("IRMP V1.0\n");
-  #if IRMP_LOGGING == 1
-  printf("Logging Mode\n");
-  #endif
-
-  timer_init();                                                             // initialize timer
-  #asm("sei");                                                                // enable interrupts
-
-  for (;;)
-  {
-    if (irmp_get_data (&irmp_data))
-    {
-        // ir signal decoded, do something here...
-        // irmp_data.protocol is the protocol, see irmp.h
-        // irmp_data.address is the address/manufacturer code of ir sender
-        // irmp_data.command is the command code
-        #if IRMP_LOGGING != 1
-        printf("Code: %s\n",Proto[irmp_data.protocol-1]);
-        printf("Address: 0x%.2X\n",irmp_data.address);
-        printf("Command: 0x%.2X\n\n",irmp_data.command);
-        #endif
-    }
-  }
-}
-
-#else  // gcc
-
-// This is the main routine if you use GCC Compiler
 int
 main (void)
 {
-  IRMP_DATA irmp_data;
+    IRMP_DATA irmp_data;
 
-  irmp_init();                                                              // initialize rc5
-  timer_init();                                                             // initialize timer
-  sei ();                                                                   // enable interrupts
+    irmp_init();                                                            // initialize irmp
+    timer1_init();                                                          // initialize timer 1
+    sei ();                                                                 // enable interrupts
 
-  for (;;)
-  {
-    if (irmp_get_data (&irmp_data))
+    for (;;)
     {
-        // ir signal decoded, do something here...
-        // irmp_data.protocol is the protocol, see irmp.h
-        // irmp_data.address is the address/manufacturer code of ir sender
-        // irmp_data.command is the command code
+        if (irmp_get_data (&irmp_data))
+        {
+            // ir signal decoded, do something here...
+            // irmp_data.protocol is the protocol, see irmp.h
+            // irmp_data.address is the address/manufacturer code of ir sender
+            // irmp_data.command is the command code
+            // irmp_protocol_names[irmp_data.protocol] is the protocol name (if enabled, see irmpconfig.h)
+        }
     }
-  }
 }
-
-#endif  // CODEVISION / gcc

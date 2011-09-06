@@ -67,10 +67,26 @@
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change hardware pin here:
+ * DO NOT CHANGE:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRSND_OC2                               1       // 0 = OC2, 1 = OC2A, 2 = OC2B, default is 1
+#define IRSND_OC2                               0       // OC2
+#define IRSND_OC2A                              1       // OC2A
+#define IRSND_OC2B                              2       // OC2B
+#define IRSND_OC0                               3       // OC0
+#define IRSND_OC0A                              4       // OC0A
+#define IRSND_OC0B                              5       // OC0B
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Change hardware pin here:                    IRSND_OC2  = OC2  on ATmegas         supporting OC2,  e.g. ATmega8
+ *                                              IRSND_OC2A = OC2A on ATmegas         supporting OC2A, e.g. ATmega88
+ *                                              IRSND_OC2B = OC2B on ATmegas         supporting OC2B, e.g. ATmega88
+ *                                              IRSND_OC0  = OC0  on ATmegas         supporting OC0,  e.g. ATmega162
+ *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny85
+ *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny85
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define IRSND_OCx                               IRSND_OC2B          // use OC2B
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Use Callbacks to indicate output signal or something else

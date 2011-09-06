@@ -17,11 +17,6 @@
 #ifndef _WC_IRMP_H_
 #define _WC_IRMP_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -79,6 +74,9 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_LEGO_PROTOCOL                      29              // LEGO Power Functions RC
 #define IRMP_THOMSON_PROTOCOL                   30              // Thomson
 #define IRMP_MERLIN_PROTOCOL                    31              // Pollin Merlin keyboard (bitserial)
+
+#define IRMP_N_PROTOCOLS                        31              // number of supported protocols
+
 #define IRMP_IMON_PROTOCOL                      99              // Imon (bitserial) PROTOTYPE!
 
 // some flags of struct IRMP_PARAMETER:
@@ -527,29 +525,13 @@ typedef struct
   uint8_t               flags;                                                  // flags, e.g. repetition
 } IRMP_DATA;
 
+extern void                             irmp_init (void);
+extern uint8_t                          irmp_get_data (IRMP_DATA *);
+extern uint8_t                          irmp_is_busy (void);
+extern uint8_t                          irmp_ISR (void);
 
-/**
- *  Initialize IRMP decoder
- *  @details  Configures IRMP input pin
- */
-extern void                           irmp_init (void);
-
-/**
- *  Get IRMP data
- *  @details  gets decoded IRMP data
- *  @param    pointer in order to store IRMP data
- *  @return    TRUE: successful, FALSE: failed
- */
-extern uint8_t                        irmp_get_data (IRMP_DATA *);
-
-/**
- *  ISR routine
- *  @details  ISR routine, called 10000 times per second
- */
-extern uint8_t                        irmp_ISR (void);
-
-#ifdef __cplusplus
-}
+#if IRMP_PROTOCOL_NAMES == 1
+extern char *                           irmp_protocol_names[IRMP_N_PROTOCOLS + 1];
 #endif
 
 #endif /* _WC_IRMP_H_ */
