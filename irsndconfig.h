@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.22 2011/05/20 09:31:25 fm Exp $
+ * $Id: irsndconfig.h,v 1.26 2011/09/11 13:17:38 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -39,12 +39,12 @@
 #define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON, Sharp         >= 10000                 ~200 bytes
 
 // more protocols, enable here!                 Enable  Remarks                 F_INTERRUPTS            Program Space
-#define IRSND_SUPPORT_RC5_PROTOCOL              1       // RC5                  >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_RC5_PROTOCOL              0       // RC5                  >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_RC6_PROTOCOL              0       // RC6                  >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_RC6A_PROTOCOL             0       // RC6A                 >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_JVC_PROTOCOL              0       // JVC                  >= 10000                 ~150 bytes
-#define IRSND_SUPPORT_NEC16_PROTOCOL            0       // NEC16                >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
-#define IRSND_SUPPORT_NEC42_PROTOCOL            0       // NEC42                >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
+#define IRSND_SUPPORT_NEC16_PROTOCOL            0       // NEC16                >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_NEC42_PROTOCOL            0       // NEC42                >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_IR60_PROTOCOL             0       // IR60 (SAB2008)       >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_GRUNDIG_PROTOCOL          0       // Grundig              >= 10000                 ~300 bytes
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                 ~150 bytes
@@ -56,7 +56,7 @@
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     0       // Bang&Olufsen         >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_RECS80_PROTOCOL           0       // RECS80               >= 20000                 ~100 bytes
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0       // RECS80EXT            >= 20000                 ~100 bytes
-#define IRSND_SUPPORT_THOMSON_PROTOCOL          1       // Thomson              >= 10000                 ~250 bytes
+#define IRSND_SUPPORT_THOMSON_PROTOCOL          0       // Thomson              >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_NIKON_PROTOCOL            0       // NIKON                >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_NETBOX_PROTOCOL           0       // Netbox keyboard      >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_IMON_PROTOCOL             0       // IMON keyboard        >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
@@ -82,8 +82,8 @@
  *                                              IRSND_OC2A = OC2A on ATmegas         supporting OC2A, e.g. ATmega88
  *                                              IRSND_OC2B = OC2B on ATmegas         supporting OC2B, e.g. ATmega88
  *                                              IRSND_OC0  = OC0  on ATmegas         supporting OC0,  e.g. ATmega162
- *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny85
- *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny85
+ *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny84, ATtiny85
+ *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny84, ATtiny85
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #define IRSND_OCx                               IRSND_OC2B          // use OC2B

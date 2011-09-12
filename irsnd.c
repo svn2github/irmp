@@ -3,7 +3,15 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.c,v 1.38 2011/05/22 21:40:53 fm Exp $
+ * Supported mikrocontrollers:
+ *
+ * ATtiny84,  ATtiny85
+ * ATmega8,   ATmega16,  ATmega32
+ * ATmega162
+ * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
+ * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
+ *
+ * $Id: irsnd.c,v 1.40 2011/09/09 11:59:40 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +72,20 @@ typedef unsigned short  uint16_t;
  *  ATmega pin definition of OC2 / OC2A / OC2B / OC0 / OC0A / OC0B
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if defined (__AVR_ATtiny85__)                          // ATtiny85 uses OC0A = PB0 or OC0B = PB1
+#if defined (__AVR_ATtiny84__)                          // ATtiny85 uses OC0A = PB2 or OC0B = PA7
+#if IRSND_OCx == IRSND_OC0A                             // OC0A
+#define IRSND_PORT                              PORTB   // port B
+#define IRSND_DDR                               DDRB    // ddr B
+#define IRSND_BIT                               2       // OC0A
+#elif IRSND_OCx == IRSND_OC0B                           // OC0B
+#define IRSND_PORT                              PORTA   // port A
+#define IRSND_DDR                               DDRA    // ddr A
+#define IRSND_BIT                               7       // OC0B
+#else
+#error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
+#endif // IRSND_OCx
+
+#elif defined (__AVR_ATtiny85__)                        // ATtiny85 uses OC0A = PB0 or OC0B = PB1
 #if IRSND_OCx == IRSND_OC0A                             // OC0A
 #define IRSND_PORT                              PORTB   // port B
 #define IRSND_DDR                               DDRB    // ddr B
@@ -137,10 +158,10 @@ typedef unsigned short  uint16_t;
 
 #elif defined (__AVR_ATmega48__)    \
    || defined (__AVR_ATmega88__)    \
+   || defined (__AVR_ATmega88P__)   \
    || defined (__AVR_ATmega168__)   \
    || defined (__AVR_ATmega168P__)  \
-   || defined (__AVR_ATmega328__)   \
-   || defined (__AVR_ATmega328P__)                      // ATmega48|88|168|168P|328P uses OC2A = PB3 or OC2B = PD3 or OC0A = PD6 or OC0B = PD5
+   || defined (__AVR_ATmega328P__)                      // ATmega48|88|168|168|328 uses OC2A = PB3 or OC2B = PD3 or OC0A = PD6 or OC0B = PD5
 #if IRSND_OCx == IRSND_OC2A                             // OC2A
 #define IRSND_PORT                              PORTB   // port B
 #define IRSND_DDR                               DDRB    // ddr B
@@ -599,11 +620,10 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 
             irsnd_protocol = IRMP_NEC_PROTOCOL;                                                         // APPLE protocol is NEC with id instead of inverted command
 
-            irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                  // AAAAAAAA
-            irsnd_buffer[1] = (address & 0x00FF);                                                       // AAAAAAAA
-            irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                  // CCCCCCCC
-            irsnd_buffer[3] = (command & 0x00FF);                                                       // CCCCCCCC
-
+            irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
+            irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
+            irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
+            irsnd_buffer[3] = 0x8B;                                                                             // 10001011 (id)
             irsnd_busy      = TRUE;
             break;
         }
@@ -615,13 +635,35 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
             irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
             irsnd_buffer[2] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
+            irsnd_buffer[3] = ~((command & 0xFF00) >> 8);                                                       // cccccccc
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_NEC16_PROTOCOL == 1
+        case IRMP_NEC16_PROTOCOL:
+        {
+            address = bitsrevervse (irmp_data_p->address, NEC16_ADDRESS_LEN);
+            command = bitsrevervse (irmp_data_p->command, NEC16_COMMAND_LEN);
 
-            irsnd_protocol = IRMP_NEC_PROTOCOL; // APPLE protocol is NEC with fix bitmask instead of inverted command
-            irsnd_buffer[3] = 0x8B;                                                                         // 10001011
-            {
-                irsnd_buffer[3] = ~((command & 0xFF00) >> 8);                                                   // cccccccc
-            }
+            irsnd_buffer[0] = (address & 0x00FF);                                                               // AAAAAAAA
+            irsnd_buffer[1] = (command & 0x00FF);                                                               // CCCCCCCC
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_NEC42_PROTOCOL == 1
+        case IRMP_NEC42_PROTOCOL:
+        {
+            address = bitsrevervse (irmp_data_p->address, NEC42_ADDRESS_LEN);
+            command = bitsrevervse (irmp_data_p->command, NEC42_COMMAND_LEN);
 
+            irsnd_buffer[0] = ( (address & 0x1FE0) >> 5);                                                       // AAAAAAAA
+            irsnd_buffer[1] = ( (address & 0x001F) << 3) | ((~address & 0x1C00) >> 10);                          // AAAAAaaa
+            irsnd_buffer[2] =                              ((~address & 0x03FC) >> 2);                          // aaaaaaaa
+            irsnd_buffer[3] = ((~address & 0x0003) << 6) | ( (command & 0x00FC) >> 2);                          // aaCCCCCC
+            irsnd_buffer[4] = ( (command & 0x0003) << 6) | ((~command & 0x00FC) >> 2);                          // CCcccccc
+            irsnd_buffer[5] = ((~command & 0x0003) << 6);                                                       // cc
             irsnd_busy      = TRUE;
             break;
         }
@@ -1077,6 +1119,42 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_NEC16_PROTOCOL == 1
+                    case IRMP_NEC16_PROTOCOL:
+                    {
+                        startbit_pulse_len          = NEC_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = NEC_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = NEC_PULSE_LEN;
+                        pause_1_len                 = NEC_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = NEC_PULSE_LEN;
+                        pause_0_len                 = NEC_0_PAUSE_LEN - 1;
+                        has_stop_bit                = NEC_STOP_BIT;
+                        complete_data_len           = NEC16_COMPLETE_DATA_LEN + 1;                  // 1 more: sync bit
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = NEC_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
+#if IRSND_SUPPORT_NEC42_PROTOCOL == 1
+                    case IRMP_NEC42_PROTOCOL:
+                    {
+                        startbit_pulse_len          = NEC_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = NEC_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = NEC_PULSE_LEN;
+                        pause_1_len                 = NEC_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = NEC_PULSE_LEN;
+                        pause_0_len                 = NEC_0_PAUSE_LEN - 1;
+                        has_stop_bit                = NEC_STOP_BIT;
+                        complete_data_len           = NEC42_COMPLETE_DATA_LEN;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = NEC_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
                     case IRMP_SAMSUNG_PROTOCOL:
                     {
@@ -1472,6 +1550,12 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_NEC_PROTOCOL == 1
                 case IRMP_NEC_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_NEC16_PROTOCOL == 1
+                case IRMP_NEC16_PROTOCOL:
+#endif
+#if IRSND_SUPPORT_NEC42_PROTOCOL == 1
+                case IRMP_NEC42_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
                 case IRMP_SAMSUNG_PROTOCOL:
                 case IRMP_SAMSUNG32_PROTOCOL:
@@ -1517,7 +1601,8 @@ irsnd_ISR (void)
 #endif
 
 
-#if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
+#if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_NEC16_PROTOCOL == 1 || IRSND_SUPPORT_NEC42_PROTOCOL == 1 || \
+    IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
     IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 
@@ -1552,6 +1637,32 @@ irsnd_ISR (void)
                                     pulse_len = SAMSUNG_PULSE_LEN;
                                     pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
                                                     (SAMSUNG_1_PAUSE_LEN - 1) : (SAMSUNG_0_PAUSE_LEN - 1);
+                                }
+                            }
+                            else
+#endif
+
+#if IRSND_SUPPORT_NEC16_PROTOCOL == 1
+                            if (irsnd_protocol == IRMP_NEC16_PROTOCOL)
+                            {
+                                if (current_bit < NEC16_ADDRESS_LEN)                                // send address bits
+                                {
+                                    pulse_len = NEC_PULSE_LEN;
+                                    pause_len = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ?
+                                                    (NEC_1_PAUSE_LEN - 1) : (NEC_0_PAUSE_LEN - 1);
+                                }
+                                else if (current_bit == NEC16_ADDRESS_LEN)                          // send SYNC bit (8th bit)
+                                {
+                                    pulse_len = NEC_PULSE_LEN;
+                                    pause_len = NEC_START_BIT_PAUSE_LEN - 1;
+                                }
+                                else if (current_bit < NEC16_COMPLETE_DATA_LEN + 1)                 // send n'th bit
+                                {
+                                    uint8_t cur_bit = current_bit - 1;                              // sync skipped, offset = -1 !
+
+                                    pulse_len = NEC_PULSE_LEN;
+                                    pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
+                                                    (NEC_1_PAUSE_LEN - 1) : (NEC_0_PAUSE_LEN - 1);
                                 }
                             }
                             else

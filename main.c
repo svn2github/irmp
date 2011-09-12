@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.9 2011/04/11 12:54:25 fm Exp $
+ * $Id: main.c,v 1.10 2011/09/08 13:22:16 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -32,20 +32,35 @@
 void
 timer1_init (void)
 {
-#if defined (__AVR_ATtiny85__)                                      // ATtiny85:
-    OCR1A   =  (F_CPU / (2 * F_INTERRUPTS) / 2) - 1;                // compare value: 1/28800 of CPU frequency, presc = 2
-    TCCR1   = (1 << CTC1) | (1 << CS11);                            // switch CTC Mode on, set prescaler to 2
-#else                                                               // ATmegaXX:
-    OCR1A   =  (F_CPU / (2 * F_INTERRUPTS)) - 1;                    // compare value: 1/28800 of CPU frequency
-    TCCR1B  = (1 << WGM12) | (1 << CS10);                           // switch CTC Mode on, set prescaler to 1
+#if defined (__AVR_ATtiny85__)                                              // ATtiny85:
+    OCR1A   =  (F_CPU / F_INTERRUPTS / 4) - 1;                              // compare value: 1/15000 of CPU frequency, presc = 4
+    TCCR1   = (1 << CTC1) | (1 << CS11) | (1 << CS10);                      // switch CTC Mode on, set prescaler to 4
+#else                                                                       // ATmegaXX:
+    OCR1A   =  (F_CPU / F_INTERRUPTS) - 1;                                  // compare value: 1/15000 of CPU frequency
+    TCCR1B  = (1 << WGM12) | (1 << CS10);                                   // switch CTC Mode on, set prescaler to 1
 #endif
 
 #ifdef TIMSK1
-    TIMSK1  = 1 << OCIE1A;                                          // OCIE1A: Interrupt by timer compare
+    TIMSK1  = 1 << OCIE1A;                                                  // OCIE1A: Interrupt by timer compare
 #else
-    TIMSK   = 1 << OCIE1A;                                          // OCIE1A: Interrupt by timer compare
+    TIMSK   = 1 << OCIE1A;                                                  // OCIE1A: Interrupt by timer compare
 #endif
 }
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Timer 1 output compare A interrupt service routine, called every 1/15000 sec
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#ifdef TIM1_COMPA_vect                                                      // ATtiny84
+ISR(TIM1_COMPA_vect)
+#else
+ISR(TIMER1_COMPA_vect)
+#endif
+{
+  (void) irmp_ISR();                                                        // call irmp ISR
+  // call other timer interrupt routines...
+}
+
 
 int
 main (void)

@@ -3,11 +3,19 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.106 2011/08/16 07:51:19 fm Exp $
+ * $Id: irmp.c,v 1.108 2011/09/09 11:59:39 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
- * Typical manufacturers:
+ * Supported mikrocontrollers:
+ *
+ * ATtiny84,  ATtiny85
+ * ATmega8,   ATmega16,  ATmega32
+ * ATmega162
+ * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
+ * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
+ *
+ * Typical manufacturers of remote controls:
  *
  * SIRCS        - Sony
  * NEC          - NEC, Yamaha, Canon, Tevion, Harman/Kardon, Hitachi, JVC, Pioneer, Toshiba, Xoro, Orion, and many other Japanese manufacturers
@@ -696,19 +704,23 @@ typedef unsigned int16  uint16_t;
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef ANALYZE
-#define ANALYZE_PUTCHAR(a)                        { if (! silent)             { putchar (a);          } }
-#define ANALYZE_ONLY_NORMAL_PUTCHAR(a)            { if (! silent && !verbose) { putchar (a);          } }
-#define ANALYZE_PRINTF(...)                       { if (verbose)              { printf (__VA_ARGS__); } }
-#define ANALYZE_NEWLINE()                         { if (verbose)              { putchar ('\n');       } }
-static int      silent;
-static int      time_counter;
-static int      verbose;
+#define ANALYZE_PUTCHAR(a)                      { if (! silent)             { putchar (a);          } }
+#define ANALYZE_ONLY_NORMAL_PUTCHAR(a)          { if (! silent && !verbose) { putchar (a);          } }
+#define ANALYZE_PRINTF(...)                     { if (verbose)              { printf (__VA_ARGS__); } }
+#define ANALYZE_NEWLINE()                       { if (verbose)              { putchar ('\n');       } }
+static int                                      silent;
+static int                                      time_counter;
+static int                                      verbose;
 #else
 #define ANALYZE_PUTCHAR(a)
 #define ANALYZE_ONLY_NORMAL_PUTCHAR(a)
 #define ANALYZE_PRINTF(...)
 #define ANALYZE_NEWLINE()
 #endif
+
+#if IRMP_USE_CALLBACK == 1
+static void                                     (*irmp_callback_ptr) (uint8_t);
+#endif // IRMP_USE_CALLBACK == 1
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  Protocol names
@@ -1027,9 +1039,9 @@ static const PROGMEM IRMP_PARAMETER nec42_param =
     NEC_0_PAUSE_LEN_MIN,                                                // pause_0_len_min: minimum length of pause with bit value 0
     NEC_0_PAUSE_LEN_MAX,                                                // pause_0_len_max: maximum length of pause with bit value 0
     NEC42_ADDRESS_OFFSET,                                               // address_offset:  address offset
-    NEC42_ADDRESS_OFFSET + NEC_ADDRESS_LEN,                             // address_end:     end of address
+    NEC42_ADDRESS_OFFSET + NEC42_ADDRESS_LEN,                           // address_end:     end of address
     NEC42_COMMAND_OFFSET,                                               // command_offset:  command offset
-    NEC42_COMMAND_OFFSET + NEC_COMMAND_LEN,                             // command_end:     end of command
+    NEC42_COMMAND_OFFSET + NEC42_COMMAND_LEN,                           // command_end:     end of command
     NEC42_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame
     NEC_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
     NEC_LSB,                                                            // lsb_first:       flag: LSB first
@@ -1765,6 +1777,14 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
 //     return irmp_busy_flag;
 // }
 
+#if IRMP_USE_CALLBACK == 1
+void
+irmp_set_callback_ptr (void (*cb)(uint8_t))
+{
+    irmp_callback_ptr = cb;
+}
+#endif // IRMP_USE_CALLBACK == 1
+
 // these statics must not be volatile, because they are only used by irmp_store_bit(), which is called by irmp_ISR()
 static uint16_t irmp_tmp_address;                                                       // ir address
 static uint16_t irmp_tmp_command;                                                       // ir command
@@ -1931,6 +1951,19 @@ irmp_ISR (void)
 #endif
 
     irmp_input = input(IRMP_PIN);
+
+#if IRMP_USE_CALLBACK == 1
+    if (irmp_callback_ptr)
+    {
+        static uint8_t last_inverted_input;
+
+        if (last_inverted_input != !irmp_input)
+        {
+            (*irmp_callback_ptr) (! irmp_input);
+            last_inverted_input = !irmp_input;
+        }
+    }
+#endif // IRMP_USE_CALLBACK == 1
 
     irmp_log(irmp_input);                                                       // log ir signal, if IRMP_LOGGING defined
 
@@ -3059,9 +3092,8 @@ irmp_ISR (void)
 #endif // IRMP_SUPPORT_NEC42_PROTOCOL == 1
                         irmp_bit == 8 && irmp_pause_time >= NEC_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_START_BIT_PAUSE_LEN_MAX)
                     {
-printf ("! %d %d !\n", irmp_pause_time, NEC_START_BIT_PAUSE_LEN_MAX);
                         ANALYZE_PRINTF ("Switching to NEC16 protocol\n");
-                        irmp_param.protocol = IRMP_NEC16_PROTOCOL;
+                        irmp_param.protocol         = IRMP_NEC16_PROTOCOL;
                         irmp_param.address_offset   = NEC16_ADDRESS_OFFSET;
                         irmp_param.address_end      = NEC16_ADDRESS_OFFSET + NEC16_ADDRESS_LEN;
                         irmp_param.command_offset   = NEC16_COMMAND_OFFSET;

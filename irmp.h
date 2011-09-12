@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.64 2011/08/16 07:51:19 fm Exp $
+ * $Id: irmp.h,v 1.65 2011/09/08 13:22:16 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -533,5 +533,9 @@ extern uint8_t                          irmp_ISR (void);
 #if IRMP_PROTOCOL_NAMES == 1
 extern char *                           irmp_protocol_names[IRMP_N_PROTOCOLS + 1];
 #endif
+
+#if IRMP_USE_CALLBACK == 1
+extern void                             irmp_set_callback_ptr (void (*cb)(uint8_t));
+#endif // IRSND_USE_CALLBACK == 1
 
 #endif /* _WC_IRMP_H_ */
