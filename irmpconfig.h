@@ -70,8 +70,6 @@
 #define IRMP_SUPPORT_THOMSON_PROTOCOL           0       // Thomson              >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_NIKON_PROTOCOL             0       // NIKON camera         >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_NETBOX_PROTOCOL            0       // Netbox keyboard      >= 10000                 ~400 bytes (PROTOTYPE!)
-#define IRMP_SUPPORT_MERLIN_PROTOCOL            0       // Merlin keyboard      >= 10000                 ~400 bytes (PROTOTYPE!)
-#define IRMP_SUPPORT_IMON_PROTOCOL              0       // IMON keyboard        >= 10000                 ~400 bytes (PROTOTYPE!)
 #define IRMP_SUPPORT_FDC_PROTOCOL               0       // FDC3402 keyboard     >= 10000 (better 15000)  ~150 bytes (~400 in combination with RC5)
 #define IRMP_SUPPORT_RCCAR_PROTOCOL             0       // RC Car               >= 10000 (better 15000)  ~150 bytes (~500 in combination with RC5)
 #define IRMP_SUPPORT_RUWIDO_PROTOCOL            0       // RUWIDO, T-Home       >= 15000                 ~550 bytes

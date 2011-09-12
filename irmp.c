@@ -373,9 +373,7 @@ typedef unsigned int16  uint16_t;
 #define IRMP_SUPPORT_MANCHESTER                 0
 #endif
 
-#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1 ||                \
-    IRMP_SUPPORT_MERLIN_PROTOCOL == 1 ||                \
-    IRMP_SUPPORT_IMON_PROTOCOL == 1 
+#if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
 #define IRMP_SUPPORT_SERIAL                     1
 #else
 #define IRMP_SUPPORT_SERIAL                     0
@@ -683,24 +681,6 @@ typedef unsigned int16  uint16_t;
 #define LEGO_0_PAUSE_LEN_MIN                    ((uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define LEGO_0_PAUSE_LEN_MAX                    ((uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 
-#define MERLIN_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define MERLIN_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define MERLIN_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define MERLIN_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define MERLIN_PULSE_LEN                        ((uint8_t)(F_INTERRUPTS * MERLIN_PULSE_TIME))
-#define MERLIN_PAUSE_LEN                        ((uint8_t)(F_INTERRUPTS * MERLIN_PAUSE_TIME))
-#define MERLIN_PULSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * MERLIN_PULSE_TIME / 4))
-#define MERLIN_PAUSE_REST_LEN                   ((uint8_t)(F_INTERRUPTS * MERLIN_PAUSE_TIME / 4))
-
-#define IMON_START_BIT_PULSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define IMON_START_BIT_PULSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define IMON_START_BIT_PAUSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define IMON_START_BIT_PAUSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * IMON_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define IMON_PULSE_LEN                          ((uint8_t)(F_INTERRUPTS * IMON_PULSE_TIME))
-#define IMON_PAUSE_LEN                          ((uint8_t)(F_INTERRUPTS * IMON_PAUSE_TIME))
-#define IMON_PULSE_REST_LEN                     ((uint8_t)(F_INTERRUPTS * IMON_PULSE_TIME / 4))
-#define IMON_PAUSE_REST_LEN                     ((uint8_t)(F_INTERRUPTS * IMON_PAUSE_TIME / 4))
-
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef ANALYZE
@@ -760,8 +740,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "NEC16",
     "NEC42",
     "LEGO",
-    "THOMSON",
-    "MERLIN"
+    "THOMSON"
 };
 #endif
 
@@ -1504,31 +1483,6 @@ static const PROGMEM IRMP_PARAMETER lego_param =
 
 #endif
 
-#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
-
-static const PROGMEM IRMP_PARAMETER merlin_param =
-{
-    IRMP_MERLIN_PROTOCOL,                                               // protocol:        ir protocol
-    MERLIN_PULSE_LEN,                                                   // pulse_1_len_min: minimum length of pulse with bit value 1, here: exact value
-    MERLIN_PULSE_REST_LEN,                                              // pulse_1_len_max: maximum length of pulse with bit value 1, here: rest value
-    MERLIN_PAUSE_LEN,                                                   // pause_1_len_min: minimum length of pause with bit value 1, here: exact value
-    MERLIN_PAUSE_REST_LEN,                                              // pause_1_len_max: maximum length of pause with bit value 1, here: rest value
-    MERLIN_PULSE_LEN,                                                   // pulse_0_len_min: minimum length of pulse with bit value 0, here: exact value
-    MERLIN_PULSE_REST_LEN,                                              // pulse_0_len_max: maximum length of pulse with bit value 0, here: rest value
-    MERLIN_PAUSE_LEN,                                                   // pause_0_len_min: minimum length of pause with bit value 0, here: exact value
-    MERLIN_PAUSE_REST_LEN,                                              // pause_0_len_max: maximum length of pause with bit value 0, here: rest value
-    MERLIN_ADDRESS_OFFSET,                                              // address_offset:  address offset
-    MERLIN_ADDRESS_OFFSET + MERLIN_ADDRESS_LEN,                         // address_end:     end of address
-    MERLIN_COMMAND_OFFSET,                                              // command_offset:  command offset
-    MERLIN_COMMAND_OFFSET + MERLIN_COMMAND_LEN,                         // command_end:     end of command
-    MERLIN_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
-    MERLIN_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
-    MERLIN_LSB,                                                         // lsb_first:       flag: LSB first
-    MERLIN_FLAGS                                                        // flags:           some flags
-};
-
-#endif
-
 #if IRMP_SUPPORT_THOMSON_PROTOCOL == 1
 
 static const PROGMEM IRMP_PARAMETER thomson_param =
@@ -1550,31 +1504,6 @@ static const PROGMEM IRMP_PARAMETER thomson_param =
     THOMSON_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
     THOMSON_LSB,                                                        // lsb_first:       flag: LSB first
     THOMSON_FLAGS                                                       // flags:           some flags
-};
-
-#endif
-
-#if IRMP_SUPPORT_IMON_PROTOCOL == 1
-
-static const PROGMEM IRMP_PARAMETER imon_param =
-{
-    IRMP_IMON_PROTOCOL,                                                 // protocol:        ir protocol
-    IMON_PULSE_LEN,                                                     // pulse_1_len_min: minimum length of pulse with bit value 1
-    IMON_PULSE_REST_LEN,                                                // pulse_1_len_max: maximum length of pulse with bit value 1
-    IMON_PAUSE_LEN,                                                     // pause_1_len_min: minimum length of pause with bit value 1
-    IMON_PAUSE_REST_LEN,                                                // pause_1_len_max: maximum length of pause with bit value 1
-    IMON_PULSE_LEN,                                                     // pulse_0_len_min: minimum length of pulse with bit value 0
-    IMON_PULSE_REST_LEN,                                                // pulse_0_len_max: maximum length of pulse with bit value 0
-    IMON_PAUSE_LEN,                                                     // pause_0_len_min: minimum length of pause with bit value 0
-    IMON_PAUSE_REST_LEN,                                                // pause_0_len_max: maximum length of pause with bit value 0
-    IMON_ADDRESS_OFFSET,                                                // address_offset:  address offset
-    IMON_ADDRESS_OFFSET + IMON_ADDRESS_LEN,                             // address_end:     end of address
-    IMON_COMMAND_OFFSET,                                                // command_offset:  command offset
-    IMON_COMMAND_OFFSET + IMON_COMMAND_LEN,                             // command_end:     end of command
-    IMON_COMPLETE_DATA_LEN,                                             // complete_len:    complete length of frame
-    IMON_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
-    IMON_LSB,                                                           // lsb_first:       flag: LSB first
-    IMON_FLAGS                                                          // flags:           some flags
 };
 
 #endif
@@ -2399,18 +2328,6 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_NETBOX_PROTOCOL == 1
 
-#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
-                    if (irmp_pulse_time >= MERLIN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MERLIN_START_BIT_PULSE_LEN_MAX &&
-                        irmp_pause_time >= MERLIN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= MERLIN_START_BIT_PAUSE_LEN_MAX)
-                    {                                                           // it's MERLIN
-                        ANALYZE_PRINTF ("protocol = MERLIN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        MERLIN_START_BIT_PULSE_LEN_MIN, MERLIN_START_BIT_PULSE_LEN_MAX,
-                                        MERLIN_START_BIT_PAUSE_LEN_MIN, MERLIN_START_BIT_PAUSE_LEN_MAX);
-                        irmp_param_p = (IRMP_PARAMETER *) &merlin_param;
-                    }
-                    else
-#endif // IRMP_SUPPORT_MERLIN_PROTOCOL == 1
-
 #if IRMP_SUPPORT_LEGO_PROTOCOL == 1
                     if (irmp_pulse_time >= LEGO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= LEGO_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= LEGO_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= LEGO_START_BIT_PAUSE_LEN_MAX)
@@ -2422,18 +2339,6 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
-
-#if IRMP_SUPPORT_IMON_PROTOCOL == 1
-                    if (irmp_pulse_time >= IMON_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= IMON_START_BIT_PULSE_LEN_MAX &&
-                        irmp_pause_time >= IMON_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= IMON_START_BIT_PAUSE_LEN_MAX)
-                    {                                                           // it's IMON
-                        ANALYZE_PRINTF ("protocol = IMON, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        IMON_START_BIT_PULSE_LEN_MIN, IMON_START_BIT_PULSE_LEN_MAX,
-                                        IMON_START_BIT_PAUSE_LEN_MIN, IMON_START_BIT_PAUSE_LEN_MAX);
-                        irmp_param_p = (IRMP_PARAMETER *) &imon_param;
-                    }
-                    else
-#endif // IRMP_SUPPORT_IMON_PROTOCOL == 1
 
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
@@ -2642,15 +2547,6 @@ irmp_ISR (void)
                             got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
                         }
                         else
-#if 1
-                        // MERLIN generates no stop bit, here is the timeout condition:
-                        if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_SERIAL) && irmp_param.protocol == IRMP_MERLIN_PROTOCOL &&
-                            irmp_pause_time >= MERLIN_PULSE_LEN * (MERLIN_COMPLETE_DATA_LEN - irmp_bit))
-                        {
-                            got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
-                        }
-                        else
-#endif
 #endif
 #if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL && !irmp_param.stop_bit)
