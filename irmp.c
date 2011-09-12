@@ -9,7 +9,8 @@
  *
  * Supported mikrocontrollers:
  *
- * ATtiny84,  ATtiny85
+ * ATtiny45,  ATtiny85
+ * ATtiny84
  * ATmega8,   ATmega16,  ATmega32
  * ATmega162
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284

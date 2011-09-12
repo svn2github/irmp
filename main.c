@@ -32,7 +32,7 @@
 void
 timer1_init (void)
 {
-#if defined (__AVR_ATtiny85__)                                              // ATtiny85:
+#if defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__)                // ATtiny45 / ATtiny85:
     OCR1A   =  (F_CPU / F_INTERRUPTS / 4) - 1;                              // compare value: 1/15000 of CPU frequency, presc = 4
     TCCR1   = (1 << CTC1) | (1 << CS11) | (1 << CS10);                      // switch CTC Mode on, set prescaler to 4
 #else                                                                       // ATmegaXX:

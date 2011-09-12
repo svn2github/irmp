@@ -5,7 +5,8 @@
  *
  * Supported mikrocontrollers:
  *
- * ATtiny84,  ATtiny85
+ * ATtiny45,  ATtiny85
+ * ATtiny84
  * ATmega8,   ATmega16,  ATmega32
  * ATmega162
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
@@ -72,7 +73,7 @@ typedef unsigned short  uint16_t;
  *  ATmega pin definition of OC2 / OC2A / OC2B / OC0 / OC0A / OC0B
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if defined (__AVR_ATtiny84__)                          // ATtiny85 uses OC0A = PB2 or OC0B = PA7
+#if defined (__AVR_ATtiny84__)                          // ATtiny84 uses OC0A = PB2 or OC0B = PA7
 #if IRSND_OCx == IRSND_OC0A                             // OC0A
 #define IRSND_PORT                              PORTB   // port B
 #define IRSND_DDR                               DDRB    // ddr B
@@ -85,7 +86,7 @@ typedef unsigned short  uint16_t;
 #error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #endif // IRSND_OCx
 
-#elif defined (__AVR_ATtiny85__)                        // ATtiny85 uses OC0A = PB0 or OC0B = PB1
+#elif defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__)  // ATtiny45/85 uses OC0A = PB0 or OC0B = PB1
 #if IRSND_OCx == IRSND_OC0A                             // OC0A
 #define IRSND_PORT                              PORTB   // port B
 #define IRSND_DDR                               DDRB    // ddr B
