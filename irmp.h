@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.65 2011/09/08 13:22:16 fm Exp $
+ * $Id: irmp.h,v 1.67 2011/09/22 10:19:44 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -17,12 +17,18 @@
 #ifndef _WC_IRMP_H_
 #define _WC_IRMP_H_
 
+#if defined(__18CXX)                                                        // Microchip C18 declaration of missing typedef
+typedef unsigned char                           uint8_t;
+typedef unsigned int                            uint16_t;
+#endif //Microchip C18
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRMP_TIMEOUT_TIME                       16500.0e-6                  // timeout after 16.5 ms darkness
-#define IRMP_TIMEOUT_TIME_MS                    16500L                      // timeout after 16.5 ms darkness
+// fm 22.09.2011: may not be more than 16000L, otherwise some JVC codes will not be accepted
+#define IRMP_TIMEOUT_TIME                       15500.0e-6                  // timeout after 15.5 ms darkness
+#define IRMP_TIMEOUT_TIME_MS                    15500L                      // timeout after 15.5 ms darkness
 
 #if IRMP_SUPPORT_NIKON_PROTOCOL == 1
 #define IRMP_TIMEOUT_NIKON_TIME                 29500.0e-6                  // 2nd timeout after 29.5 ms darkness (only for NIKON!)

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.26 2011/09/11 13:17:38 fm Exp $
+ * $Id: irsndconfig.h,v 1.27 2011/09/20 10:45:28 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *

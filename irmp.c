@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.108 2011/09/09 11:59:39 fm Exp $
+ * $Id: irmp.c,v 1.110 2011/09/22 10:19:44 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -297,6 +297,10 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
+#if defined(__18CXX)
+#define PIC_C18                                                             // Microchip C18 Compiler
+#endif
+
 #if defined(__PCM__) || defined(__PCB__) || defined(__PCH__)                // CCS PIC Compiler instead of AVR
 #define PIC_CCS_COMPILER
 #endif
@@ -325,13 +329,16 @@ typedef unsigned short  uint16_t;
 
 #else
 
-#ifdef PIC_CCS_COMPILER
+#if defined (PIC_CCS_COMPILER) || defined(PIC_C18)
 
 #include <string.h>
-typedef unsigned int8   uint8_t;
-typedef unsigned int16  uint16_t;
 #define PROGMEM
 #define memcpy_P        memcpy
+
+#if defined (PIC_CCS_COMPILER)
+typedef unsigned int8   uint8_t;
+typedef unsigned int16  uint16_t;
+#endif
 
 #else // AVR:
 
@@ -342,7 +349,7 @@ typedef unsigned int16  uint16_t;
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 
-#endif  // PIC_CCS_COMPILER
+#endif  // PIC_CCS_COMPILER or PIC_C18
 
 #endif // windows
 #endif // unix
@@ -427,18 +434,18 @@ typedef unsigned int16  uint16_t;
 #define SIRCS_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * SIRCS_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SIRCS_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * SIRCS_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
-#define NEC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define NEC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define NEC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define NEC_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define NEC_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * NEC_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define NEC_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * NEC_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define NEC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * NEC_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define NEC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * NEC_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define NEC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * NEC_1_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define NEC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * NEC_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define NEC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * NEC_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define NEC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * NEC_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define NEC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define NEC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define NEC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define NEC_START_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * NEC_START_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define NEC_REPEAT_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * NEC_REPEAT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define NEC_REPEAT_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * NEC_REPEAT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define NEC_PULSE_LEN_MIN                       ((uint8_t)(F_INTERRUPTS * NEC_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define NEC_PULSE_LEN_MAX                       ((uint8_t)(F_INTERRUPTS * NEC_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define NEC_1_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * NEC_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define NEC_1_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * NEC_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define NEC_0_PAUSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * NEC_0_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define NEC_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * NEC_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 // autodetect nec repetition frame within 50 msec:
 // NEC seems to send the first repetition frame after 40ms, further repetition frames after 100 ms
 #if 0
@@ -1537,10 +1544,10 @@ static uint8_t                              IRMP_PIN;
 void
 irmp_init (void)
 {
-#ifndef PIC_CCS_COMPILER
+#if !defined(PIC_CCS_COMPILER) && !defined(PIC_C18)                     // only AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup
     IRMP_DDR &= ~(1<<IRMP_BIT);                                         // set pin to input
-#endif // PIC_CCS_COMPILER
+#endif
 
 #if IRMP_LOGGING == 1
     irmp_uart_init ();
@@ -2001,7 +2008,7 @@ irmp_ISR (void)
                         irmp_pulse_time >= JVC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= JVC_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= JVC_REPEAT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= JVC_REPEAT_START_BIT_PAUSE_LEN_MAX)
                     {
-                        ANALYZE_PRINTF ("protocol = NEC or JVC repeat frame, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                        ANALYZE_PRINTF ("protocol = NEC or JVC (type 1) repeat frame, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
                                         JVC_START_BIT_PULSE_LEN_MIN, JVC_START_BIT_PULSE_LEN_MAX,
                                         JVC_REPEAT_START_BIT_PAUSE_LEN_MIN, JVC_REPEAT_START_BIT_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &nec_param;
@@ -2029,13 +2036,39 @@ irmp_ISR (void)
                     else if (irmp_pulse_time >= NEC_START_BIT_PULSE_LEN_MIN        && irmp_pulse_time <= NEC_START_BIT_PULSE_LEN_MAX &&
                              irmp_pause_time >= NEC_REPEAT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_REPEAT_START_BIT_PAUSE_LEN_MAX)
                     {                                                           // it's NEC
-                        ANALYZE_PRINTF ("protocol = NEC (repetition frame), start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
-                                        NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
-                                        NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX);
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1
+                        if (irmp_protocol == IRMP_JVC_PROTOCOL)                 // last protocol was JVC, awaiting repeat frame
+                        {                                                       // some jvc remote controls use nec repetition frame for jvc repetition frame
+                            ANALYZE_PRINTF ("protocol = JVC repeat frame type 2, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
+                                            NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX);
+                            irmp_param_p = (IRMP_PARAMETER *) &nec_param;
+                        }
+                        else
+#endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
+                        {
+                            ANALYZE_PRINTF ("protocol = NEC (repetition frame), start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                            NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
+                                            NEC_REPEAT_START_BIT_PAUSE_LEN_MIN, NEC_REPEAT_START_BIT_PAUSE_LEN_MAX);
 
-                        irmp_param_p = (IRMP_PARAMETER *) &nec_rep_param;
+                            irmp_param_p = (IRMP_PARAMETER *) &nec_rep_param;
+                        }
                     }
                     else
+
+#if IRMP_SUPPORT_JVC_PROTOCOL == 1
+                    if (irmp_protocol == IRMP_JVC_PROTOCOL &&                   // last protocol was JVC, awaiting repeat frame
+                        irmp_pulse_time >= NEC_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NEC_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= NEC_0_PAUSE_LEN_MIN         && irmp_pause_time <= NEC_0_PAUSE_LEN_MAX)
+                    {                                                           // it's JVC repetition type 3
+                        ANALYZE_PRINTF ("protocol = JVC repeat frame type 3, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        NEC_START_BIT_PULSE_LEN_MIN, NEC_START_BIT_PULSE_LEN_MAX,
+                                        NEC_0_PAUSE_LEN_MIN, NEC_0_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &nec_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
+
 #endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
 
 #if IRMP_SUPPORT_NIKON_PROTOCOL == 1
@@ -2339,7 +2372,7 @@ irmp_ISR (void)
                         irmp_param_p = (IRMP_PARAMETER *) &lego_param;
                     }
                     else
-#endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
+#endif // IRMP_SUPPORT_LEGO_PROTOCOL == 1
 
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
@@ -2385,8 +2418,15 @@ irmp_ISR (void)
 
                         if (! (irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER))
                         {
-                            ANALYZE_PRINTF ("pulse_0: %3d - %3d\n", 2 * irmp_param.pulse_1_len_min, 2 * irmp_param.pulse_1_len_max);
-                            ANALYZE_PRINTF ("pause_0: %3d - %3d\n", 2 * irmp_param.pause_1_len_min, 2 * irmp_param.pause_1_len_max);
+                            ANALYZE_PRINTF ("pulse_0: %3d - %3d\n", irmp_param.pulse_0_len_min, irmp_param.pulse_0_len_max);
+                            ANALYZE_PRINTF ("pause_0: %3d - %3d\n", irmp_param.pause_0_len_min, irmp_param.pause_0_len_max);
+                        }
+                        else
+                        {
+                            ANALYZE_PRINTF ("pulse: %3d - %3d or %3d - %3d\n", irmp_param.pulse_0_len_min, irmp_param.pulse_0_len_max,
+                                            2 * irmp_param.pulse_0_len_min, 2 * irmp_param.pulse_0_len_max);
+                            ANALYZE_PRINTF ("pause: %3d - %3d or %3d - %3d\n", irmp_param.pause_0_len_min, irmp_param.pause_0_len_max,
+                                            2 * irmp_param.pause_0_len_min, 2 * irmp_param.pause_0_len_max);
                         }
 
 #if IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
@@ -2515,7 +2555,8 @@ irmp_ISR (void)
                         }
                         else
                         {
-                            ANALYZE_PRINTF ("error: stop bit timing wrong\n");
+                            ANALYZE_PRINTF ("error: stop bit timing wrong, irmp_bit = %d, irmp_pulse_time = %d, pulse_0_len_min = %d, pulse_0_len_max = %d\n",
+                                            irmp_bit, irmp_pulse_time, irmp_param.pulse_0_len_min, irmp_param.pulse_0_len_max);
 
 //                          irmp_busy_flag = FALSE;
                             irmp_start_bit_detected = 0;                        // wait for another start bit...
@@ -2640,7 +2681,7 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_JVC_PROTOCOL == 1
                             else if (irmp_param.protocol == IRMP_NEC_PROTOCOL && (irmp_bit == 16 || irmp_bit == 17))      // it was a JVC stop bit
                             {
-                                ANALYZE_PRINTF ("Switching to JVC protocol\n");
+                                ANALYZE_PRINTF ("Switching to JVC protocol, irmp_bit = %d\n", irmp_bit);
                                 irmp_param.stop_bit     = TRUE;                                     // set flag
                                 irmp_param.protocol     = IRMP_JVC_PROTOCOL;                        // switch protocol
                                 irmp_param.complete_len = irmp_bit;                                 // patch length: 16 or 17
@@ -2667,9 +2708,9 @@ irmp_ISR (void)
                             }
 #endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
 #if IRMP_SUPPORT_JVC_PROTOCOL == 1
-                            else if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && irmp_bit == 16)  // it was a JVC stop bit
+                            else if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && (irmp_bit == 16 || irmp_bit == 17))  // it was a JVC stop bit
                             {
-                                ANALYZE_PRINTF ("Switching to JVC protocol\n");
+                                ANALYZE_PRINTF ("Switching to JVC protocol, irmp_bit = %d\n", irmp_bit);
                                 irmp_param.stop_bit     = TRUE;                                     // set flag
                                 irmp_param.protocol     = IRMP_JVC_PROTOCOL;                        // switch protocol
                                 irmp_param.complete_len = irmp_bit;                                 // patch length: 16 or 17
