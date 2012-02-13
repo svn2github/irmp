@@ -83,6 +83,7 @@ for j in                                \
     irc-15kHz.txt                       \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
+    samsung32-15kHz.txt                 \
     t-home-mediareceiver-15kHz.txt      \
     universal-15kHz.txt                 \
     xbox360-15kHz.txt
