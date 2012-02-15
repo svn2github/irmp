@@ -1083,6 +1083,7 @@ irsnd_ISR (void)
                 if (send_trailer)
                 {
                     irsnd_busy = FALSE;
+                    send_trailer = FALSE;
                     return irsnd_busy;
                 }
 
