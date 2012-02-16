@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.112 2012/02/13 10:59:07 fm Exp $
+ * $Id: irmp.c,v 1.113 2012/02/16 10:40:07 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -756,7 +756,11 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
  *  Logging
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if IRMP_LOGGING == 1
+#if IRMP_LOGGING == 1                                               // logging via UART
+
+#if IRMP_EXT_LOGGING == 1                                           // use external logging
+#include "irmpextlog.h"
+#else                                                               // normal UART log (IRMP_EXT_LOGGING == 0)
 #define BAUD                                    9600L
 #include <util/setbaud.h>
 
@@ -778,7 +782,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN0)
 #define UART0_UDR                               UDR0
 #define UART0_U2X                               U2X0
-
+	
 #else
 
 #define UART0_UBRRH                             UBRRH
@@ -798,7 +802,8 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 #define UART0_UDR                               UDR
 #define UART0_U2X                               U2X
 
-#endif
+#endif //UBRR0H
+#endif //IRMP_EXT_LOGGING
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  Initialize  UART
@@ -808,6 +813,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 void
 irmp_uart_init (void)
 {
+#if (IRMP_EXT_LOGGING == 0)                                                                         // use UART
     UART0_UBRRH = UBRRH_VALUE;                                                                      // set baud rate
     UART0_UBRRL = UBRRL_VALUE;
 
@@ -819,6 +825,9 @@ irmp_uart_init (void)
 
     UART0_UCSRC = UART0_UCSZ1_BIT_VALUE | UART0_UCSZ0_BIT_VALUE | UART0_URSEL_BIT_VALUE;
     UART0_UCSRB |= UART0_TXEN_BIT_VALUE;                                                            // enable UART TX
+#else                                                                                               // other log method
+	initextlog();                                                         
+#endif //IRMP_EXT_LOGGING
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -830,12 +839,16 @@ irmp_uart_init (void)
 void
 irmp_uart_putc (unsigned char ch)
 {
+#if (IRMP_EXT_LOGGING == 0)
     while (!(UART0_UCSRA & UART0_UDRE_BIT_VALUE))
     {
         ;
     }
 
     UART0_UDR = ch;
+#else
+    sendextlog(ch); //Use external log
+#endif
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -918,7 +931,7 @@ irmp_log (uint8_t val)
 
 #else
 #define irmp_log(val)
-#endif
+#endif //IRMP_LOGGING
 
 typedef struct
 {
