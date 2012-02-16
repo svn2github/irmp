@@ -15,7 +15,7 @@
  */
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change F_INTERRUPTS if you change the number of interrupts per second, F_INTERRUPTS should be in the range from 10000 to 20000, typically 15000
+ * F_INTERRUPTS: number of interrupts per second, should be in the range from 10000 to 20000, typically 15000
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef F_INTERRUPTS
@@ -76,16 +76,80 @@
 #define IRSND_OC0A                              4       // OC0A
 #define IRSND_OC0B                              5       // OC0B
 
+//PIC Microchip C18
+#define IRSND_PIC_CCP1                          1       // PIC C18 RC2 = PWM1 module
+#define IRSND_PIC_CCP2                          2       // PIC C18 RC1 = PWM2 module
+
+#ifndef PIC_C18 								// AVR part
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * AVR
+ *
  * Change hardware pin here:                    IRSND_OC2  = OC2  on ATmegas         supporting OC2,  e.g. ATmega8
  *                                              IRSND_OC2A = OC2A on ATmegas         supporting OC2A, e.g. ATmega88
  *                                              IRSND_OC2B = OC2B on ATmegas         supporting OC2B, e.g. ATmega88
  *                                              IRSND_OC0  = OC0  on ATmegas         supporting OC0,  e.g. ATmega162
  *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny84, ATtiny85
  *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny84, ATtiny85
+ *												IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
+ *												IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+
 #define IRSND_OCx                               IRSND_OC2B          // use OC2B
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * PIC C18
+ *
+ * Change hardware pin here:                    IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
+ *												IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+
+#else
+#define IRSND_OCx       	                    IRSND_PIC_CCP2      // Use PWMx for PIC
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * PIC C18 - change other PIC specific settings - ignore it when using AVR
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+
+#define F_CPU                                   48000000UL          // PIC freq.; Set you Freq here
+#define Pre_Scaler                              4                   // define prescaler for Timer2 e.g. 1,4,16 !!!
+#define PIC_Scaler                              2                   // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
+#warning Timer2 used for IRSND (PWM out) ! Do not use/setup Timer 2 yourself !
+
+//Do not change lines below until you have a diffrent HW !! Example for 18F2550/18F4550
+//Setup macro for PWM used PWM module
+
+#if IRSND_OCx == IRSND_PIC_CCP2        
+#define IRSND_PIN                               TRISCbits.TRISC1    // RC1 = PWM2
+
+#define SetDCPWM(x)  	                        SetDCPWM2(x)			
+#define ClosePWM		                        ClosePWM2
+#define OpenPWM(x)		                        OpenPWM2(x) 
+#endif
+
+#if IRSND_OCx == IRSND_PIC_CCP1        
+#define IRSND_PIN                               TRISCbits.TRISC2    // RC2 = PWM1
+
+#define SetDCPWM(x)                             SetDCPWM1(x)
+#define ClosePWM                                ClosePWM1
+#define OpenPWM(x)                              OpenPWM1(x)
+#endif
+
+//Setup macro for OpenTimer with defined Pre_Scaler
+#if Pre_Scaler == 1
+#define OpenTimer                               OpenTimer2(TIMER_INT_OFF & T2_PS_1_1); 
+#elif Pre_Scaler == 4
+#define OpenTimer                               OpenTimer2(TIMER_INT_OFF & T2_PS_1_4); 
+#elif Pre_Scaler == 16
+#define OpenTimer                               OpenTimer2(TIMER_INT_OFF & T2_PS_1_16); 
+#else
+#error Incorrect value for Pre_Scaler
+#endif
+
+#endif //PIC_C18
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Use Callbacks to indicate output signal or something else

@@ -17,10 +17,15 @@
 #ifndef _WC_IRSND_H_
 #define _WC_IRSND_H_
 
-#define IRSND_NO_REPETITIONS         0    // no repetitions
-#define IRSND_MAX_REPETITIONS       14    // max # of repetitions
-#define IRSND_ENDLESS_REPETITION    15    // endless repetions
-#define IRSND_REPETITION_MASK       0x0F  // lower nibble of flags
+#if defined(__18CXX) 					    // Microchip C18 declaration of missing typedef
+typedef unsigned char               uint8_t;
+typedef unsigned int                uint16_t;
+#endif	
+
+#define IRSND_NO_REPETITIONS         0      // no repetitions
+#define IRSND_MAX_REPETITIONS       14      // max # of repetitions
+#define IRSND_ENDLESS_REPETITION    15      // endless repetions
+#define IRSND_REPETITION_MASK       0x0F    // lower nibble of flags
 
 /**
  *  Initialize ISND encoder

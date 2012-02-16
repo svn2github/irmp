@@ -12,7 +12,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.46 2012/02/15 11:02:42 fm Exp $
+ * $Id: irsnd.c,v 1.45 2012/02/13 11:02:29 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,13 @@
  * (at your option) any later version.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+
+#if defined(__18CXX)                     
+#define PIC_C18                                                             // Microchip C18
+#include <p18cxxx.h>                                                        // basic P18 lib
+#include "timers.h"                                                         // timer lib
+#include "pwm.h"                                                            // pwm lib
+#endif                                    
 
 #ifdef unix                                                                 // test/debug on linux/unix
 #include <stdio.h>
@@ -46,14 +53,16 @@ typedef unsigned short  uint16_t;
 #else
 
 #ifdef CODEVISION
-  #define COM2A0 6
-  #define WGM21  1
-  #define CS20   0
+#define COM2A0 6
+#define WGM21  1
+#define CS20   0
+#elif defined(PIC_C18)
+    //nothing to do here
 #else
-  #include <inttypes.h>
-  #include <avr/io.h>
-  #include <util/delay.h>
-  #include <avr/pgmspace.h>
+#include <inttypes.h>
+#include <avr/io.h>
+#include <util/delay.h>
+#include <avr/pgmspace.h>
 #endif // CODEVISION
 
 #endif // WIN32
@@ -63,11 +72,6 @@ typedef unsigned short  uint16_t;
 #include "irsndconfig.h"
 #include "irsnd.h"
 
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- *  ATtiny pin definition of OC0A / OC0B
- *  ATmega pin definition of OC2 / OC2A / OC2B / OC0 / OC0A / OC0B
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  ATtiny pin definition of OC0A / OC0B
  *  ATmega pin definition of OC2 / OC2A / OC2B / OC0 / OC0A / OC0B
@@ -124,6 +128,7 @@ typedef unsigned short  uint16_t;
 #define IRSND_PORT                              PORTB   // port B
 #define IRSND_DDR                               DDRB    // ddr B
 #define IRSND_BIT                               1       // OC2
+
 #elif IRSND_OCx == IRSND_OC0                            // OC0
 #define IRSND_PORT                              PORTB   // port B
 #define IRSND_DDR                               DDRB    // ddr B
@@ -199,6 +204,9 @@ typedef unsigned short  uint16_t;
 #error Wrong value for IRSND_OCx, choose IRSND_OC0, IRSND_OC1A, or IRSND_OC1B in irsndconfig.h
 #endif // IRSND_OCx
 
+#elif defined (PIC_C18)    //Microchip C18 compiler
+    //Nothing here to do here -> See irsndconfig.h
+
 #else
 #if !defined (unix) && !defined (WIN32)
 #error mikrocontroller not defined, please fill in definitions here.
@@ -206,9 +214,9 @@ typedef unsigned short  uint16_t;
 #endif // __AVR...
 
 #if IRSND_SUPPORT_NIKON_PROTOCOL == 1
-typedef uint16_t    IRSND_PAUSE_LEN;
+    typedef uint16_t    IRSND_PAUSE_LEN;
 #else
-typedef uint8_t     IRSND_PAUSE_LEN;
+    typedef uint8_t     IRSND_PAUSE_LEN;
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -314,8 +322,8 @@ typedef uint8_t     IRSND_PAUSE_LEN;
 #define BANG_OLUFSEN_TRAILER_BIT_PAUSE_LEN      (uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_TRAILER_BIT_PAUSE_TIME + 0.5)
 #define BANG_OLUFSEN_FRAME_REPEAT_PAUSE_LEN     (uint16_t)(F_INTERRUPTS * BANG_OLUFSEN_FRAME_REPEAT_PAUSE_TIME + 0.5)       // use uint16_t!
 
-#define GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN  (uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_PRE_PAUSE_TIME + 0.5)
-#define GRUNDIG_NOKIA_IR60_BIT_LEN        (uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_BIT_TIME + 0.5)
+#define GRUNDIG_NOKIA_IR60_PRE_PAUSE_LEN        (uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_PRE_PAUSE_TIME + 0.5)
+#define GRUNDIG_NOKIA_IR60_BIT_LEN              (uint8_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_BIT_TIME + 0.5)
 #define GRUNDIG_AUTO_REPETITION_PAUSE_LEN       (uint16_t)(F_INTERRUPTS * GRUNDIG_AUTO_REPETITION_PAUSE_TIME + 0.5)         // use uint16_t!
 #define NOKIA_AUTO_REPETITION_PAUSE_LEN         (uint16_t)(F_INTERRUPTS * NOKIA_AUTO_REPETITION_PAUSE_TIME + 0.5)           // use uint16_t!
 #define GRUNDIG_NOKIA_IR60_FRAME_REPEAT_PAUSE_LEN (uint16_t)(F_INTERRUPTS * GRUNDIG_NOKIA_IR60_FRAME_REPEAT_PAUSE_TIME + 0.5)   // use uint16_t!
@@ -324,12 +332,22 @@ typedef uint8_t     IRSND_PAUSE_LEN;
 #define SIEMENS_BIT_LEN                         (uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PULSE_TIME + 0.5)
 #define SIEMENS_FRAME_REPEAT_PAUSE_LEN          (uint16_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_FRAME_REPEAT_PAUSE_TIME + 0.5)  // use uint16_t!
 
+
+#ifdef PIC_C18
+#define IRSND_FREQ_32_KHZ                       (uint8_t) ((F_CPU / 32000  / 2 / Pre_Scaler / PIC_Scaler) - 1)
+#define IRSND_FREQ_36_KHZ                       (uint8_t) ((F_CPU / 36000  / 2 / Pre_Scaler / PIC_Scaler) - 1)
+#define IRSND_FREQ_38_KHZ                       (uint8_t) ((F_CPU / 38000  / 2 / Pre_Scaler / PIC_Scaler) - 1)
+#define IRSND_FREQ_40_KHZ                       (uint8_t) ((F_CPU / 40000  / 2 / Pre_Scaler / PIC_Scaler) - 1)
+#define IRSND_FREQ_56_KHZ                       (uint8_t) ((F_CPU / 56000  / 2 / Pre_Scaler / PIC_Scaler) - 1)
+#define IRSND_FREQ_455_KHZ                      (uint8_t) ((F_CPU / 455000 / 2 / Pre_Scaler / PIC_Scaler) - 1)
+#else // AVR
 #define IRSND_FREQ_32_KHZ                       (uint8_t) ((F_CPU / 32000 / 2) - 1)
 #define IRSND_FREQ_36_KHZ                       (uint8_t) ((F_CPU / 36000 / 2) - 1)
 #define IRSND_FREQ_38_KHZ                       (uint8_t) ((F_CPU / 38000 / 2) - 1)
 #define IRSND_FREQ_40_KHZ                       (uint8_t) ((F_CPU / 40000 / 2) - 1)
 #define IRSND_FREQ_56_KHZ                       (uint8_t) ((F_CPU / 56000 / 2) - 1)
 #define IRSND_FREQ_455_KHZ                      (uint8_t) ((F_CPU / 455000 / 2) - 1)
+#endif
 
 #define FDC_START_BIT_PULSE_LEN                 (uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME + 0.5)
 #define FDC_START_BIT_PAUSE_LEN                 (uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME + 0.5)
@@ -369,10 +387,10 @@ typedef uint8_t     IRSND_PAUSE_LEN;
 #define LEGO_0_PAUSE_LEN                        (uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME + 0.5)
 #define LEGO_FRAME_REPEAT_PAUSE_LEN             (uint16_t)(F_INTERRUPTS * LEGO_FRAME_REPEAT_PAUSE_TIME + 0.5)               // use uint16_t!
 
-static volatile uint8_t                         irsnd_busy;
-static volatile uint8_t                         irsnd_protocol;
-static volatile uint8_t                         irsnd_buffer[6];
-static volatile uint8_t                         irsnd_repeat;
+static volatile uint8_t                         irsnd_busy = 0;
+static volatile uint8_t                         irsnd_protocol = 0;
+static volatile uint8_t                         irsnd_buffer[6] = {0};
+static volatile uint8_t                         irsnd_repeat = 0;
 static volatile uint8_t                         irsnd_is_on = FALSE;
 
 #if IRSND_USE_CALLBACK == 1
@@ -390,6 +408,12 @@ irsnd_on (void)
     if (! irsnd_is_on)
     {
 #ifndef DEBUG
+
+#if defined(PIC_C18)
+        IRSND_PIN = 0; // output mode -> enable PWM outout pin (0=PWM on, 1=PWM off)
+#else
+
+
 #if   IRSND_OCx == IRSND_OC2                            // use OC2
         TCCR2 |= (1<<COM20)|(1<<WGM21);                 // toggle OC2 on compare match,  clear Timer 2 at compare match OCR2
 #elif IRSND_OCx == IRSND_OC2A                           // use OC2A
@@ -405,6 +429,8 @@ irsnd_on (void)
 #else
 #error wrong value of IRSND_OCx
 #endif // IRSND_OCx
+
+#endif //C18
 #endif // DEBUG
 
 #if IRSND_USE_CALLBACK == 1
@@ -429,6 +455,11 @@ irsnd_off (void)
     if (irsnd_is_on)
     {
 #ifndef DEBUG
+    
+#if defined(PIC_C18)
+        IRSND_PIN = 1; //input mode -> disbale PWM output pin (0=PWM on, 1=PWM off)
+#else //AVR
+
 #if   IRSND_OCx == IRSND_OC2                                    // use OC2
         TCCR2 &= ~(1<<COM20);                           // normal port operation, OC2 disconnected.
 #elif IRSND_OCx == IRSND_OC2A                                    // use OC2A
@@ -445,6 +476,7 @@ irsnd_off (void)
 #error wrong value of IRSND_OCx
 #endif // IRSND_OCx
         IRSND_PORT  &= ~(1<<IRSND_BIT);                 // set IRSND_BIT to low
+#endif //C18
 #endif // DEBUG
 
 #if IRSND_USE_CALLBACK == 1
@@ -467,6 +499,12 @@ static void
 irsnd_set_freq (uint8_t freq)
 {
 #ifndef DEBUG
+
+#if defined(PIC_C18)
+         OpenPWM(freq); 
+         SetDCPWM( (uint16_t) freq * 2); // freq*2 = Duty cycles 50%
+#else //AVR
+
 #if IRSND_OCx == IRSND_OC2
     OCR2 = freq;                                                                        // use register OCR2 for OC2
 #elif IRSND_OCx == IRSND_OC2A                                                                    // use OC2A
@@ -482,6 +520,7 @@ irsnd_set_freq (uint8_t freq)
 #else
 #error wrong value of IRSND_OCx
 #endif
+#endif //PIC_C18
 #endif // DEBUG
 }
 
@@ -494,6 +533,12 @@ void
 irsnd_init (void)
 {
 #ifndef DEBUG
+#if defined(PIC_C18)
+        OpenTimer;
+        irsnd_set_freq (IRSND_FREQ_36_KHZ);   //default frequency
+        IRSND_PIN = 1; //default PWM output pin off (0=PWM on, 1=PWM off)
+#else
+
     IRSND_PORT &= ~(1<<IRSND_BIT);                                                  // set IRSND_BIT to low
     IRSND_DDR |= (1<<IRSND_BIT);                                                    // set IRSND_BIT to output
 
@@ -514,6 +559,7 @@ irsnd_init (void)
 #endif
 
     irsnd_set_freq (IRSND_FREQ_36_KHZ);                                             // default frequency
+#endif //PIC_C18
 #endif // DEBUG
 }
 
@@ -980,27 +1026,27 @@ irsnd_stop (void)
 uint8_t
 irsnd_ISR (void)
 {
-    static uint8_t  send_trailer;
-    static uint8_t  current_bit = 0xFF;
-    static uint8_t  pulse_counter;
-    static IRSND_PAUSE_LEN  pause_counter;
-    static uint8_t  startbit_pulse_len;
-    static IRSND_PAUSE_LEN  startbit_pause_len;
-    static uint8_t  pulse_1_len;
-    static uint8_t  pause_1_len;
-    static uint8_t  pulse_0_len;
-    static uint8_t  pause_0_len;
-    static uint8_t  has_stop_bit;
+    static uint8_t  send_trailer = FALSE;
+    static uint8_t  current_bit = 0;// 0xFF;
+    static uint8_t  pulse_counter = 0;
+    static IRSND_PAUSE_LEN  pause_counter = 0;
+    static uint8_t  startbit_pulse_len = 0;
+    static IRSND_PAUSE_LEN  startbit_pause_len = 0;
+    static uint8_t  pulse_1_len = 0;
+    static uint8_t  pause_1_len = 0;
+    static uint8_t  pulse_0_len = 0;
+    static uint8_t  pause_0_len = 0;
+    static uint8_t  has_stop_bit = 0;
     static uint8_t  new_frame = TRUE;
-    static uint8_t  complete_data_len;
-    static uint8_t  n_repeat_frames;                                                // number of repetition frames
-    static uint8_t  n_auto_repetitions;                                             // number of auto_repetitions
-    static uint8_t  auto_repetition_counter;                                        // auto_repetition counter
-    static uint16_t auto_repetition_pause_len;                                      // pause before auto_repetition, uint16_t!
-    static uint16_t auto_repetition_pause_counter;                                  // pause before auto_repetition, uint16_t!
-    static uint8_t  repeat_counter;                                                 // repeat counter
-    static uint16_t repeat_frame_pause_len;                                         // pause before repeat, uint16_t!
-    static uint16_t packet_repeat_pause_counter;                                    // pause before repeat, uint16_t!
+    static uint8_t  complete_data_len = 0;
+    static uint8_t  n_repeat_frames = 0;                                                // number of repetition frames
+    static uint8_t  n_auto_repetitions = 0;                                             // number of auto_repetitions
+    static uint8_t  auto_repetition_counter = 0;                                        // auto_repetition counter
+    static uint16_t auto_repetition_pause_len = 0;                                      // pause before auto_repetition, uint16_t!
+    static uint16_t auto_repetition_pause_counter = 0;                                  // pause before auto_repetition, uint16_t!
+    static uint8_t  repeat_counter = 0;                                                 // repeat counter
+    static uint16_t repeat_frame_pause_len = 0;                                         // pause before repeat, uint16_t!
+    static uint16_t packet_repeat_pause_counter = 0;                                    // pause before repeat, uint16_t!
 #if IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
     static uint8_t  last_bit_value;
 #endif
@@ -1080,12 +1126,14 @@ irsnd_ISR (void)
             }
             else
             {
+                
                 if (send_trailer)
                 {
                     irsnd_busy = FALSE;
                     send_trailer = FALSE;
                     return irsnd_busy;
                 }
+                
 
                 n_repeat_frames             = irsnd_repeat;
 
@@ -2010,7 +2058,7 @@ irsnd_ISR (void)
             }
             else
             {
-                irsnd_busy = TRUE;
+                irsnd_busy = TRUE; //Rainer
                 send_trailer = TRUE;
                 n_repeat_frames = 0;
                 repeat_counter = 0;
