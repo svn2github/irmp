@@ -12,7 +12,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.45 2012/02/13 11:02:29 fm Exp $
+ * $Id: irsnd.c,v 1.47 2012/02/16 12:37:30 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.113 2012/02/16 10:40:07 fm Exp $
+ * $Id: irmp.c,v 1.115 2012/02/21 08:41:46 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -375,6 +375,7 @@ typedef unsigned int16  uint16_t;
     IRMP_SUPPORT_RC6_PROTOCOL == 1 ||                   \
     IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
+    IRMP_SUPPORT_GRUNDIG2_PROTOCOL == 1 ||              \
     IRMP_SUPPORT_IR60_PROTOCOL
 #define IRMP_SUPPORT_MANCHESTER                 1
 #else
@@ -601,6 +602,15 @@ typedef unsigned int16  uint16_t;
 #define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
+#define GRUNDIG2_START_BIT_PULSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * GRUNDIG2_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define GRUNDIG2_START_BIT_PULSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * GRUNDIG2_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define GRUNDIG2_START_BIT_PAUSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * GRUNDIG2_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define GRUNDIG2_START_BIT_PAUSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * GRUNDIG2_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define GRUNDIG2_BIT_PULSE_LEN_MIN              ((uint8_t)(F_INTERRUPTS * GRUNDIG2_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define GRUNDIG2_BIT_PULSE_LEN_MAX              ((uint8_t)(F_INTERRUPTS * GRUNDIG2_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define GRUNDIG2_BIT_PAUSE_LEN_MIN              ((uint8_t)(F_INTERRUPTS * GRUNDIG2_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define GRUNDIG2_BIT_PAUSE_LEN_MAX              ((uint8_t)(F_INTERRUPTS * GRUNDIG2_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+
 #define FDC_START_BIT_PULSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)   // 5%: avoid conflict with NETBOX
 #define FDC_START_BIT_PULSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5))
 #define FDC_START_BIT_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * FDC_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
@@ -782,7 +792,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN0)
 #define UART0_UDR                               UDR0
 #define UART0_U2X                               U2X0
-	
+        
 #else
 
 #define UART0_UBRRH                             UBRRH
@@ -826,7 +836,7 @@ irmp_uart_init (void)
     UART0_UCSRC = UART0_UCSZ1_BIT_VALUE | UART0_UCSZ0_BIT_VALUE | UART0_URSEL_BIT_VALUE;
     UART0_UCSRB |= UART0_TXEN_BIT_VALUE;                                                            // enable UART TX
 #else                                                                                               // other log method
-	initextlog();                                                         
+        initextlog();                                                         
 #endif //IRMP_EXT_LOGGING
 }
 
@@ -1354,6 +1364,31 @@ static const PROGMEM IRMP_PARAMETER ruwido_param =
 
 #endif
 
+#if IRMP_SUPPORT_GRUNDIG2_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER grundig2_param =
+{
+    IRMP_GRUNDIG2_PROTOCOL,                                             // protocol:        ir protocol
+    GRUNDIG2_BIT_PULSE_LEN_MIN,                                         // pulse_1_len_min: here: minimum length of short pulse
+    GRUNDIG2_BIT_PULSE_LEN_MAX,                                         // pulse_1_len_max: here: maximum length of short pulse
+    GRUNDIG2_BIT_PAUSE_LEN_MIN,                                         // pause_1_len_min: here: minimum length of short pause
+    GRUNDIG2_BIT_PAUSE_LEN_MAX,                                         // pause_1_len_max: here: maximum length of short pause
+    0,                                                                  // pulse_0_len_min: here: not used
+    0,                                                                  // pulse_0_len_max: here: not used
+    0,                                                                  // pause_0_len_min: here: not used
+    0,                                                                  // pause_0_len_max: here: not used
+    GRUNDIG2_ADDRESS_OFFSET,                                            // address_offset:  address offset
+    GRUNDIG2_ADDRESS_OFFSET + GRUNDIG2_ADDRESS_LEN,                     // address_end:     end of address
+    GRUNDIG2_COMMAND_OFFSET,                                            // command_offset:  command offset
+    GRUNDIG2_COMMAND_OFFSET + GRUNDIG2_COMMAND_LEN,                     // command_end:     end of command
+    GRUNDIG2_COMPLETE_DATA_LEN,                                         // complete_len:    complete length of frame
+    GRUNDIG2_STOP_BIT,                                                  // stop_bit:        flag: frame has stop bit
+    GRUNDIG2_LSB,                                                       // lsb_first:       flag: LSB first
+    GRUNDIG2_FLAGS                                                      // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_FDC_PROTOCOL == 1
 
 static const PROGMEM IRMP_PARAMETER fdc_param =
@@ -1620,6 +1655,15 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 break;
 #endif
+#if IRMP_SUPPORT_GRUNDIG2_PROTOCOL == 1
+            case IRMP_GRUNDIG2_PROTOCOL:
+                if (irmp_command & 0x0001)
+                {
+                    irmp_command >>= 1;
+                    rtc = TRUE;
+                }
+                break;
+#endif
 #if IRMP_SUPPORT_KATHREIN_PROTOCOL == 1
             case IRMP_KATHREIN_PROTOCOL:
                 if (irmp_command != 0x0000)
@@ -1818,7 +1862,7 @@ irmp_store_bit (uint8_t value)
         {
             irmp_tmp_command |= (((uint16_t) (value)) << (irmp_bit - 8));       // store 4 system bits (genre 1) in upper nibble with LSB first
         }
-    	else if (irmp_bit >= 24 && irmp_bit < 28)
+        else if (irmp_bit >= 24 && irmp_bit < 28)
         {
             genre2 |= (((uint8_t) (value)) << (irmp_bit - 20));                 // store 4 system bits (genre 2) in upper nibble with LSB first
         }
@@ -2331,6 +2375,22 @@ irmp_ISR (void)
                                         SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN,   SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX,
                                         2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MIN, 2 * SIEMENS_OR_RUWIDO_START_BIT_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &ruwido_param;
+                        last_pause = irmp_pause_time;
+                        last_value  = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
+
+#if IRMP_SUPPORT_GRUNDIG2_PROTOCOL == 1
+                    if ((irmp_pulse_time >= GRUNDIG2_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= GRUNDIG2_START_BIT_PULSE_LEN_MAX) &&
+                        (irmp_pause_time >= GRUNDIG2_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= GRUNDIG2_START_BIT_PAUSE_LEN_MAX))
+                    {                                                           // it's GRUNDIG2
+                        ANALYZE_PRINTF ("protocol = GRUNDIG2, start bit timings: pulse: %3d - %3d or %3d - %3d, pause: %3d - %3d or %3d - %3d\n",
+                                        GRUNDIG2_START_BIT_PULSE_LEN_MIN,   GRUNDIG2_START_BIT_PULSE_LEN_MAX,
+                                        2 * GRUNDIG2_START_BIT_PULSE_LEN_MIN, 2 * GRUNDIG2_START_BIT_PULSE_LEN_MAX,
+                                        GRUNDIG2_START_BIT_PAUSE_LEN_MIN,   GRUNDIG2_START_BIT_PAUSE_LEN_MAX,
+                                        2 * GRUNDIG2_START_BIT_PAUSE_LEN_MIN, 2 * GRUNDIG2_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &grundig2_param;
                         last_pause = irmp_pause_time;
                         last_value  = 1;
                     }
@@ -3360,7 +3420,7 @@ irmp_ISR (void)
                                 irmp_ir_detected = FALSE;
                             }
 
-                            irmp_flags |= genre2;	// write the genre2 bits into MSB of the flag byte
+                            irmp_flags |= genre2;       // write the genre2 bits into MSB of the flag byte
                         }
 #endif // IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
 
@@ -3573,6 +3633,14 @@ print_timings (void)
             SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN, SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX,
             2 * SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MIN, 2 * SIEMENS_OR_RUWIDO_BIT_PULSE_LEN_MAX,
             2 * SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MIN, 2 * SIEMENS_OR_RUWIDO_BIT_PAUSE_LEN_MAX);
+
+    printf ("GRUNDIG2       1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            GRUNDIG2_START_BIT_PULSE_LEN_MIN, GRUNDIG2_START_BIT_PULSE_LEN_MAX,
+            GRUNDIG2_START_BIT_PAUSE_LEN_MIN, GRUNDIG2_START_BIT_PAUSE_LEN_MAX,
+            GRUNDIG2_BIT_PULSE_LEN_MIN, GRUNDIG2_BIT_PULSE_LEN_MAX,
+            GRUNDIG2_BIT_PAUSE_LEN_MIN, GRUNDIG2_BIT_PAUSE_LEN_MAX,
+            2 * GRUNDIG2_BIT_PULSE_LEN_MIN, 2 * GRUNDIG2_BIT_PULSE_LEN_MAX,
+            2 * GRUNDIG2_BIT_PAUSE_LEN_MIN, 2 * GRUNDIG2_BIT_PAUSE_LEN_MAX);
 
     printf ("FDC            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             FDC_START_BIT_PULSE_LEN_MIN, FDC_START_BIT_PULSE_LEN_MAX, FDC_START_BIT_PAUSE_LEN_MIN, FDC_START_BIT_PAUSE_LEN_MAX,

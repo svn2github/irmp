@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.27 2011/09/20 10:45:28 fm Exp $
+ * $Id: irsndconfig.h,v 1.29 2012/02/16 12:39:36 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -80,7 +80,7 @@
 #define IRSND_PIC_CCP1                          1       // PIC C18 RC2 = PWM1 module
 #define IRSND_PIC_CCP2                          2       // PIC C18 RC1 = PWM2 module
 
-#ifndef PIC_C18 								// AVR part
+#ifndef PIC_C18                                                                 // AVR part
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * AVR
@@ -91,8 +91,8 @@
  *                                              IRSND_OC0  = OC0  on ATmegas         supporting OC0,  e.g. ATmega162
  *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny84, ATtiny85
  *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny84, ATtiny85
- *												IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
- *												IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
+ *                                                                                              IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
+ *                                                                                              IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
@@ -102,12 +102,12 @@
  * PIC C18
  *
  * Change hardware pin here:                    IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
- *												IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
+ *                                                                                              IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
 #else
-#define IRSND_OCx       	                    IRSND_PIC_CCP2      // Use PWMx for PIC
+#define IRSND_OCx                                   IRSND_PIC_CCP2      // Use PWMx for PIC
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * PIC C18 - change other PIC specific settings - ignore it when using AVR
@@ -125,9 +125,9 @@
 #if IRSND_OCx == IRSND_PIC_CCP2        
 #define IRSND_PIN                               TRISCbits.TRISC1    // RC1 = PWM2
 
-#define SetDCPWM(x)  	                        SetDCPWM2(x)			
-#define ClosePWM		                        ClosePWM2
-#define OpenPWM(x)		                        OpenPWM2(x) 
+#define SetDCPWM(x)                             SetDCPWM2(x)                    
+#define ClosePWM                                        ClosePWM2
+#define OpenPWM(x)                                      OpenPWM2(x) 
 #endif
 
 #if IRSND_OCx == IRSND_PIC_CCP1        
