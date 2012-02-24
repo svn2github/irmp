@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.80 2012/02/21 08:41:46 fm Exp $
+ * $Id: irmpconfig.h,v 1.81 2012/02/24 11:40:41 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -62,7 +62,6 @@
 #define IRMP_SUPPORT_NOKIA_PROTOCOL             0       // Nokia                >= 10000                 ~300 bytes
 
 // exotic protocols, enable here!               Enable  Remarks                 F_INTERRUPTS            Program Space
-#define IRMP_SUPPORT_GRUNDIG2_PROTOCOL          0       // Grundig TP400        >= 10000                 ~300 bytes
 #define IRMP_SUPPORT_KATHREIN_PROTOCOL          0       // Kathrein             >= 10000                 ~200 bytes
 #define IRMP_SUPPORT_NUBERT_PROTOCOL            0       // NUBERT               >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      0       // Bang & Olufsen       >= 10000                 ~200 bytes

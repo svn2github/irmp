@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.70 2012/02/21 08:41:46 fm Exp $
+ * $Id: irmp.h,v 1.71 2012/02/24 11:40:41 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -79,9 +79,8 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_NEC42_PROTOCOL                     28              // NEC with 42 bits
 #define IRMP_LEGO_PROTOCOL                      29              // LEGO Power Functions RC
 #define IRMP_THOMSON_PROTOCOL                   30              // Thomson
-#define IRMP_GRUNDIG2_PROTOCOL                  31              // Grundig, e.g. TP400
 
-#define IRMP_N_PROTOCOLS                        31              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        30              // number of supported protocols
 
 // some flags of struct IRMP_PARAMETER:
 #define IRMP_PARAM_FLAG_IS_MANCHESTER           0x01
@@ -481,20 +480,6 @@ typedef uint8_t     PAUSE_LEN;
 #define THOMSON_STOP_BIT                        1                               // has stop bit
 #define THOMSON_LSB                             0                               // MSB...LSB
 #define THOMSON_FLAGS                           0                               // flags
-
-#define GRUNDIG2_START_BIT_PULSE_TIME            550.0e-6                       //   550 usec pulse
-#define GRUNDIG2_START_BIT_PAUSE_TIME           2700.0e-6                       //  2700 usec pause
-#define GRUNDIG2_BIT_PULSE_TIME                  550.0e-6                       //   550 usec short pulse
-#define GRUNDIG2_BIT_PAUSE_TIME                  550.0e-6                       //   550 usec short pause
-#define GRUNDIG2_FRAME_REPEAT_PAUSE_TIME         100.0e-3                       // frame repeat after 100ms
-#define GRUNDIG2_STOP_BIT                       0                               // has no stop bit
-#define GRUNDIG2_LSB                            1                               // MSB...LSB
-#define GRUNDIG2_FLAGS                          (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
-#define GRUNDIG2_ADDRESS_OFFSET                 0                               // skip 0 bits
-#define GRUNDIG2_ADDRESS_LEN                    0                               // read 0 bits
-#define GRUNDIG2_COMMAND_OFFSET                 0                               // skip 0 bits
-#define GRUNDIG2_COMMAND_LEN                    7                               // read 6 + 1 command bits, last bit is always 1
-#define GRUNDIG2_COMPLETE_DATA_LEN              7                               // complete length
 
 #define AUTO_FRAME_REPETITION_TIME              80.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
                                                                                 // KASEIKYO: automatic repetition after 75ms
