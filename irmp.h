@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.72 2012/02/24 14:24:27 fm Exp $
+ * $Id: irmp.h,v 1.73 2012/02/24 15:00:18 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -72,7 +72,7 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP_RC6A_PROTOCOL                      21              // RC6A, e.g. Kathrein, XBOX
 #define IRMP_NIKON_PROTOCOL                     22              // Nikon
 #define IRMP_RUWIDO_PROTOCOL                    23              // Ruwido, e.g. T-Home Mediareceiver
-#define IRMP_IR60_PROTOCOL                      24              // IR60 (SAB2008)
+#define IRMP_IR60_PROTOCOL                      24              // IR60 (SDA2008)
 #define IRMP_KATHREIN_PROTOCOL                  25              // Kathrein
 #define IRMP_NETBOX_PROTOCOL                    26              // Netbox keyboard (bitserial)
 #define IRMP_NEC16_PROTOCOL                     27              // NEC with 16 bits (incl. sync)
