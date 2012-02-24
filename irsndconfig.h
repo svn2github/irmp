@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.29 2012/02/16 12:39:36 fm Exp $
+ * $Id: irsndconfig.h,v 1.30 2012/02/24 14:24:28 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -45,8 +45,8 @@
 #define IRSND_SUPPORT_JVC_PROTOCOL              0       // JVC                  >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_NEC16_PROTOCOL            0       // NEC16                >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_NEC42_PROTOCOL            0       // NEC42                >= 10000                 ~150 bytes
-#define IRSND_SUPPORT_IR60_PROTOCOL             0       // IR60 (SAB2008)       >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
-#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          0       // Grundig              >= 10000                 ~300 bytes
+#define IRSND_SUPPORT_IR60_PROTOCOL             1       // IR60 (SAB2008)       >= 10000                 ~250 bytes
+#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // Grundig              >= 10000                 ~300 bytes
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                 ~150 bytes
 #define IRSND_SUPPORT_NOKIA_PROTOCOL            0       // Nokia                >= 10000                 ~400 bytes
 
