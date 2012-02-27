@@ -99,3 +99,9 @@ sendextlog (unsigned char data)
 }
 
 #endif //IRMP_EXT_LOGGING
+
+static void
+dummy (void)
+{
+  // Only to avoid C18 compiler error
+}
