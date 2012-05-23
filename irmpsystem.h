@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.5 2012/05/23 12:26:26 fm Exp $
+ * $Id: irmpsystem.h,v 1.6 2012/05/23 14:02:45 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,11 +49,17 @@
 #ifdef UNIX_OR_WINDOWS                                                              // Analyze on Unix/Linux or Windows
 #  include <stdio.h>
 #  include <stdlib.h>
-#  include <stdint.h>
 #  define F_CPU 8000000L
 #  define ANALYZE
 #  define DEBUG
+#  ifdef unix
+#    include <stdint.h>
+#  else
+typedef unsigned char                   uint8_t;
+typedef unsigned short                  uint16_t;
+#  endif
 #endif
+
 
 #if defined(ATMEL_AVR)
 #  include <stdint.h>
