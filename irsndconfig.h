@@ -1,9 +1,11 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irsndconfig.h
  *
+ * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRSND.H!
+ *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.31 2012/02/24 15:00:18 fm Exp $
+ * $Id: irsndconfig.h,v 1.36 2012/05/23 12:26:26 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -14,12 +16,19 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
+#ifndef _IRSNDCONFIG_H_
+#define _IRSNDCONFIG_H_
+
+#if !defined(_IRSND_H_)
+#  error please include only irsnd.h, not irsndconfig.h
+#endif
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * F_INTERRUPTS: number of interrupts per second, should be in the range from 10000 to 20000, typically 15000
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef F_INTERRUPTS
-#define F_INTERRUPTS                            15000   // interrupts per second
+#  define F_INTERRUPTS                          15000   // interrupts per second
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -31,11 +40,11 @@
  */
 
 // typical protocols, disable here!             Enable  Remarks                 F_INTERRUPTS            Program Space
-#define IRSND_SUPPORT_SIRCS_PROTOCOL            1       // Sony SIRCS           >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_SIRCS_PROTOCOL            1       // Sony SIRCS           >= 10000                 ~200 bytes
 #define IRSND_SUPPORT_NEC_PROTOCOL              1       // NEC + APPLE          >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_SAMSUNG_PROTOCOL          1       // Samsung + Samsung32  >= 10000                 ~300 bytes
 #define IRSND_SUPPORT_MATSUSHITA_PROTOCOL       1       // Matsushita           >= 10000                 ~200 bytes
-#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         1       // Kaseikyo             >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_KASEIKYO_PROTOCOL         1       // Kaseikyo             >= 10000                 ~300 bytes
 #define IRSND_SUPPORT_DENON_PROTOCOL            1       // DENON, Sharp         >= 10000                 ~200 bytes
 
 // more protocols, enable here!                 Enable  Remarks                 F_INTERRUPTS            Program Space
@@ -45,8 +54,8 @@
 #define IRSND_SUPPORT_JVC_PROTOCOL              0       // JVC                  >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_NEC16_PROTOCOL            0       // NEC16                >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_NEC42_PROTOCOL            0       // NEC42                >= 10000                 ~150 bytes
-#define IRSND_SUPPORT_IR60_PROTOCOL             1       // IR60 (SDA2008)       >= 10000                 ~250 bytes
-#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          1       // Grundig              >= 10000                 ~300 bytes
+#define IRSND_SUPPORT_IR60_PROTOCOL             0       // IR60 (SDA2008)       >= 10000                 ~250 bytes
+#define IRSND_SUPPORT_GRUNDIG_PROTOCOL          0       // Grundig              >= 10000                 ~300 bytes
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                 ~150 bytes
 #define IRSND_SUPPORT_NOKIA_PROTOCOL            0       // Nokia                >= 10000                 ~400 bytes
 
@@ -64,26 +73,8 @@
 #define IRSND_SUPPORT_RUWIDO_PROTOCOL           0       // RUWIDO, T-Home       >= 15000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_LEGO_PROTOCOL             0       // LEGO Power RC        >= 20000                 ~150 bytes
 
-
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * DO NOT CHANGE:
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#define IRSND_OC2                               0       // OC2
-#define IRSND_OC2A                              1       // OC2A
-#define IRSND_OC2B                              2       // OC2B
-#define IRSND_OC0                               3       // OC0
-#define IRSND_OC0A                              4       // OC0A
-#define IRSND_OC0B                              5       // OC0B
-
-//PIC Microchip C18
-#define IRSND_PIC_CCP1                          1       // PIC C18 RC2 = PWM1 module
-#define IRSND_PIC_CCP2                          2       // PIC C18 RC1 = PWM2 module
-
-#ifndef PIC_C18                                                                 // AVR part
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * AVR
+ * AVR section:
  *
  * Change hardware pin here:                    IRSND_OC2  = OC2  on ATmegas         supporting OC2,  e.g. ATmega8
  *                                              IRSND_OC2A = OC2A on ATmegas         supporting OC2A, e.g. ATmega88
@@ -91,96 +82,49 @@
  *                                              IRSND_OC0  = OC0  on ATmegas         supporting OC0,  e.g. ATmega162
  *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny84, ATtiny85
  *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny84, ATtiny85
- *                                                                                              IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
- *                                                                                              IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-
-#define IRSND_OCx                               IRSND_OC2B          // use OC2B
+#if defined(ATMEL_AVR)
+#  define IRSND_OCx                             IRSND_OC2B              // use OC2B
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * PIC C18
+ * PIC C18 section:
  *
  * Change hardware pin here:                    IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
- *                                                                                              IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
+ *                                              IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-
-#else
-#define IRSND_OCx                                   IRSND_PIC_CCP2      // Use PWMx for PIC
+#elif defined(PIC_C18)
+#  define IRSND_OCx                             IRSND_PIC_CCP2          // Use PWMx for PIC
+                                                                        // change other PIC C18 specific settings:
+#  define F_CPU                                 48000000UL              // PIC frequency: set your freq here
+#  define Pre_Scaler                            4                       // define prescaler for timer2 e.g. 1,4,16
+#  define PIC_Scaler                            2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
+#  warning Timer2 used for IRSND (PWM out) ! Do not use/setup Timer 2 yourself !
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * PIC C18 - change other PIC specific settings - ignore it when using AVR
+ * ARM STM32 section:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+#elif defined (ARM_STM32)                                               // use C13 as IR input on STM32
+#  define IRSND_PORT_LETTER                     A
+#  define IRSND_BIT_NUMBER                      6
+#  define IRSND_TIMER_NUMBER                    10
 
-#define F_CPU                                   48000000UL          // PIC freq.; Set you Freq here
-#define Pre_Scaler                              4                   // define prescaler for Timer2 e.g. 1,4,16 !!!
-#define PIC_Scaler                              2                   // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
-#warning Timer2 used for IRSND (PWM out) ! Do not use/setup Timer 2 yourself !
-
-//Do not change lines below until you have a diffrent HW !! Example for 18F2550/18F4550
-//Setup macro for PWM used PWM module
-
-#if IRSND_OCx == IRSND_PIC_CCP2        
-#define IRSND_PIN                               TRISCbits.TRISC1    // RC1 = PWM2
-
-#define SetDCPWM(x)                             SetDCPWM2(x)                    
-#define ClosePWM                                        ClosePWM2
-#define OpenPWM(x)                                      OpenPWM2(x) 
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Other target system
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif !defined (UNIX_OR_WINDOWS)
+#  error target system not defined.
 #endif
-
-#if IRSND_OCx == IRSND_PIC_CCP1        
-#define IRSND_PIN                               TRISCbits.TRISC2    // RC2 = PWM1
-
-#define SetDCPWM(x)                             SetDCPWM1(x)
-#define ClosePWM                                ClosePWM1
-#define OpenPWM(x)                              OpenPWM1(x)
-#endif
-
-//Setup macro for OpenTimer with defined Pre_Scaler
-#if Pre_Scaler == 1
-#define OpenTimer                               OpenTimer2(TIMER_INT_OFF & T2_PS_1_1); 
-#elif Pre_Scaler == 4
-#define OpenTimer                               OpenTimer2(TIMER_INT_OFF & T2_PS_1_4); 
-#elif Pre_Scaler == 16
-#define OpenTimer                               OpenTimer2(TIMER_INT_OFF & T2_PS_1_16); 
-#else
-#error Incorrect value for Pre_Scaler
-#endif
-
-#endif //PIC_C18
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Use Callbacks to indicate output signal or something else
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define IRSND_USE_CALLBACK                      0       // flag: 0 = don't use callbacks, 1 = use callbacks, default is 0
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- *                              D O   N O T   C H A N G E   T H E   F O L L O W I N G   L I N E S   !
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#if IRSND_SUPPORT_SIEMENS_PROTOCOL == 1 && F_INTERRUPTS < 15000
-#warning F_INTERRUPTS too low, SIEMENS protocol disabled (should be at least 15000)
-#undef IRSND_SUPPORT_SIEMENS_PROTOCOL
-#define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // DO NOT CHANGE! F_INTERRUPTS too low!
+#ifndef IRSND_USE_CALLBACK
+#  define IRSND_USE_CALLBACK                    0                       // flag: 0 = don't use callbacks, 1 = use callbacks, default is 0
 #endif
 
-#if IRSND_SUPPORT_RECS80_PROTOCOL == 1 && F_INTERRUPTS < 20000
-#warning F_INTERRUPTS too low, RECS80 protocol disabled (should be at least 20000)
-#undef IRSND_SUPPORT_RECS80_PROTOCOL
-#define IRSND_SUPPORT_RECS80_PROTOCOL           0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#endif
-
-#if IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 && F_INTERRUPTS < 20000
-#warning F_INTERRUPTS too low, RECS80EXT protocol disabled (should be at least 20000)
-#undef IRSND_SUPPORT_RECS80EXT_PROTOCOL
-#define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#endif
-
-#if IRSND_SUPPORT_LEGO_PROTOCOL == 1 && F_INTERRUPTS < 20000
-#warning F_INTERRUPTS too low, LEGO protocol disabled (should be at least 20000)
-#undef IRSND_SUPPORT_LEGO_PROTOCOL
-#define IRSND_SUPPORT_LEGO_PROTOCOL             0       // DO NOT CHANGE! F_INTERRUPTS too low!
-#endif
+#endif // _IRSNDCONFIG_H_

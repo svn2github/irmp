@@ -14,7 +14,7 @@
 set -e                              # exit on error
 cd `dirname $0`
 mkdir -p tmpsrc
-cp ../irmp.[ch] ../irmpconfig.h ../irsnd.[ch] ../irsndconfig.h ../makefile.lnx tmpsrc
+cp ../irmp.[ch] ../irmpconfig.h ../irsnd.[ch] ../irsndconfig.h ../irmpsystem.h ../irmpprotocols.h ../makefile.lnx tmpsrc
 cd tmpsrc
 sed 's/#define \(IRMP_SUPPORT_[A-Z_0-9]*  *\)[01]/#define \1 1/g' <irmpconfig.h >irmpconfig.new
 mv irmpconfig.new irmpconfig.h
@@ -63,8 +63,6 @@ for j in                            \
     rc5x.txt                        \
     rc6-hold.txt                    \
     rc6.txt                         \
-    sharp-denon.txt                 \
-    sharp-denon2.txt                \
     xbox360-10kHz.txt
 do
     echo "testing $j ..."
@@ -76,16 +74,18 @@ do
     fi
 done
 
+# t-home-mediareceiver-15kHz.txt (RUWIDO) conflicts with Denon
+
 for j in                                \
-    Siemens-Gigaset-M740AV-15kHz.txt    \
     bo_beolink1000-15kHz.txt            \
     denon-15kHz.txt                     \
+    denon-rc-176-15kHz.txt		\
     irc-15kHz.txt                       \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
     samsung32-15kHz.txt                 \
-    t-home-mediareceiver-15kHz.txt      \
-    tp400vt-15kHz.txt			\
+    Siemens-Gigaset-M740AV-15kHz.txt    \
+    tp400vt-15kHz.txt                   \
     universal-15kHz.txt                 \
     xbox360-15kHz.txt
 do

@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.c - infrared multi-protocol decoder, supports several remote control protocols
  *
- * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.116 2012/02/24 11:40:41 fm Exp $
+ * $Id: irmp.c,v 1.121 2012/05/22 15:08:46 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -16,280 +16,6 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * Typical manufacturers of remote controls:
- *
- * SIRCS        - Sony
- * NEC          - NEC, Yamaha, Canon, Tevion, Harman/Kardon, Hitachi, JVC, Pioneer, Toshiba, Xoro, Orion, and many other Japanese manufacturers
- * SAMSUNG      - Samsung
- * SAMSUNG32    - Samsung
- * MATSUSHITA   - Matsushita
- * KASEIKYO     - Panasonic, Denon & other Japanese manufacturers (members of "Japan's Association for Electric Home Application")
- * RECS80       - Philips, Nokia, Thomson, Nordmende, Telefunken, Saba
- * RC5          - Philips and other European manufacturers
- * DENON        - Denon, Sharp
- * RC6          - Philips and other European manufacturers
- * APPLE        - Apple
- * NUBERT       - Nubert Subwoofer System
- * B&O          - Bang & Olufsen
- * PANASONIC    - Panasonic (older, yet not implemented)
- * GRUNDIG      - Grundig
- * NOKIA        - Nokia
- * SIEMENS      - Siemens, e.g. Gigaset M740AV
- * FDC          - FDC IR keyboard
- * RCCAR        - IR remote control for RC cars
- * JVC          - JVC
- * THOMSON      - Thomson
- * NIKON        - Nikon cameras
- * RUWIDO       - T-Home
- * KATHREIN     - Kathrein
- * LEGO         - Lego Power Functions RC
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   SIRCS
- *   -----
- *
- *   frame: 1 start bit + 12-20 data bits + no stop bit
- *   data:  7 command bits + 5 address bits + 0 to 8 additional bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   -----------------_________           ------_____               ------------______
- *       2400us         600us             600us 600us               1200us      600 us        no stop bit
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   NEC + extended NEC
- *   -------------------------
- *
- *   frame: 1 start bit + 32 data bits + 1 stop bit
- *   data NEC:          8 address bits + 8 inverted address bits + 8 command bits + 8 inverted command bits
- *   data extended NEC: 16 address bits + 8 command bits + 8 inverted command bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   -----------------_________           ------______              ------________________    ------______....
- *       9000us        4500us             560us  560us              560us    1690 us          560us
- *
- *
- *   Repetition frame:
- *
- *   -----------------_________------______  .... ~100ms Pause, then repeat
- *       9000us        2250us   560us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   SAMSUNG
- *   -------
- *
- *   frame: 1 start bit + 16 data(1) bits + 1 sync bit + additional 20 data(2) bits + 1 stop bit
- *   data(1): 16 address bits
- *   data(2): 4 ID bits + 8 command bits + 8 inverted command bits
- *
- *   start bit:                           data "0":                 data "1":                 sync bit:               stop bit:
- *   ----------______________             ------______              ------________________    ------______________    ------______....
- *    4500us       4500us                 550us  450us              550us    1450us           550us    4500us         550us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   SAMSUNG32
- *   ----------
- *
- *   frame: 1 start bit + 32 data bits + 1 stop bit
- *   data: 16 address bits + 16 command bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   ----------______________             ------______              ------________________    ------______....
- *    4500us       4500us                 550us  450us              550us    1450us           550us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   MATSUSHITA
- *   ----------
- *
- *   frame: 1 start bit + 24 data bits + 1 stop bit
- *   data:  6 custom bits + 6 command bits + 12 address bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   ----------_________                  ------______              ------________________    ------______....
- *    3488us     3488us                   872us  872us              872us    2616us           872us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   KASEIKYO
- *   --------
- *
- *   frame: 1 start bit + 48 data bits + 1 stop bit
- *   data:  16 manufacturer bits + 4 parity bits + 4 genre1 bits + 4 genre2 bits + 10 command bits + 2 id bits + 8 parity bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   ----------______                     ------______              ------________________    ------______....
- *    3380us   1690us                     423us  423us              423us    1269us           423us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   RECS80
- *   ------
- *
- *   frame: 2 start bits + 10 data bits + 1 stop bit
- *   data:  1 toggle bit + 3 address bits + 6 command bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   -----_____________________           -----____________         -----______________       ------_______....
- *   158us       7432us                   158us   4902us            158us    7432us           158us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   RECS80EXT
- *   ---------
- *
- *   frame: 2 start bits + 11 data bits + 1 stop bit
- *   data:  1 toggle bit + 4 address bits + 6 command bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   -----_____________________           -----____________         -----______________       ------_______....
- *   158us       3637us                   158us   4902us            158us    7432us           158us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   RC5 + RC5X
- *   ----------
- *
- *   RC5 frame:  2 start bits + 12 data bits + no stop bit
- *   RC5 data:   1 toggle bit + 5 address bits + 6 command bits
- *   RC5X frame: 1 start bit +  13 data bits + no stop bit
- *   RC5X data:  1 inverted command bit + 1 toggle bit + 5 address bits + 6 command bits
- *
- *   start bit:              data "0":                data "1":
- *   ______-----             ------______             ______------
- *   889us 889us             889us 889us              889us 889us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   DENON
- *   -----
- *
- *   frame: 0 start bits + 16 data bits + stop bit + 65ms pause + 16 inverted data bits + stop bit
- *   data:  5 address bits + 10 command bits
- *
- *   Theory:
- *
- *   data "0":                 data "1":
- *   ------________________    ------______________
- *   275us       775us         275us   1900us
- *
- *   Practice:
- *
- *   data "0":                 data "1":
- *   ------________________    ------______________
- *   310us       745us         310us   1780us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   RC6
- *   ---
- *
- *   RC6 frame:  1 start bit + 1 bit "1" + 3 mode bits + 1 toggle bit + 16 data bits + 2666 us pause
- *   RC6 data:   8 address bits + 8 command bits
- *
- *   start  bit               toggle bit "0":      toggle bit "1":     data/mode "0":      data/mode "1":
- *   ____________-------      _______-------       -------_______      _______-------      -------_______
- *      2666us    889us        889us  889us         889us  889us        444us  444us        444us  444us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   APPLE
- *   -----
- *
- *   frame: 1 start bit + 32 data bits + 1 stop bit
- *   data:  16 address bits + 11100000 + 8 command bits
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *   -----------------_________           ------______              ------________________    ------______....
- *       9000us        4500us             560us  560us              560us    1690 us          560us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   NUBERT (subwoofer system)
- *   -------------------------
- *
- *   frame: 1 start bit + 10 data bits + 1 stop bit
- *   data:  0 address bits + 10 command bits ?
- *
- *   start bit:                       data "0":                 data "1":                 stop bit:
- *   ----------_____                  ------______              ------________________    ------______....
- *    1340us   340us                  500us 1300us              1340us 340us              500us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   BANG_OLUFSEN
- *   ------------
- *
- *   frame: 4 start bits + 16 data bits + 1 trailer bit + 1 stop bit
- *   data:  0 address bits + 16 command bits
- *
- *   1st start bit:  2nd start bit:      3rd start bit:       4th start bit:
- *   -----________   -----________       -----_____________   -----________
- *   210us 3000us    210us 3000us        210us   15000us      210us 3000us
- *
- *   data "0":       data "1":           data "repeat bit":   trailer bit:         stop bit:
- *   -----________   -----_____________  -----___________     -----_____________   -----____...
- *   210us 3000us    210us   9000us      210us   6000us       210us   12000us      210us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   GRUNDIG
- *   -------
- *
- *   packet:  1 start frame + 19,968ms pause + N info frames + 117,76ms pause + 1 stop frame
- *   frame: 1 pre bit + 1 start bit + 9 data bits + no stop bit
- *   pause between info frames: 117,76ms
- *
- *   data of start frame:   9 x 1
- *   data of info  frame:   9 command bits
- *   data of stop  frame:   9 x 1
- *
- *   pre bit:              start bit           data "0":            data "1":
- *   ------____________    ------______        ______------         ------______             
- *   528us  2639us         528us  528us        528us  528us         528us  528us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   NOKIA:
- *   ------
- *
- *   Timing similar to Grundig, but 16 data bits:
- *   frame: 1 pre bit + 1 start bit + 8 command bits + 8 address bits + no stop bit
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   SIEMENS or RUWIDO:
- *   ------------------
- *
- *   SIEMENS frame:  1 start bit + 22 data bits + no stop bit
- *   SIEMENS data:   13 address bits + 1 repeat bit + 7 data bits + 1 unknown bit
- *
- *   start  bit           data "0":            data "1":
- *   -------_______       _______-------       -------_______
- *    250us  250us         250us  250us         250us  250us
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
- *   PANASONIC (older protocol, yet not implemented, see also MATSUSHITA, timing very similar)
- *   -----------------------------------------------------------------------------------------
- *
- *   frame: 1 start bit + 22 data bits + 1 stop bit
- *   22 data bits = 5 custom bits + 6 data bits + 5 inverted custom bits + 6 inverted data bits
- *
- *   European version:      T = 456us
- *   USA & Canada version:  T = 422us
- *
- *   start bit:                           data "0":                 data "1":                 stop bit:
- *        8T            8T                 2T   2T                   2T      6T                2T
- *   -------------____________            ------_____               ------_____________       ------_______....
- *      3648us        3648us              912us 912us               912us    2736us           912us                (Europe)
- *      3376us        3376us              844us 844us               844us    2532us           844us                (US)
- *
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -297,78 +23,18 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
-#if defined(__18CXX)
-#define PIC_C18                                                             // Microchip C18 Compiler
-#endif
-
-#if defined(__PCM__) || defined(__PCB__) || defined(__PCH__)                // CCS PIC Compiler instead of AVR
-#define PIC_CCS_COMPILER
-#endif
-
-#ifdef unix                                                                 // test on linux/unix
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
-
-#define ANALYZE
-#define PROGMEM
-#define memcpy_P        memcpy
-
-#else // not unix:
-
-#ifdef WIN32
-#include <stdio.h>
-#include <string.h>
-typedef unsigned char   uint8_t;
-typedef unsigned short  uint16_t;
-#define ANALYZE
-#define PROGMEM
-#define memcpy_P        memcpy
-
-#else
-
-#if defined (PIC_CCS_COMPILER) || defined(PIC_C18)
-
-#include <string.h>
-#define PROGMEM
-#define memcpy_P        memcpy
-
-#if defined (PIC_CCS_COMPILER)
-typedef unsigned int8   uint8_t;
-typedef unsigned int16  uint16_t;
-#endif
-
-#else // AVR:
-
-#include <inttypes.h>
-#include <stdio.h>
-#include <string.h>
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/pgmspace.h>
-
-#endif  // PIC_CCS_COMPILER or PIC_C18
-
-#endif // windows
-#endif // unix
-
-#ifndef IRMP_USE_AS_LIB
-#include "irmpconfig.h"
-#endif
 #include "irmp.h"
 
 #if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1 || IRMP_SUPPORT_NOKIA_PROTOCOL == 1 || IRMP_SUPPORT_IR60_PROTOCOL == 1
-#define IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL  1
+#  define IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL  1
 #else
-#define IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL  0
+#  define IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL  0
 #endif
 
 #if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 || IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
-#define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL 1
+#  define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL   1
 #else
-#define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL 0
+#  define IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL   0
 #endif
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||                   \
@@ -376,15 +42,15 @@ typedef unsigned int16  uint16_t;
     IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
     IRMP_SUPPORT_IR60_PROTOCOL
-#define IRMP_SUPPORT_MANCHESTER                 1
+#  define IRMP_SUPPORT_MANCHESTER                   1
 #else
-#define IRMP_SUPPORT_MANCHESTER                 0
+#  define IRMP_SUPPORT_MANCHESTER                   0
 #endif
 
 #if IRMP_SUPPORT_NETBOX_PROTOCOL == 1
-#define IRMP_SUPPORT_SERIAL                     1
+#  define IRMP_SUPPORT_SERIAL                       1
 #else
-#define IRMP_SUPPORT_SERIAL                     0
+#  define IRMP_SUPPORT_SERIAL                       0
 #endif
 
 #define IRMP_KEY_REPETITION_LEN                 (uint16_t)(F_INTERRUPTS * 150.0e-3 + 0.5)           // autodetect key repetition within 150 msec
@@ -423,9 +89,9 @@ typedef unsigned int16  uint16_t;
 #define SIRCS_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define SIRCS_START_BIT_PAUSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #if IRMP_SUPPORT_NETBOX_PROTOCOL                // only 5% to avoid conflict with NETBOX:
-#define SIRCS_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5))
+#  define SIRCS_START_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5))
 #else                                           // only 5% + 1 to avoid conflict with RC6:
-#define SIRCS_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#  define SIRCS_START_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * SIRCS_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
 #endif
 #define SIRCS_1_PULSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * SIRCS_1_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define SIRCS_1_PULSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * SIRCS_1_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -505,15 +171,13 @@ typedef unsigned int16  uint16_t;
 #define RC5_BIT_LEN_MAX                         ((uint8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define DENON_PULSE_LEN_MIN                     ((uint8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define DENON_PULSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define DENON_PULSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define DENON_1_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_1_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define DENON_1_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * DENON_1_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
-#define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5))     // no -1, avoid conflict with RUWIDO
-#else
-#define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1) // be more tolerant
-#endif
+// RUWIDO (see t-home-mediareceiver-15kHz.txt) conflicts here with DENON
+#define DENON_0_PAUSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define DENON_0_PAUSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * DENON_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define DENON_AUTO_REPETITION_PAUSE_LEN         ((uint16_t)(F_INTERRUPTS * DENON_AUTO_REPETITION_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define THOMSON_PULSE_LEN_MIN                   ((uint8_t)(F_INTERRUPTS * THOMSON_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define THOMSON_PULSE_LEN_MAX                   ((uint8_t)(F_INTERRUPTS * THOMSON_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -692,18 +356,18 @@ typedef unsigned int16  uint16_t;
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef ANALYZE
-#define ANALYZE_PUTCHAR(a)                      { if (! silent)             { putchar (a);          } }
-#define ANALYZE_ONLY_NORMAL_PUTCHAR(a)          { if (! silent && !verbose) { putchar (a);          } }
-#define ANALYZE_PRINTF(...)                     { if (verbose)              { printf (__VA_ARGS__); } }
-#define ANALYZE_NEWLINE()                       { if (verbose)              { putchar ('\n');       } }
+#  define ANALYZE_PUTCHAR(a)                    { if (! silent)             { putchar (a);          } }
+#  define ANALYZE_ONLY_NORMAL_PUTCHAR(a)        { if (! silent && !verbose) { putchar (a);          } }
+#  define ANALYZE_PRINTF(...)                   { if (verbose)              { printf (__VA_ARGS__); } }
+#  define ANALYZE_NEWLINE()                     { if (verbose)              { putchar ('\n');       } }
 static int                                      silent;
 static int                                      time_counter;
 static int                                      verbose;
 #else
-#define ANALYZE_PUTCHAR(a)
-#define ANALYZE_ONLY_NORMAL_PUTCHAR(a)
-#define ANALYZE_PRINTF(...)
-#define ANALYZE_NEWLINE()
+#  define ANALYZE_PUTCHAR(a)
+#  define ANALYZE_ONLY_NORMAL_PUTCHAR(a)
+#  define ANALYZE_PRINTF(...)
+#  define ANALYZE_NEWLINE()
 #endif
 
 #if IRMP_USE_CALLBACK == 1
@@ -1542,9 +1206,10 @@ static volatile uint16_t                    irmp_address;
 static volatile uint16_t                    irmp_command;
 static volatile uint16_t                    irmp_id;                    // only used for SAMSUNG protocol
 static volatile uint8_t                     irmp_flags;
-// static volatile uint8_t                     irmp_busy_flag;
+// static volatile uint8_t                  irmp_busy_flag;
 
 #ifdef ANALYZE
+#define input(x)                            (x)
 static uint8_t                              IRMP_PIN;
 #endif
 
@@ -1557,7 +1222,40 @@ static uint8_t                              IRMP_PIN;
 void
 irmp_init (void)
 {
-#if !defined(PIC_CCS_COMPILER) && !defined(PIC_C18)                     // only AVR
+#if defined(PIC_CCS) || defined(PIC_C18)                                // PIC: do nothing
+#elif defined (ARM_STM32)                                               // STM32
+   GPIO_InitTypeDef     GPIO_InitStructure;
+
+   /* GPIOx clock enable */
+ #if defined (ARM_STM32L1XX)
+   RCC_AHBPeriphClockCmd(IRMP_PORT_RCC, ENABLE);
+ #elif defined (ARM_STM32F10X)
+   RCC_APB2PeriphClockCmd(IRMP_PORT_RCC, ENABLE);
+ #elif defined (ARM_STM32F4XX)
+   RCC_AHB1PeriphClockCmd(IRMP_PORT_RCC, ENABLE);
+ #endif
+
+   /* GPIO Configuration */
+   GPIO_InitStructure.GPIO_Pin = IRMP_BIT;
+ #if defined (ARM_STM32L1XX) || defined (ARM_STM32F4XX)
+   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+ #elif defined (ARM_STM32F10X)
+   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ #endif
+   GPIO_Init(IRMP_PORT, &GPIO_InitStructure);
+
+   /* GPIO Configuration */
+   GPIO_InitStructure.GPIO_Pin = IRMP_BIT;
+   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+   GPIO_Init(IRMP_PORT, &GPIO_InitStructure);
+#else                                                                   // AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup
     IRMP_DDR &= ~(1<<IRMP_BIT);                                         // set pin to input
 #endif
@@ -1705,7 +1403,10 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
             }
 #endif
             default:
+            {
                 rtc = TRUE;
+                break;
+            }
         }
 
         if (rtc)
@@ -1974,6 +1675,15 @@ irmp_ISR (void)
                     if (repetition_len < 0xFFFF)                                // avoid overflow of counter
                     {
                         repetition_len++;
+
+#if IRMP_SUPPORT_DENON_PROTOCOL == 1
+                        if (repetition_len >= DENON_AUTO_REPETITION_PAUSE_LEN && last_irmp_denon_command != 0)
+                        {
+                            ANALYZE_PRINTF ("%8.3fms error 6: did not receive inverted command repetition\n",
+                                            (double) (time_counter * 1000) / F_INTERRUPTS);
+                            last_irmp_denon_command = 0;
+                        }
+#endif // IRMP_SUPPORT_DENON_PROTOCOL == 1
                     }
                 }
             }
@@ -3290,6 +3000,7 @@ irmp_ISR (void)
                         if ((~irmp_tmp_command & 0x3FF) == last_irmp_denon_command) // command bits must be inverted
                         {
                             irmp_tmp_command = last_irmp_denon_command;             // use command received before!
+                            last_irmp_denon_command = 0;
 
                             irmp_protocol = irmp_param.protocol;                    // store protocol
                             irmp_address = irmp_tmp_address;                        // store address
@@ -3297,9 +3008,10 @@ irmp_ISR (void)
                         }
                         else
                         {
-                            ANALYZE_PRINTF ("waiting for inverted command repetition\n");
+                            ANALYZE_PRINTF ("%8.3fms waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
                             irmp_ir_detected = FALSE;
                             last_irmp_denon_command = irmp_tmp_command;
+                            repetition_len = 0;
                         }
                     }
                     else
@@ -4038,7 +3750,7 @@ main (int argc, char ** argv)
 
             if (! analyze)
             {
-                for (i = 0; i < (int) ((8000.0 * F_INTERRUPTS) / 10000); i++)               // newline: long pause of 800 msec
+                for (i = 0; i < (int) ((10000.0 * F_INTERRUPTS) / 10000); i++)               // newline: long pause of 10000 msec
                 {
                     next_tick ();
                 }

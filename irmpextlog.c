@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmpextlog.c - external logging
  *
- * $Id: irmpextlog.c,v 1.1 2012/02/16 10:40:08 fm Exp $
+ * $Id: irmpextlog.c,v 1.2 2012/02/27 09:04:21 fm Exp $
  *
  * If you cannot use the internal UART logging routine, adapt the
  * source below for your application. The following implementation

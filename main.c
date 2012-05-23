@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * main.c - demo main module to test irmp decoder
  *
- * Copyright (c) 2009-2011 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.12 2012/02/13 10:59:07 fm Exp $
+ * $Id: main.c,v 1.14 2012/05/15 10:25:21 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -16,13 +16,6 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
-#include <inttypes.h>
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
-
-#include "irmpconfig.h"
 #include "irmp.h"
 
 #ifndef F_CPU

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * irsndmain.c - demo main module to test irmp decoder
+ * irsndmain.c - demo main module to test irsnd encoder
  *
- * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2012 Frank Meyer - frank(at)fli4l.de
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -13,18 +13,10 @@
  * (at your option) any later version.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-
-#include <inttypes.h>
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
-#include "irmp.h"
-#include "irsndconfig.h"
 #include "irsnd.h"
 
 #ifndef F_CPU
-#error F_CPU unkown
+#  error F_CPU unkown
 #endif
 
 void

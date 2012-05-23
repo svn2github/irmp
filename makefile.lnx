@@ -11,22 +11,22 @@
 #----------------------------------------------------------------------------
 all:	irmp irmp-15kHz irmp-20kHz irsnd irsnd-15kHz irsnd-20kHz
 
-irmp: irmp.c irmp.h irmpconfig.h
+irmp: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=10000 irmp.c -o irmp
 
-irmp-15kHz: irmp.c irmp.h irmpconfig.h
+irmp-15kHz: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=15000 irmp.c -o irmp-15kHz
 
-irmp-20kHz: irmp.c irmp.h irmpconfig.h
+irmp-20kHz: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=20000 irmp.c -o irmp-20kHz
 
-irsnd: irsnd.c irsnd.h irmp.h irsndconfig.h
+irsnd: irsnd.c irsnd.h irmp.h irsndconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=10000 irsnd.c -o irsnd
 
-irsnd-15kHz: irsnd.c irsnd.h irmp.h irsndconfig.h
+irsnd-15kHz: irsnd.c irsnd.h irmp.h irsndconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=15000 irsnd.c -o irsnd-15kHz
 
-irsnd-20kHz: irsnd.c irsnd.h irmp.h irsndconfig.h
+irsnd-20kHz: irsnd.c irsnd.h irmp.h irsndconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=20000 irsnd.c -o irsnd-20kHz
 
 test: all
