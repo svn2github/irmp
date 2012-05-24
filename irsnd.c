@@ -12,7 +12,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.54 2012/05/23 12:26:26 fm Exp $
+ * $Id: irsnd.c,v 1.55 2012/05/24 06:55:11 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,6 +369,7 @@ irsnd_on (void)
 #  if defined(PIC_C18)                                  // PIC C18
         IRSND_PIN = 0; // output mode -> enable PWM outout pin (0=PWM on, 1=PWM off)
 #  elif defined (ARM_STM32)                             // STM32
+        IRSND_TIMER->CCER |= (uint16_t)TIM_CCER_CC1E;
         TIM_Cmd(IRSND_TIMER, ENABLE);                   // TIMx enable counter
 #  else                                                 // AVR
 #    if   IRSND_OCx == IRSND_OC2                        // use OC2
@@ -415,6 +416,7 @@ irsnd_off (void)
 #  if defined(PIC_C18)                                  // PIC C18
         IRSND_PIN = 1; //input mode -> disbale PWM output pin (0=PWM on, 1=PWM off)
 #  elif defined (ARM_STM32)                             // STM32
+        IRSND_TIMER->CCER &= (uint16_t)(~(uint16_t)TIM_CCER_CC1E);
         TIM_Cmd(IRSND_TIMER, DISABLE);                  // TIMx enable counter
 #  else //AVR
 
@@ -461,9 +463,7 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
          OpenPWM(freq); 
          SetDCPWM( (uint16_t) freq * 2); // freq*2 = Duty cycles 50%
 #  elif defined (ARM_STM32)                                                                 // STM32
-         static uint32_t             TimeBaseFreq = 0;
-         TIM_TimeBaseInitTypeDef     TIM_TimeBaseStructure;
-         TIM_OCInitTypeDef           TIM_OCInitStructure;
+         static uint32_t      TimeBaseFreq = 0;
 
          if (TimeBaseFreq == 0)
          {
@@ -471,28 +471,32 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
             /* Get system clocks and store timer clock in variable */
             RCC_GetClocksFreq(&RCC_ClocksStructure);
 #    if ((IRSND_TIMER_NUMBER >= 2) && (IRSND_TIMER_NUMBER <= 5)) || ((IRSND_TIMER_NUMBER >= 12) && (IRSND_TIMER_NUMBER <= 14))
-            TimeBaseFreq = RCC_ClocksStructure.PCLK1_Frequency;
+            if (RCC_ClocksStructure.PCLK1_Frequency == RCC_ClocksStructure.HCLK_Frequency)
+            {
+               TimeBaseFreq = RCC_ClocksStructure.PCLK1_Frequency;
+            }
+            else
+            {
+               TimeBaseFreq = RCC_ClocksStructure.PCLK1_Frequency * 2;
+            }
 #    else
-            TimeBaseFreq = RCC_ClocksStructure.PCLK2_Frequency;
+            if (RCC_ClocksStructure.PCLK2_Frequency == RCC_ClocksStructure.HCLK_Frequency)
+            {
+               TimeBaseFreq = RCC_ClocksStructure.PCLK2_Frequency;
+            }
+            else
+            {
+               TimeBaseFreq = RCC_ClocksStructure.PCLK2_Frequency * 2;
+            }
 #    endif
          }
 
          freq = TimeBaseFreq/freq;
 
-         /* Time base configuration */
-         TIM_TimeBaseStructure.TIM_Period = freq;
-         TIM_TimeBaseStructure.TIM_Prescaler = 0;
-         TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-         TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-         TIM_TimeBaseInit(IRSND_TIMER, &TIM_TimeBaseStructure);
-
-         /* PWM1 Mode configuration: Channel1 */
-         TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-         TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-         TIM_OCInitStructure.TIM_Pulse = (freq + 1) / 2;
-         TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
-         TIM_OC1Init(IRSND_TIMER, &TIM_OCInitStructure);
-
+         /* Set frequency */
+         TIM_SetAutoreload(IRSND_TIMER, freq);
+         /* Set duty cycle */
+         TIM_SetCompare1(IRSND_TIMER, (freq + 1) / 2);
 #  else                                                                                     // AVR
 
 #    if IRSND_OCx == IRSND_OC2
@@ -528,7 +532,9 @@ irsnd_init (void)
         irsnd_set_freq (IRSND_FREQ_36_KHZ);   //default frequency
         IRSND_PIN = 1; //default PWM output pin off (0=PWM on, 1=PWM off)
 #  elif defined (ARM_STM32)                                                 // STM32
-        GPIO_InitTypeDef GPIO_InitStructure;
+        GPIO_InitTypeDef            GPIO_InitStructure;
+        TIM_TimeBaseInitTypeDef     TIM_TimeBaseStructure;
+        TIM_OCInitTypeDef           TIM_OCInitStructure;
 
        /* GPIOx clock enable */
 #    if defined (ARM_STM32L1XX)
@@ -561,12 +567,26 @@ irsnd_init (void)
 #    else
         RCC_APB2PeriphClockCmd(IRSND_TIMER_RCC, ENABLE);
 #    endif
-        irsnd_set_freq (IRSND_FREQ_36_KHZ);                                         // default frequency
 
-        /* TIMx Configuration */
+        /* Time base configuration */
+        TIM_TimeBaseStructure.TIM_Period = 0;   // will be initialized later
+        TIM_TimeBaseStructure.TIM_Prescaler = 0;
+        TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+        TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+        TIM_TimeBaseInit(IRSND_TIMER, &TIM_TimeBaseStructure);
+
+        /* PWM1 Mode configuration */
+        TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+        TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+        TIM_OCInitStructure.TIM_Pulse = 0;      // will be initialized later
+        TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+        TIM_OC1Init(IRSND_TIMER, &TIM_OCInitStructure);
+
+        /* Preload configuration */
         TIM_OC1PreloadConfig(IRSND_TIMER, TIM_OCPreload_Enable);
         TIM_ARRPreloadConfig(IRSND_TIMER, ENABLE);
-        TIM_Cmd(IRSND_TIMER, ENABLE);
+
+        irsnd_set_freq (IRSND_FREQ_36_KHZ);                                         // default frequency
 #  else                                                                             // AVR
         IRSND_PORT &= ~(1<<IRSND_BIT);                                              // set IRSND_BIT to low
         IRSND_DDR |= (1<<IRSND_BIT);                                                // set IRSND_BIT to output

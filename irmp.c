@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.121 2012/05/22 15:08:46 fm Exp $
+ * $Id: irmp.c,v 1.122 2012/05/24 06:55:11 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1238,22 +1238,14 @@ irmp_init (void)
    /* GPIO Configuration */
    GPIO_InitStructure.GPIO_Pin = IRMP_BIT;
  #if defined (ARM_STM32L1XX) || defined (ARM_STM32F4XX)
-   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
  #elif defined (ARM_STM32F10X)
    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
  #endif
-   GPIO_Init(IRMP_PORT, &GPIO_InitStructure);
-
-   /* GPIO Configuration */
-   GPIO_InitStructure.GPIO_Pin = IRMP_BIT;
-   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
    GPIO_Init(IRMP_PORT, &GPIO_InitStructure);
 #else                                                                   // AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup

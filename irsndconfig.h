@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.36 2012/05/23 12:26:26 fm Exp $
+ * $Id: irsndconfig.h,v 1.37 2012/05/24 06:55:11 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -106,10 +106,11 @@
  * ARM STM32 section:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#elif defined (ARM_STM32)                                               // use C13 as IR input on STM32
+#elif defined (ARM_STM32)                                               // use A6 as IR output on STM32
 #  define IRSND_PORT_LETTER                     A
 #  define IRSND_BIT_NUMBER                      6
 #  define IRSND_TIMER_NUMBER                    10
+#  define IRSND_TIMER_CHANNEL                   1                       // only channel 1 can be used at the moment, others won't work
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Other target system
