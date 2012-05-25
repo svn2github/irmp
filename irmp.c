@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.122 2012/05/24 06:55:11 fm Exp $
+ * $Id: irmp.c,v 1.123 2012/05/24 08:16:28 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1534,7 +1534,11 @@ irmp_store_bit (uint8_t value)
             }
         }
     }
+    else
 #endif
+    {
+        ;
+    }
 
     irmp_bit++;
 }
@@ -3081,8 +3085,9 @@ irmp_ISR (void)
                         }
                         else
 #endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
-
-                        irmp_protocol = irmp_param.protocol;
+                        {
+                            irmp_protocol = irmp_param.protocol;
+                        }
 
 #if IRMP_SUPPORT_FDC_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_FDC_PROTOCOL)
