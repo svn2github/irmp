@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.37 2012/05/24 06:55:11 fm Exp $
+ * $Id: irsndconfig.h,v 1.38 2012/06/05 12:00:46 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -110,7 +110,7 @@
 #  define IRSND_PORT_LETTER                     A
 #  define IRSND_BIT_NUMBER                      6
 #  define IRSND_TIMER_NUMBER                    10
-#  define IRSND_TIMER_CHANNEL                   1                       // only channel 1 can be used at the moment, others won't work
+#  define IRSND_TIMER_CHANNEL_NUMBER            1                       // only channel 1 can be used at the moment, others won't work
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Other target system

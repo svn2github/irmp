@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.12 2012/05/23 12:26:26 fm Exp $
+ * $Id: irsnd.h,v 1.13 2012/06/05 12:00:46 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -37,6 +37,7 @@
 #  endif
 #  define IRSND_BIT                             CONCAT(GPIO_Pin_, IRSND_BIT_NUMBER)
 #  define IRSND_TIMER                           CONCAT(TIM, IRSND_TIMER_NUMBER)
+#  define IRSND_TIMER_CHANNEL                   CONCAT(TIM_Channel_, IRSND_TIMER_CHANNEL_NUMBER)
 #  if ((IRSND_TIMER_NUMBER >= 2) && (IRSND_TIMER_NUMBER <= 5)) || ((IRSND_TIMER_NUMBER >= 12) && (IRSND_TIMER_NUMBER <= 14))
 #    define IRSND_TIMER_RCC                     CONCAT(RCC_APB1Periph_TIM, IRSND_TIMER_NUMBER)
 #  elif (IRSND_TIMER_NUMBER == 1) || ((IRSND_TIMER_NUMBER >= 8) && (IRSND_TIMER_NUMBER <= 11))

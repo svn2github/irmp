@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmpextlog.c - external logging
  *
- * $Id: irmpextlog.c,v 1.2 2012/02/27 09:04:21 fm Exp $
+ * $Id: irmpextlog.c,v 1.3 2012/06/05 12:00:46 fm Exp $
  *
  * If you cannot use the internal UART logging routine, adapt the
  * source below for your application. The following implementation
@@ -13,7 +13,7 @@
  * (at your option) any later version.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#include "irmpconfig.h"
+#include "irmp.h"
 
 #if IRMP_EXT_LOGGING == 1
 

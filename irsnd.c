@@ -12,7 +12,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.55 2012/05/24 06:55:11 fm Exp $
+ * $Id: irsnd.c,v 1.56 2012/06/05 12:00:46 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,8 +369,9 @@ irsnd_on (void)
 #  if defined(PIC_C18)                                  // PIC C18
         IRSND_PIN = 0; // output mode -> enable PWM outout pin (0=PWM on, 1=PWM off)
 #  elif defined (ARM_STM32)                             // STM32
-        IRSND_TIMER->CCER |= (uint16_t)TIM_CCER_CC1E;
-        TIM_Cmd(IRSND_TIMER, ENABLE);                   // TIMx enable counter
+        TIM_SelectOCxM(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_OCMode_PWM1); // enable PWM as OC-mode
+        TIM_CCxCmd(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_CCx_Enable);      // enable OC-output (is being disabled in TIM_SelectOCxM())
+        TIM_Cmd(IRSND_TIMER, ENABLE);                   // enable counter
 #  else                                                 // AVR
 #    if   IRSND_OCx == IRSND_OC2                        // use OC2
         TCCR2 |= (1<<COM20)|(1<<WGM21);                 // toggle OC2 on compare match,  clear Timer 2 at compare match OCR2
@@ -416,8 +417,10 @@ irsnd_off (void)
 #  if defined(PIC_C18)                                  // PIC C18
         IRSND_PIN = 1; //input mode -> disbale PWM output pin (0=PWM on, 1=PWM off)
 #  elif defined (ARM_STM32)                             // STM32
-        IRSND_TIMER->CCER &= (uint16_t)(~(uint16_t)TIM_CCER_CC1E);
-        TIM_Cmd(IRSND_TIMER, DISABLE);                  // TIMx enable counter
+        TIM_Cmd(IRSND_TIMER, DISABLE);                  // disable counter
+        TIM_SelectOCxM(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_ForcedAction_InActive);   // force output inactive
+        TIM_CCxCmd(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_CCx_Enable);      // enable OC-output (is being disabled in TIM_SelectOCxM())
+        TIM_SetCounter(IRSND_TIMER, 0);                 // reset counter value
 #  else //AVR
 
 #    if   IRSND_OCx == IRSND_OC2                        // use OC2
@@ -494,7 +497,7 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
          freq = TimeBaseFreq/freq;
 
          /* Set frequency */
-         TIM_SetAutoreload(IRSND_TIMER, freq);
+         TIM_SetAutoreload(IRSND_TIMER, freq - 1);
          /* Set duty cycle */
          TIM_SetCompare1(IRSND_TIMER, (freq + 1) / 2);
 #  else                                                                                     // AVR
@@ -569,7 +572,7 @@ irsnd_init (void)
 #    endif
 
         /* Time base configuration */
-        TIM_TimeBaseStructure.TIM_Period = 0;   // will be initialized later
+        TIM_TimeBaseStructure.TIM_Period = -1;     // set dummy value (don't set to 0), will be initialized later
         TIM_TimeBaseStructure.TIM_Prescaler = 0;
         TIM_TimeBaseStructure.TIM_ClockDivision = 0;
         TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -578,15 +581,15 @@ irsnd_init (void)
         /* PWM1 Mode configuration */
         TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
         TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-        TIM_OCInitStructure.TIM_Pulse = 0;      // will be initialized later
+        TIM_OCInitStructure.TIM_Pulse = 0;         // will be initialized later
         TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
         TIM_OC1Init(IRSND_TIMER, &TIM_OCInitStructure);
 
         /* Preload configuration */
-        TIM_OC1PreloadConfig(IRSND_TIMER, TIM_OCPreload_Enable);
         TIM_ARRPreloadConfig(IRSND_TIMER, ENABLE);
+        TIM_OC1PreloadConfig(IRSND_TIMER, TIM_OCPreload_Enable);
 
-        irsnd_set_freq (IRSND_FREQ_36_KHZ);                                         // default frequency
+        irsnd_set_freq (IRSND_FREQ_36_KHZ);                                         // set default frequency
 #  else                                                                             // AVR
         IRSND_PORT &= ~(1<<IRSND_BIT);                                              // set IRSND_BIT to low
         IRSND_DDR |= (1<<IRSND_BIT);                                                // set IRSND_BIT to output
