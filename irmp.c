@@ -3,12 +3,13 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.123 2012/05/24 08:16:28 fm Exp $
+ * $Id: irmp.c,v 1.124 2012/06/18 08:49:29 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
  * Supported mikrocontrollers:
  *
+ * ATtiny167
  * ATtiny45,  ATtiny85
  * ATtiny84
  * ATmega8,   ATmega16,  ATmega32
