@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2011 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.39 2012/06/18 08:49:29 fm Exp $
+ * $Id: irsndconfig.h,v 1.40 2012/06/18 09:00:46 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -80,7 +80,7 @@
  *                                              IRSND_OC2A = OC2A on ATmegas         supporting OC2A, e.g. ATmega88
  *                                              IRSND_OC2B = OC2B on ATmegas         supporting OC2B, e.g. ATmega88
  *                                              IRSND_OC0  = OC0  on ATmegas         supporting OC0,  e.g. ATmega162
- *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny84, ATtiny85, ATtiny167
+ *                                              IRSND_OC0A = OC0A on ATmegas/ATtinys supporting OC0A, e.g. ATtiny84, ATtiny85, ATtiny87/167
  *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny84, ATtiny85
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */

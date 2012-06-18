@@ -5,7 +5,7 @@
  *
  * Supported mikrocontrollers:
  *
- * ATtiny167
+ * ATtiny87,  ATtiny167
  * ATtiny45,  ATtiny85
  * ATtiny84
  * ATmega8,   ATmega16,  ATmega32
@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.57 2012/06/18 08:49:29 fm Exp $
+ * $Id: irsnd.c,v 1.59 2012/06/18 09:00:46 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
-#elif defined (__AVR_ATtiny167__)                                   // ATtiny167 uses OC0A = PA2
+#elif defined (__AVR_ATtiny87__) || defined (__AVR_ATtiny167__)     // ATtiny87/167 uses OC0A = PA2
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
 #    define IRSND_PORT                              PORTA           // port A
 #    define IRSND_DDR                               DDRA            // ddr A
