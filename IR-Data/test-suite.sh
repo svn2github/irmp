@@ -68,9 +68,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp -v < $j | grep -q error
     then
-	tmpsrc/irmp -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 
@@ -78,8 +78,9 @@ done
 
 for j in                                \
     bo_beolink1000-15kHz.txt            \
+    bose_wave_system_15khz.txt          \
     denon-15kHz.txt                     \
-    denon-rc-176-15kHz.txt		\
+    denon-rc-176-15kHz.txt              \
     irc-15kHz.txt                       \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
@@ -92,9 +93,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-15kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-15kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 
@@ -106,9 +107,9 @@ do
     echo "testing $j ..."
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-20kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-20kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     fi
 done
 

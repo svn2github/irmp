@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.4 2012/05/23 12:26:26 fm Exp $
+ * $Id: irmpprotocols.h,v 1.5 2012/07/11 12:44:30 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,8 +55,9 @@
 #define IRMP_NEC42_PROTOCOL                     28              // NEC with 42 bits
 #define IRMP_LEGO_PROTOCOL                      29              // LEGO Power Functions RC
 #define IRMP_THOMSON_PROTOCOL                   30              // Thomson
+#define IRMP_BOSE_PROTOCOL                      31              // BOSE
 
-#define IRMP_N_PROTOCOLS                        30              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        31              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -481,6 +482,21 @@ typedef uint8_t     PAUSE_LEN;
 #define THOMSON_STOP_BIT                        1                               // has stop bit
 #define THOMSON_LSB                             0                               // MSB...LSB
 #define THOMSON_FLAGS                           0                               // flags
+
+#define BOSE_START_BIT_PULSE_TIME               1060.0e-6                       // 1060 usec pulse
+#define BOSE_START_BIT_PAUSE_TIME               1430.0e-6                       // 1430 usec pause
+#define BOSE_PULSE_TIME                          550.0e-6                       //  550 usec pulse
+#define BOSE_1_PAUSE_TIME                       1425.0e-6                       // 1425 usec pause
+#define BOSE_0_PAUSE_TIME                        437.0e-6                       //  437 usec pause
+#define BOSE_FRAME_REPEAT_PAUSE_TIME              40.0e-3                       // frame repeat after 40ms???
+#define BOSE_ADDRESS_OFFSET                      0                              // skip 0 bits
+#define BOSE_ADDRESS_LEN                         0                              // read 16 address bits
+#define BOSE_COMMAND_OFFSET                      0                              // skip 16 bits (8 address + 8 /address)
+#define BOSE_COMMAND_LEN                        16                              // read 16 bits (8 command + 8 /command)
+#define BOSE_COMPLETE_DATA_LEN                  16                              // complete length
+#define BOSE_STOP_BIT                           1                               // has stop bit
+#define BOSE_LSB                                1                               // LSB...MSB
+#define BOSE_FLAGS                              0                               // flags
 
 #define AUTO_FRAME_REPETITION_TIME              80.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
 
