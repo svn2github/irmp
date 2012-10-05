@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.127 2012/07/11 13:13:50 fm Exp $
+ * $Id: irmp.c,v 1.128 2012/10/05 07:58:39 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -3120,23 +3120,23 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL)
                         {
-                            uint8_t xor;
+                            uint8_t xor_value;
                             // ANALYZE_PRINTF ("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n",
                             //                 xor_check[0], xor_check[1], xor_check[2], xor_check[3], xor_check[4], xor_check[5]);
 
-                            xor = (xor_check[0] & 0x0F) ^ ((xor_check[0] & 0xF0) >> 4) ^ (xor_check[1] & 0x0F) ^ ((xor_check[1] & 0xF0) >> 4);
+                            xor_value = (xor_check[0] & 0x0F) ^ ((xor_check[0] & 0xF0) >> 4) ^ (xor_check[1] & 0x0F) ^ ((xor_check[1] & 0xF0) >> 4);
 
-                            if (xor != (xor_check[2] & 0x0F))
+                            if (xor_value != (xor_check[2] & 0x0F))
                             {
-                                ANALYZE_PRINTF ("error 4: wrong XOR check for customer id: 0x%1x 0x%1x\n", xor, xor_check[2] & 0x0F);
+                                ANALYZE_PRINTF ("error 4: wrong XOR check for customer id: 0x%1x 0x%1x\n", xor_value, xor_check[2] & 0x0F);
                                 irmp_ir_detected = FALSE;
                             }
 
-                            xor = xor_check[2] ^ xor_check[3] ^ xor_check[4];
+                            xor_value = xor_check[2] ^ xor_check[3] ^ xor_check[4];
 
-                            if (xor != xor_check[5])
+                            if (xor_value != xor_check[5])
                             {
-                                ANALYZE_PRINTF ("error 5: wrong XOR check for data bits: 0x%02x 0x%02x\n", xor, xor_check[5]);
+                                ANALYZE_PRINTF ("error 5: wrong XOR check for data bits: 0x%02x 0x%02x\n", xor_value, xor_check[5]);
                                 irmp_ir_detected = FALSE;
                             }
 
