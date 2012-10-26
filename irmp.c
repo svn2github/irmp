@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.128 2012/10/05 07:58:39 fm Exp $
+ * $Id: irmp.c,v 1.129 2012/10/26 08:09:37 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1443,7 +1443,7 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 else
                 {
                     ANALYZE_PRINTF ("CRC error in LEGO protocol\n");
-                    rtc = TRUE;
+                    // rtc = TRUE;                              // don't accept codes with CRC errors
                 }
                 break;
             }

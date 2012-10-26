@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.60 2012/10/05 07:58:39 fm Exp $
+ * $Id: irsnd.c,v 1.62 2012/10/26 08:20:30 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,61 +35,52 @@
  */
 #if defined (__AVR_ATtiny84__)                                      // ATtiny84 uses OC0A = PB2 or OC0B = PA7
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               2               // OC0A
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        2
 #  elif IRSND_OCx == IRSND_OC0B                                     // OC0B
-#    define IRSND_PORT                              PORTA           // port A
-#    define IRSND_DDR                               DDRA            // ddr A
-#    define IRSND_BIT                               7               // OC0B
+#    define IRSND_PORT_LETTER                       A
+#    define IRSND_BIT_NUMBER                        7
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
 #elif defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__)      // ATtiny45/85 uses OC0A = PB0 or OC0B = PB1
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               0               // OC0A
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        0
 #  elif IRSND_OCx == IRSND_OC0B                                     // OC0B
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               1               // OC0B
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        1
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
 #elif defined (__AVR_ATtiny87__) || defined (__AVR_ATtiny167__)     // ATtiny87/167 uses OC0A = PA2
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
-#    define IRSND_PORT                              PORTA           // port A
-#    define IRSND_DDR                               DDRA            // ddr A
-#    define IRSND_BIT                               2               // OC0A
+#    define IRSND_PORT_LETTER                       A
+#    define IRSND_BIT_NUMBER                        2
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A in irsndconfig.h
 #  endif // IRSND_OCx
 #elif defined (__AVR_ATmega8__)                                     // ATmega8 uses only OC2 = PB3
 #  if IRSND_OCx == IRSND_OC2                                        // OC0A
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               3               // OC0A
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        3
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2 in irsndconfig.h
 #  endif // IRSND_OCx
 #elif defined (__AVR_ATmega16__) || defined (__AVR_ATmega32__)      // ATmega16|32 uses OC2 = PD7
 #  if IRSND_OCx == IRSND_OC2                                        // OC2
-#    define IRSND_PORT                              PORTD           // port D
-#    define IRSND_DDR                               DDRD            // ddr D
-#    define IRSND_BIT                               7               // OC2
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        7
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2 in irsndconfig.h
 #  endif // IRSND_OCx
 #elif defined (__AVR_ATmega162__)                                   // ATmega162 uses OC2 = PB1 or OC0 = PB0
 #  if IRSND_OCx == IRSND_OC2                                        // OC2
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               1               // OC2
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        1
 #  elif IRSND_OCx == IRSND_OC0                                      // OC0
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               0               // OC0
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        0
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2 or IRSND_OC0 in irsndconfig.h
 #  endif // IRSND_OCx
@@ -100,21 +91,17 @@
    || defined (__AVR_ATmega1284__)  \
    || defined (__AVR_ATmega1284P__)                                 // ATmega164|324|644|644P|1284 uses OC2A = PD7 or OC2B = PD6 or OC0A = PB3 or OC0B = PB4
 #  if IRSND_OCx == IRSND_OC2A                                       // OC2A
-#    define IRSND_PORT                              PORTD           // port D
-#    define IRSND_DDR                               DDRD            // ddr D
-#    define IRSND_BIT                               7               // OC2A
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        7
 #  elif IRSND_OCx == IRSND_OC2B                                     // OC2B
-#    define IRSND_PORT                              PORTD           // port D
-#    define IRSND_DDR                               DDRD            // ddr D
-#    define IRSND_BIT                               6               // OC2B
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        6
 #  elif IRSND_OCx == IRSND_OC0A                                     // OC0A
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               3               // OC0A
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        3
 #  elif IRSND_OCx == IRSND_OC0B                                     // OC0B
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               4               // OC0B
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        4
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2A, IRSND_OC2B, IRSND_OC0A, or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
@@ -125,37 +112,30 @@
    || defined (__AVR_ATmega168P__)  \
    || defined (__AVR_ATmega328P__)                                  // ATmega48|88|168|168|328 uses OC2A = PB3 or OC2B = PD3 or OC0A = PD6 or OC0B = PD5
 #  if IRSND_OCx == IRSND_OC2A                                       // OC2A
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               3               // OC2A
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        3
 #  elif IRSND_OCx == IRSND_OC2B                                     // OC2B
-#    define IRSND_PORT                              PORTD           // port D
-#    define IRSND_DDR                               DDRD            // ddr D
-#    define IRSND_BIT                               3               // OC2B
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        3
 #  elif IRSND_OCx == IRSND_OC0A                                     // OC0A
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               6               // OC0A
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        6
 #  elif IRSND_OCx == IRSND_OC0B                                     // OC0B
-#    define IRSND_PORT                              PORTD           // port D
-#    define IRSND_DDR                               DDRD            // ddr D
-#    define IRSND_BIT                               5               // OC0B
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        5
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2A, IRSND_OC2B, IRSND_OC0A, or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
-#elif defined (__AVR_ATmega8515__) 
+#elif defined (__AVR_ATmega8515__)                                  // ATmega8515 uses OC0 = PB0 or OC1A = PD5 or OC1B = PE2
 #  if IRSND_OCx == IRSND_OC0   
-#    define IRSND_PORT                              PORTB           // port B
-#    define IRSND_DDR                               DDRB            // ddr B
-#    define IRSND_BIT                               0               // OC0
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        0
 #  elif IRSND_OCx == IRSND_OC1A 
-#    define IRSND_PORT                              PORTD           // port D
-#    define IRSND_DDR                               DDRD            // ddr D
-#    define IRSND_BIT                               5               // OC1A
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        5
 #  elif IRSND_OCx == IRSND_OC1B 
-#    define IRSND_PORT                              PORTE           // port E
-#    define IRSND_DDR                               DDRE            // ddr E
-#    define IRSND_BIT                               2               // OC1E
+#    define IRSND_PORT_LETTER                       E
+#    define IRSND_BIT_NUMBER                        2
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0, IRSND_OC1A, or IRSND_OC1B in irsndconfig.h
 #  endif // IRSND_OCx
@@ -168,6 +148,14 @@
 #    error mikrocontroller not defined, please fill in definitions here.
 #  endif // unix, WIN32
 #endif // __AVR...
+
+#if defined(ATMEL_AVR)
+#  define _CONCAT(a,b)                              a##b
+#  define CONCAT(a,b)                               _CONCAT(a,b)
+#  define IRSND_PORT                                CONCAT(PORT, IRSND_PORT_LETTER)
+#  define IRSND_DDR                                 CONCAT(DDR, IRSND_PORT_LETTER)
+#  define IRSND_BIT                                 IRSND_BIT_NUMBER
+#endif
 
 #if IRSND_SUPPORT_NIKON_PROTOCOL == 1
     typedef uint16_t    IRSND_PAUSE_LEN;
@@ -2290,6 +2278,7 @@ main (int argc, char ** argv)
 
         putchar ('\n');
 
+#if 1 // enable here to send twice
         (void) irsnd_send_data (&irmp_data, TRUE);
 
         while (irsnd_busy)
@@ -2298,6 +2287,7 @@ main (int argc, char ** argv)
         }
 
         putchar ('\n');
+#endif
     }
     else
     {
