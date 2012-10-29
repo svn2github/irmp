@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.62 2012/10/26 08:20:30 fm Exp $
+ * $Id: irsnd.c,v 1.63 2012/10/29 10:03:34 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -609,9 +609,9 @@ irsnd_init (void)
 #    elif IRSND_OCx == IRSND_OC2A || IRSND_OCx == IRSND_OC2B                        // use OC2A or OC2B
         TCCR2A = (1<<WGM21);                                                        // CTC mode
 #       if AVR_PRESCALER == 8
-          TCCR2B |= (1<<CS21);                                                      // start Timer 2, prescaler = 8
+          TCCR2B = (1<<CS21);                                                       // start Timer 2, prescaler = 8
 #       else
-          TCCR2B |= (1<<CS20);                                                      // start Timer 2, prescaler = 1
+          TCCR2B = (1<<CS20);                                                       // start Timer 2, prescaler = 1
 #       endif
 #    elif IRSND_OCx == IRSND_OC0                                                    // use OC0
         TCCR0 = (1<<WGM01);                                                         // CTC mode
@@ -623,9 +623,9 @@ irsnd_init (void)
 #    elif IRSND_OCx == IRSND_OC0A || IRSND_OCx == IRSND_OC0B                        // use OC0A or OC0B
         TCCR0A = (1<<WGM01);                                                        // CTC mode
 #       if AVR_PRESCALER == 8
-          TCCR0B |= (1<<CS01);                                                      // start Timer 0, prescaler = 8
+          TCCR0B = (1<<CS01);                                                       // start Timer 0, prescaler = 8
 #       else
-          TCCR0B |= (1<<CS00);                                                      // start Timer 0, prescaler = 1
+          TCCR0B = (1<<CS00);                                                       // start Timer 0, prescaler = 1
 #       endif
 #    else
 #      error wrong value of IRSND_OCx
