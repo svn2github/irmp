@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.129 2012/10/26 08:09:37 fm Exp $
+ * $Id: irmp.c,v 1.130 2012/11/06 10:19:41 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -3070,9 +3070,17 @@ irmp_ISR (void)
                         }
                         else
                         {
-                            ANALYZE_PRINTF ("%8.3fms waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
+                            if ((irmp_tmp_command & 0x03) == 0)
+                            {
+                                ANALYZE_PRINTF ("%8.3fms waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
+                                last_irmp_denon_command = irmp_tmp_command;
+                            }
+                            else
+                            {
+                                ANALYZE_PRINTF ("%8.3fms got unexpected inverted command, ignoring it\n", (double) (time_counter * 1000) / F_INTERRUPTS);
+                                last_irmp_denon_command = 0;
+                            }
                             irmp_ir_detected = FALSE;
-                            last_irmp_denon_command = irmp_tmp_command;
                             repetition_len = 0;
                         }
                     }
@@ -3804,6 +3812,7 @@ main (int argc, char ** argv)
         else if (ch == '\n')
         {
             IRMP_PIN = 0xff;
+            time_counter = 0;
 
             if (list && pause > 0)
             {
@@ -3823,6 +3832,8 @@ main (int argc, char ** argv)
         }
         else if (ch == '#')
         {
+            time_counter = 0;
+
             if (analyze)
             {
                 while ((ch = getchar()) != '\n' && ch != EOF)
