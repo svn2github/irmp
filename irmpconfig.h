@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.94 2012/10/26 08:12:17 fm Exp $
+ * $Id: irmpconfig.h,v 1.95 2012/11/18 17:51:26 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -112,6 +112,14 @@
 #elif defined (ARM_STM32)                                               // use C13 as IR input on STM32
 #  define IRMP_PORT_LETTER                      C
 #  define IRMP_BIT_NUMBER                       13
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Change hardware pin here for Stellaris ARM Cortex M4
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (STELLARIS_ARM_CORTEX_M4)                                 // use B4 as IR input on Stellaris LM4F
+#  define IRMP_PORT_LETTER                      B
+#  define IRMP_BIT_NUMBER                       4
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Handling of unknown target system: DON'T CHANGE

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.130 2012/11/06 10:19:41 fm Exp $
+ * $Id: irmp.c,v 1.131 2012/11/18 17:51:26 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1292,6 +1292,15 @@ irmp_init (void)
    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
  #endif
    GPIO_Init(IRMP_PORT, &GPIO_InitStructure);
+#elif defined(STELLARIS_ARM_CORTEX_M4)
+     // Enable the GPIO port
+     ROM_SysCtlPeripheralEnable(IRMP_PORT_PERIPH);
+
+     // Set as an input
+     ROM_GPIODirModeSet(IRMP_PORT_BASE, IRMP_PORT_PIN, GPIO_DIR_MODE_IN);
+     ROM_GPIOPadConfigSet(IRMP_PORT_BASE, IRMP_PORT_PIN,
+                          GPIO_STRENGTH_2MA,
+                          GPIO_PIN_TYPE_STD_WPU);
 #else                                                                   // AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup
     IRMP_DDR &= ~(1<<IRMP_BIT);                                         // set pin to input
@@ -3235,6 +3244,12 @@ irmp_ISR (void)
             }
         }
     }
+
+#if defined(STELLARIS_ARM_CORTEX_M4)
+    // Clear the timer interrupt
+    TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+#endif
+
     return (irmp_ir_detected);
 }
 
