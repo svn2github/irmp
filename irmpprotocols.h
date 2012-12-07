@@ -1,11 +1,11 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * irmp-system.h - irmp target system definitions
+ * irmpprotocols.h - irmp protocols
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H or IRSND.H!
  *
  * Copyright (c) 2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.6 2012/10/05 07:58:39 fm Exp $
+ * $Id: irmpprotocols.h,v 1.7 2012/12/06 08:49:32 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +163,7 @@ typedef uint8_t     PAUSE_LEN;
 #define MATSUSHITA_PULSE_TIME                    872.0e-6                       //  872 usec pulse
 #define MATSUSHITA_1_PAUSE_TIME                 2616.0e-6                       // 2616 usec pause
 #define MATSUSHITA_0_PAUSE_TIME                  872.0e-6                       //  872 usec pause
-#define MATSUSHITA_FRAME_REPEAT_PAUSE_TIME        45.0e-3                       // frame repeat after 45ms
+#define MATSUSHITA_FRAME_REPEAT_PAUSE_TIME        40.0e-3                       // frame repeat after 40ms
 #define MATSUSHITA_ADDRESS_OFFSET               12                              // skip 12 bits
 #define MATSUSHITA_ADDRESS_LEN                  12                              // read 12 address bits
 #define MATSUSHITA_COMMAND_OFFSET               0                               // skip 0 bits
@@ -472,8 +472,8 @@ typedef uint8_t     PAUSE_LEN;
 #define THOMSON_1_PAUSE_TIME                    4500.0e-6                       // 4500 usec pause
 #define THOMSON_0_PAUSE_TIME                    2000.0e-6                       // 2000 usec pause
 #define THOMSON_FRAMES                          1                               // THOMSON sends 1 frame
-#define THOMSON_AUTO_REPETITION_PAUSE_TIME        65.0e-3                       // repetition after 65ms
-#define THOMSON_FRAME_REPEAT_PAUSE_TIME           65.0e-3                       // frame repeat after 65ms
+#define THOMSON_AUTO_REPETITION_PAUSE_TIME        35.0e-3                       // repetition after 35ms
+#define THOMSON_FRAME_REPEAT_PAUSE_TIME           35.0e-3                       // frame repeat after 35ms
 #define THOMSON_ADDRESS_OFFSET                  0                               // skip 0 bits
 #define THOMSON_ADDRESS_LEN                     4                               // read 4 address bits
 #define THOMSON_COMMAND_OFFSET                  5                               // skip 4 address bits + 1 toggle bit

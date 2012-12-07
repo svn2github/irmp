@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.63 2012/10/29 10:03:34 fm Exp $
+ * $Id: irsnd.c,v 1.64 2012/12/06 08:49:33 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1698,7 +1698,7 @@ irsnd_ISR (void)
                     case IRMP_NIKON_PROTOCOL:
                     {
                         startbit_pulse_len          = NIKON_START_BIT_PULSE_LEN;
-                        startbit_pause_len          = 271 - 1; // NIKON_START_BIT_PAUSE_LEN;
+                        startbit_pause_len          = NIKON_START_BIT_PAUSE_LEN;
                         complete_data_len           = NIKON_COMPLETE_DATA_LEN;
                         pulse_1_len                 = NIKON_PULSE_LEN;
                         pause_1_len                 = NIKON_1_PAUSE_LEN - 1;

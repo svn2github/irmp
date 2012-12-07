@@ -23,6 +23,7 @@ make -f makefile.lnx all
 cd ..
 
 for j in                            \
+    3xNEC3xAPPLE.log.txt	    \
     Dbox.txt                        \
     DK_Digital.txt                  \
     Grundig_TP715.txt               \
@@ -65,12 +66,19 @@ for j in                            \
     rc6.txt                         \
     xbox360-10kHz.txt
 do
-    echo "testing $j ..."
-    if tmpsrc/irmp -v < $j | grep -q error
+    echo -n "testing $j ... "
+    if tmpsrc/irmp-10kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-10kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
+    else
+	if tmpsrc/irmp-10kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
@@ -81,21 +89,30 @@ for j in                                \
     bose_wave_system_15khz.txt          \
     denon-15kHz.txt                     \
     denon-rc-176-15kHz.txt              \
+    denon-rc-176-repeat-15kHz.txt       \
     irc-15kHz.txt                       \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
     samsung32-15kHz.txt                 \
     Siemens-Gigaset-M740AV-15kHz.txt    \
+    thomson-mb100-15kHz.txt             \
     tp400vt-15kHz.txt                   \
     universal-15kHz.txt                 \
     xbox360-15kHz.txt
 do
-    echo "testing $j ..."
+    echo -n "testing $j ... "
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-15kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-15kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
+    else
+	if tmpsrc/irmp-15kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
@@ -104,12 +121,19 @@ for j in                                \
     fdc-20kHz.txt                       \
     fdc2-20kHz.txt
 do
-    echo "testing $j ..."
+    echo -n "testing $j ... "
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-20kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-20kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
+    else
+	if tmpsrc/irmp-20kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 

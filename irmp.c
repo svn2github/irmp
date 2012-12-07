@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.131 2012/11/18 17:51:26 fm Exp $
+ * $Id: irmp.c,v 1.135 2012/12/07 13:04:14 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -378,6 +378,7 @@
 #  define ANALYZE_PUTCHAR(a)                    { if (! silent)             { putchar (a);          } }
 #  define ANALYZE_ONLY_NORMAL_PUTCHAR(a)        { if (! silent && !verbose) { putchar (a);          } }
 #  define ANALYZE_PRINTF(...)                   { if (verbose)              { printf (__VA_ARGS__); } }
+#  define ANALYZE_ONLY_NORMAL_PRINTF(...)       { if (! silent && !verbose) { printf (__VA_ARGS__); } }
 #  define ANALYZE_NEWLINE()                     { if (verbose)              { putchar ('\n');       } }
 static int                                      silent;
 static int                                      time_counter;
@@ -386,6 +387,7 @@ static int                                      verbose;
 #  define ANALYZE_PUTCHAR(a)
 #  define ANALYZE_ONLY_NORMAL_PUTCHAR(a)
 #  define ANALYZE_PRINTF(...)
+#  define ANALYZE_ONLY_NORMAL_PRINTF(...)
 #  define ANALYZE_NEWLINE()
 #endif
 
@@ -397,7 +399,7 @@ static void                                     (*irmp_callback_ptr) (uint8_t);
  *  Protocol names
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if IRMP_PROTOCOL_NAMES == 1
+#if defined(UNIX_OR_WINDOWS) || IRMP_PROTOCOL_NAMES == 1
 char *
 irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 {
@@ -446,7 +448,9 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 #include "irmpextlog.h"
 #else                                                               // normal UART log (IRMP_EXT_LOGGING == 0)
 #define BAUD                                    9600L
+#ifndef UNIX_OR_WINDOWS
 #include <util/setbaud.h>
+#endif
 
 #ifdef UBRR0H
 
@@ -497,6 +501,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 void
 irmp_uart_init (void)
 {
+#ifndef UNIX_OR_WINDOWS
 #if (IRMP_EXT_LOGGING == 0)                                                                         // use UART
     UART0_UBRRH = UBRRH_VALUE;                                                                      // set baud rate
     UART0_UBRRL = UBRRL_VALUE;
@@ -512,6 +517,7 @@ irmp_uart_init (void)
 #else                                                                                               // other log method
         initextlog();                                                         
 #endif //IRMP_EXT_LOGGING
+#endif // UNIX_OR_WINDOWS
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -523,6 +529,7 @@ irmp_uart_init (void)
 void
 irmp_uart_putc (unsigned char ch)
 {
+#ifndef UNIX_OR_WINDOWS
 #if (IRMP_EXT_LOGGING == 0)
     while (!(UART0_UCSRA & UART0_UDRE_BIT_VALUE))
     {
@@ -533,6 +540,9 @@ irmp_uart_putc (unsigned char ch)
 #else
     sendextlog(ch); //Use external log
 #endif
+#else
+    fputc (ch, stderr);
+#endif // UNIX_OR_WINDOWS
 }
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -543,6 +553,8 @@ irmp_uart_putc (unsigned char ch)
 #define STARTCYCLES                       2                                 // min count of zeros before start of logging
 #define ENDBITS                        1000                                 // number of sequenced highbits to detect end
 #define DATALEN                         700                                 // log buffer size
+
+#if 0                                                                       // old log routine
 
 static void
 irmp_log (uint8_t val)
@@ -612,6 +624,98 @@ irmp_log (uint8_t val)
         }
     }
 }
+
+#else                                                                       // new log routine
+
+static void
+irmp_log (uint8_t val)
+{
+    static uint8_t  buf[DATALEN];                                           // logging buffer
+    static uint16_t buf_idx;                                                // index
+    static uint8_t  startcycles;                                            // current number of start-zeros
+    static uint16_t cnt;                                                    // counts sequenced highbits - to detect end
+    static uint8_t  last_val = 1;
+
+    if (! val && (startcycles < STARTCYCLES) && !buf_idx)                   // prevent that single random zeros init logging
+    {
+        startcycles++;
+    }
+    else
+    {
+        startcycles = 0;
+
+        if (! val || buf_idx != 0)                                          // start or continue logging on "0", "1" cannot init logging
+        {
+            if (last_val == val)
+            {
+                cnt++;
+
+                if (val && cnt > ENDBITS)                                   // if high received then look at log-stop condition
+                {                                                           // if stop condition is true, output on uart
+                    uint8_t     i8;
+                    uint16_t    i;
+                    uint16_t    j;
+                    uint8_t     v = '1';
+                    uint16_t    d;
+
+                    for (i8 = 0; i8 < STARTCYCLES; i8++)
+                    {
+                        irmp_uart_putc ('0');                               // the ignored starting zeros
+                    }
+
+                    for (i = 0; i < buf_idx; i++)
+                    {
+                        d = buf[i];
+
+                        if (d == 0xff)
+                        {
+                            i++;
+                            d = buf[i];
+                            i++;
+                            d |= ((uint16_t) buf[i] << 8);
+                        }
+
+                        for (j = 0; j < d; j++)
+                        {
+                            irmp_uart_putc (v);
+                        }
+
+                        v = (v == '1') ? '0' : '1';
+                    }
+
+                    for (i8 = 0; i8 < 20; i8++)
+                    {
+                        irmp_uart_putc ('1');
+                    }
+
+                    irmp_uart_putc ('\n');
+                    buf_idx = 0;
+                    last_val = 1;
+                    cnt = 0;
+                }
+            }
+            else if (buf_idx < DATALEN - 3)
+            {
+                if (cnt >= 0xff)
+                {
+                    buf[buf_idx++]  = 0xff;
+                    buf[buf_idx++]  = (cnt & 0xff);
+                    buf[buf_idx]    = (cnt >> 8);
+                }
+                else
+                {
+                    buf[buf_idx] = cnt;
+                }
+
+                buf_idx++;
+                cnt = 1;
+                last_val = val;
+            }
+        }
+    }
+}
+
+#endif
 
 #else
 #define irmp_log(val)
@@ -1653,10 +1757,11 @@ irmp_ISR (void)
     static PAUSE_LEN    irmp_pause_time;                                        // count bit time for pause
     static uint16_t     last_irmp_address = 0xFFFF;                             // save last irmp address to recognize key repetition
     static uint16_t     last_irmp_command = 0xFFFF;                             // save last irmp command to recognize key repetition
-    static uint16_t     repetition_len;                                         // SIRCS repeats frame 2-5 times with 45 ms pause
+    static uint16_t     key_repetition_len;                                     // SIRCS repeats frame 2-5 times with 45 ms pause
     static uint8_t      repetition_frame_number;
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
     static uint16_t     last_irmp_denon_command;                                // save last irmp command to recognize DENON frame repetition
+    static uint16_t     denon_repetition_len = 0xFFFF;                          // denon repetition len of 2nd auto generated frame
 #endif
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
     static uint8_t      rc5_cmd_bit6;                                           // bit 6 of RC5 command is the inverted 2nd start bit
@@ -1731,16 +1836,22 @@ irmp_ISR (void)
                 }
                 else
                 {
-                    if (repetition_len < 0xFFFF)                                // avoid overflow of counter
+                    if (key_repetition_len < 0xFFFF)                            // avoid overflow of counter
                     {
-                        repetition_len++;
+                        key_repetition_len++;
 
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
-                        if (repetition_len >= DENON_AUTO_REPETITION_PAUSE_LEN && last_irmp_denon_command != 0)
+                        if (denon_repetition_len < 0xFFFF)                      // avoid overflow of counter
                         {
-                            ANALYZE_PRINTF ("%8.3fms error 6: did not receive inverted command repetition\n",
-                                            (double) (time_counter * 1000) / F_INTERRUPTS);
-                            last_irmp_denon_command = 0;
+                            denon_repetition_len++;
+
+                            if (denon_repetition_len >= DENON_AUTO_REPETITION_PAUSE_LEN && last_irmp_denon_command != 0)
+                            {
+                                ANALYZE_PRINTF ("%8.3fms error 6: did not receive inverted command repetition\n",
+                                                (double) (time_counter * 1000) / F_INTERRUPTS);
+                                last_irmp_denon_command = 0;
+                                denon_repetition_len = 0xFFFF;
+                            }
                         }
 #endif // IRMP_SUPPORT_DENON_PROTOCOL == 1
                     }
@@ -3008,7 +3119,7 @@ irmp_ISR (void)
 
             if (irmp_start_bit_detected && irmp_bit == irmp_param.complete_len && irmp_param.stop_bit == 0)    // enough bits received?
             {
-                if (last_irmp_command == irmp_tmp_command && repetition_len < AUTO_FRAME_REPETITION_LEN)
+                if (last_irmp_command == irmp_tmp_command && key_repetition_len < AUTO_FRAME_REPETITION_LEN)
                 {
                     repetition_frame_number++;
                 }
@@ -3022,8 +3133,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_SIRCS_PROTOCOL && (repetition_frame_number == 1 || repetition_frame_number == 2))
                 {
                     ANALYZE_PRINTF ("code skipped: SIRCS auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
-                    repetition_len = 0;
+                                    repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    key_repetition_len = 0;
                 }
                 else
 #endif
@@ -3033,8 +3144,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && repetition_frame_number == 1)
                 {
                     ANALYZE_PRINTF ("code skipped: KASEIKYO auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
-                    repetition_len = 0;
+                                    repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    key_repetition_len = 0;
                 }
                 else
 #endif
@@ -3044,8 +3155,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL && (repetition_frame_number & 0x01))
                 {
                     ANALYZE_PRINTF ("code skipped: SAMSUNG32 auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
-                    repetition_len = 0;
+                                    repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    key_repetition_len = 0;
                 }
                 else
 #endif
@@ -3055,8 +3166,8 @@ irmp_ISR (void)
                 if (irmp_param.protocol == IRMP_NUBERT_PROTOCOL && (repetition_frame_number & 0x01))
                 {
                     ANALYZE_PRINTF ("code skipped: NUBERT auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
-                                    repetition_frame_number + 1, repetition_len, AUTO_FRAME_REPETITION_LEN);
-                    repetition_len = 0;
+                                    repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    key_repetition_len = 0;
                 }
                 else
 #endif
@@ -3083,6 +3194,7 @@ irmp_ISR (void)
                             {
                                 ANALYZE_PRINTF ("%8.3fms waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
                                 last_irmp_denon_command = irmp_tmp_command;
+                                denon_repetition_len = 0;
                             }
                             else
                             {
@@ -3090,7 +3202,6 @@ irmp_ISR (void)
                                 last_irmp_denon_command = 0;
                             }
                             irmp_ir_detected = FALSE;
-                            repetition_len = 0;
                         }
                     }
                     else
@@ -3117,18 +3228,19 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_NEC_PROTOCOL && irmp_bit == 0)  // repetition frame
                         {
-                            if (repetition_len < NEC_FRAME_REPEAT_PAUSE_LEN_MAX)
+                            if (key_repetition_len < NEC_FRAME_REPEAT_PAUSE_LEN_MAX)
                             {
-                                ANALYZE_PRINTF ("Detected NEC repetition frame, repetition_len = %d\n", repetition_len);
+                                ANALYZE_PRINTF ("Detected NEC repetition frame, key_repetition_len = %d\n", key_repetition_len);
+                                ANALYZE_ONLY_NORMAL_PRINTF("REPETETION FRAME                ");
                                 irmp_tmp_address = last_irmp_address;                   // address is last address
                                 irmp_tmp_command = last_irmp_command;                   // command is last command
                                 irmp_flags |= IRMP_FLAG_REPETITION;
-                                repetition_len = 0;
+                                key_repetition_len = 0;
                             }
                             else
                             {
-                                ANALYZE_PRINTF ("Detected NEC repetition frame, ignoring it: timeout occured, repetition_len = %d > %d\n",
-                                                repetition_len, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
+                                ANALYZE_PRINTF ("Detected NEC repetition frame, ignoring it: timeout occured, key_repetition_len = %d > %d\n",
+                                                key_repetition_len, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
                                 irmp_ir_detected = FALSE;
                             }
                         }
@@ -3214,7 +3326,7 @@ irmp_ISR (void)
                 {
                     if (last_irmp_command == irmp_tmp_command &&
                         last_irmp_address == irmp_tmp_address &&
-                        repetition_len < IRMP_KEY_REPETITION_LEN)
+                        key_repetition_len < IRMP_KEY_REPETITION_LEN)
                     {
                         irmp_flags |= IRMP_FLAG_REPETITION;
                     }
@@ -3222,7 +3334,7 @@ irmp_ISR (void)
                     last_irmp_address = irmp_tmp_address;                           // store as last address, too
                     last_irmp_command = irmp_tmp_command;                           // store as last command, too
 
-                    repetition_len = 0;
+                    key_repetition_len = 0;
                 }
                 else
                 {
@@ -3619,6 +3731,10 @@ get_fdc_key (uint16_t cmd)
 static int         analyze = FALSE;
 static int         list = FALSE;
 static IRMP_DATA   irmp_data;
+static int         expected_protocol;
+static int         expected_address;
+static int         expected_command;
+static int         do_check_expected_values;
 
 static void
 next_tick (void)
@@ -3642,8 +3758,8 @@ next_tick (void)
             {
                 if ((key >= 0x20 && key < 0x7F) || key >= 0xA0)
                 {
-                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = '%c'\n",
-                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, key);
+                    printf ("p=%2d (%s), a=0x%04x, c=0x%04x, f=0x%02x, asc=0x%02x, key='%c'",
+                            irmp_data.protocol,  irmp_protocol_names[irmp_data.protocol], irmp_data.address, irmp_data.command, irmp_data.flags, key, key);
                 }
                 else if (key == '\r' || key == '\t' || key == KEY_ESCAPE || (key >= 0x80 && key <= 0x9F))                 // function keys
                 {
@@ -3684,19 +3800,39 @@ next_tick (void)
                         default                  : p = "<UNKNWON>";     break;
                     }
 
-                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x, key = %s\n",
-                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key, p);
+                    printf ("p=%2d (%s), a=0x%04x, c=0x%04x, f=0x%02x, asc=0x%02x, key=%s",
+                            irmp_data.protocol, irmp_protocol_names[irmp_data.protocol], irmp_data.address, irmp_data.command, irmp_data.flags, key, p);
                 }
                 else
                 {
-                    printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x, asc = 0x%02x\n",
-                            irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags, key);
+                    printf ("p=%2d (%s), a=0x%04x, c=0x%04x, f=0x%02x, asc=0x%02x",
+                            irmp_data.protocol,  irmp_protocol_names[irmp_data.protocol], irmp_data.address, irmp_data.command, irmp_data.flags, key);
                 }
             }
             else
             {
-                printf ("p = %2d, a = 0x%04x, c = 0x%04x, f = 0x%02x\n",
-                        irmp_data.protocol, irmp_data.address, irmp_data.command, irmp_data.flags);
+                printf ("p=%2d (%s), a=0x%04x, c=0x%04x, f=0x%02x",
+                        irmp_data.protocol, irmp_protocol_names[irmp_data.protocol], irmp_data.address, irmp_data.command, irmp_data.flags);
+            }
+
+            if (do_check_expected_values)
+            {
+                if (irmp_data.protocol != expected_protocol ||
+                    irmp_data.address  != expected_address  ||
+                    irmp_data.command  != expected_command)
+                {
+                    printf ("\nerror 7: expected values differ: p=%2d (%s), a=0x%04x, c=0x%04x\n",
+                            expected_protocol, irmp_protocol_names[expected_protocol], expected_address, expected_command);
+                }
+                else
+                {
+                    printf (" checked!\n");
+                }
+                do_check_expected_values = FALSE;                           // only check 1st frame in a line!
+            }
+            else
+            {
+                putchar ('\n');
             }
         }
     }
@@ -3858,13 +3994,81 @@ main (int argc, char ** argv)
             }
             else
             {
+                char            buf[1024];
+                char *          p;
+                int             idx = -1;
+
                 puts ("-------------------------------------------------------------------");
                 putchar (ch);
+
 
                 while ((ch = getchar()) != '\n' && ch != EOF)
                 {
                     if (ch != '\r')                                                         // ignore CR in DOS/Windows files
                     {
+                        if (ch == '[' && idx == -1)
+                        {
+                            idx = 0;
+                        }
+                        else if (idx >= 0)
+                        {
+                            if (ch == ']')
+                            {
+                                do_check_expected_values = FALSE;
+                                buf[idx] = '\0';
+                                idx = -1;
+
+                                expected_protocol = atoi (buf);
+
+                                if (expected_protocol > 0)
+                                {
+                                    p = buf;
+                                    while (*p)
+                                    {
+                                        if (*p == 'x')
+                                        {
+                                            p++;
+
+                                            if (sscanf (p, "%x", &expected_address) == 1)
+                                            {
+                                                do_check_expected_values = TRUE;
+                                            }
+                                            break;
+                                        }
+                                        p++;
+                                    }
+
+                                    if (do_check_expected_values)
+                                    {
+                                        do_check_expected_values = FALSE;
+
+                                        while (*p)
+                                        {
+                                            if (*p == 'x')
+                                            {
+                                                p++;
+
+                                                if (sscanf (p, "%x", &expected_command) == 1)
+                                                {
+                                                    do_check_expected_values = TRUE;
+                                                }
+                                                break;
+                                            }
+                                            p++;
+                                        }
+
+                                        if (do_check_expected_values)
+                                        {
+                                            // printf ("!%2d %04x %04x!\n", expected_protocol, expected_address, expected_command);
+                                        }
+                                    }
+                                }
+                            }
+                            else if (idx < 1024 - 2)
+                            {
+                                buf[idx++] = ch;
+                            }
+                        }
                         putchar (ch);
                     }
                 }

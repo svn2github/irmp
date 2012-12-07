@@ -1,11 +1,10 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * irsndmain.c - demo main module to test irsnd encoder
+ * irsndmain.c - demo main module to test IRSND encoder on AVRs
  *
  * Copyright (c) 2010-2012 Frank Meyer - frank(at)fli4l.de
  *
- * ATMEGA88 @ 8 MHz
- *
- * Fuses: lfuse: 0xE2 hfuse: 0xDC efuse: 0xF9
+ * ATMEGA88 @ 8 MHz internal RC      Osc with BODLEVEL 4.3V: lfuse: 0xE2 hfuse: 0xDC efuse: 0xF9
+ * ATMEGA88 @ 8 MHz external Crystal Osc with BODLEVEL 4.3V: lfuse: 0xFF hfuse: 0xDC efuse: 0xF9
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,11 +36,17 @@ timer1_init (void)
 #endif
 }
 
+#ifdef TIM1_COMPA_vect                                                      // ATtiny84
+#define COMPA_VECT  TIM1_COMPA_vect
+#else
+#define COMPA_VECT  TIMER1_COMPA_vect                                       // ATmega
+#endif
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timer 1 compare handler, called every 1/10000 sec
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-ISR(TIMER1_COMPA_vect)
+ISR(COMPA_VECT)                                                             // Timer1 output compare A interrupt service routine, called every 1/15000 sec
 {
     (void) irsnd_ISR();                                                     // call irsnd ISR
     // call other timer interrupt routines here...
@@ -56,18 +61,18 @@ main (void)
 {
     IRMP_DATA irmp_data;
 
-    irsnd_init();                                                             // initialize irsnd
-    timer1_init();                                                            // initialize timer
-    sei ();                                                                   // enable interrupts
+    irsnd_init();                                                           // initialize irsnd
+    timer1_init();                                                          // initialize timer
+    sei ();                                                                 // enable interrupts
 
     for (;;)
     {
-        irmp_data.protocol = IRMP_NEC_PROTOCOL;
-        irmp_data.address  = 0x00FF;
-        irmp_data.command  = 0x0001;
-        irmp_data.flags    = 0;
+        irmp_data.protocol = IRMP_NEC_PROTOCOL;                             // use NEC protocol
+        irmp_data.address  = 0x00FF;                                        // set address to 0x00FF
+        irmp_data.command  = 0x0001;                                        // set command to 0x0001
+        irmp_data.flags    = 0;                                             // don't repeat frame
 
-        irsnd_send_data (&irmp_data, TRUE);
+        irsnd_send_data (&irmp_data, TRUE);                                 // send frame, wait for completion
         _delay_ms (1000);
     }
 }
