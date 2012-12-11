@@ -3,13 +3,17 @@
 #
 # usage:
 #
-#        make -f makefile.lnx [irmp] [irsnd]
+#        make -f makefile.lnx [all | [all-irmp | all-irsnd]
 #
 # Copyright (c) 2010-2012 Frank Meyer - frank(at)fli4l.de
 #
 # $Id: makefile.lnx,v 1.6 2010/06/11 14:47:24 fm Exp $
 #----------------------------------------------------------------------------
-all:	irmp-10kHz irmp-15kHz irmp-20kHz irsnd-10kHz irsnd-15kHz irsnd-20kHz
+all:	all-irmp all-irsnd
+
+all-irmp:   irmp-10kHz irmp-15kHz irmp-20kHz
+
+all-irsnd:  irsnd-10kHz irsnd-15kHz irsnd-20kHz
 
 irmp-10kHz: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=10000 irmp.c -o irmp-10kHz

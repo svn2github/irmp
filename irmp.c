@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.135 2012/12/07 13:04:14 fm Exp $
+ * $Id: irmp.c,v 1.136 2012/12/11 20:27:59 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -42,7 +42,8 @@
     IRMP_SUPPORT_RC6_PROTOCOL == 1 ||                   \
     IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
-    IRMP_SUPPORT_IR60_PROTOCOL
+    IRMP_SUPPORT_IR60_PROTOCOL == 1 ||                  \
+    IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
 #  define IRMP_SUPPORT_MANCHESTER                   1
 #else
 #  define IRMP_SUPPORT_MANCHESTER                   0
@@ -372,6 +373,15 @@
 #define BOSE_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * BOSE_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define BOSE_FRAME_REPEAT_PAUSE_LEN_MAX          (uint16_t)(F_INTERRUPTS * 100.0e-3 * MAX_TOLERANCE_20 + 0.5)
 
+#define A1TVBOX_START_BIT_PULSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define A1TVBOX_START_BIT_PULSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define A1TVBOX_START_BIT_PAUSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define A1TVBOX_START_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define A1TVBOX_BIT_PULSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define A1TVBOX_BIT_PULSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define A1TVBOX_BIT_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define A1TVBOX_BIT_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef ANALYZE
@@ -434,7 +444,8 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "NEC42",
     "LEGO",
     "THOMSON",
-    "BOSE"
+    "BOSE",
+    "A1TVBOX",
 };
 #endif
 
@@ -1338,6 +1349,32 @@ static const PROGMEM IRMP_PARAMETER bose_param =
     BOSE_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
     BOSE_LSB,                                                           // lsb_first:       flag: LSB first
     BOSE_FLAGS                                                          // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER a1tvbox_param =
+{
+    IRMP_A1TVBOX_PROTOCOL,                                              // protocol:        ir protocol
+
+    A1TVBOX_BIT_PULSE_LEN_MIN,                                          // pulse_1_len_min: here: minimum length of short pulse
+    A1TVBOX_BIT_PULSE_LEN_MAX,                                          // pulse_1_len_max: here: maximum length of short pulse
+    A1TVBOX_BIT_PAUSE_LEN_MIN,                                          // pause_1_len_min: here: minimum length of short pause
+    A1TVBOX_BIT_PAUSE_LEN_MAX,                                          // pause_1_len_max: here: maximum length of short pause
+    0,                                                                  // pulse_0_len_min: here: not used
+    0,                                                                  // pulse_0_len_max: here: not used
+    0,                                                                  // pause_0_len_min: here: not used
+    0,                                                                  // pause_0_len_max: here: not used
+    A1TVBOX_ADDRESS_OFFSET,                                             // address_offset:  address offset
+    A1TVBOX_ADDRESS_OFFSET + A1TVBOX_ADDRESS_LEN,                       // address_end:     end of address
+    A1TVBOX_COMMAND_OFFSET,                                             // command_offset:  command offset
+    A1TVBOX_COMMAND_OFFSET + A1TVBOX_COMMAND_LEN,                       // command_end:     end of command
+    A1TVBOX_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame
+    A1TVBOX_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
+    A1TVBOX_LSB,                                                        // lsb_first:       flag: LSB first
+    A1TVBOX_FLAGS                                                       // flags:           some flags
 };
 
 #endif
@@ -2294,6 +2331,20 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_LEGO_PROTOCOL == 1
+
+#if IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
+                    if (irmp_pulse_time >= A1TVBOX_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= A1TVBOX_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= A1TVBOX_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= A1TVBOX_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's A1TVBOX
+                        ANALYZE_PRINTF ("protocol = A1TVBOX, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        A1TVBOX_START_BIT_PULSE_LEN_MIN, A1TVBOX_START_BIT_PULSE_LEN_MAX,
+                                        A1TVBOX_START_BIT_PAUSE_LEN_MIN, A1TVBOX_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &a1tvbox_param;
+                        last_pause = 0;
+                        last_value = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
 
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
