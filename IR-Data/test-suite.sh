@@ -85,6 +85,7 @@ done
 # t-home-mediareceiver-15kHz.txt (RUWIDO) conflicts with Denon
 
 for j in                                \
+    a1tvbox-15kHz.txt			\
     bo_beolink1000-15kHz.txt            \
     bose_wave_system_15khz.txt          \
     denon-15kHz.txt                     \
@@ -117,6 +118,7 @@ do
 done
 
 for j in                                \
+    a1tvbox-20kHz.txt			\
     rc-car-20kHz.txt                    \
     fdc-20kHz.txt                       \
     fdc2-20kHz.txt

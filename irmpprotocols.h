@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2012 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.8 2012/12/11 20:27:59 fm Exp $
+ * $Id: irmpprotocols.h,v 1.9 2012/12/12 15:44:53 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -507,12 +507,12 @@ typedef uint8_t     PAUSE_LEN;
 #define A1TVBOX_LSB                             0                               // MSB...LSB
 #define A1TVBOX_FLAGS                           (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1 )  // flags
 #define A1TVBOX_FRAMES                          1                               // A1TVBOX sends each frame 1 times
-#define A1TVBOX_AUTO_REPETITION_PAUSE_TIME      22.2e-3                         // repetition after 22.2ms
 #define A1TVBOX_ADDRESS_OFFSET                  1                               // skip 1 bits
 #define A1TVBOX_ADDRESS_LEN                     8                               // read 8 address bits
 #define A1TVBOX_COMMAND_OFFSET                  9                               // skip 9 bits (start bit + address)
 #define A1TVBOX_COMMAND_LEN                     8                               // read 8 command bits
 #define A1TVBOX_COMPLETE_DATA_LEN               17                              // complete length incl. start bit
+#define A1TVBOX_FRAME_REPEAT_PAUSE_TIME         50.0e-3                         // 50 msec pause between frames, don't know if it is correct
 
 #define AUTO_FRAME_REPETITION_TIME              80.0e-3                         // SIRCS/SAMSUNG32/NUBERT: automatic repetition after 25-50ms
 
