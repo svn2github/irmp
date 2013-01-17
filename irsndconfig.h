@@ -3,9 +3,9 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRSND.H!
  *
- * Copyright (c) 2010-2012 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.45 2012/12/12 15:44:53 fm Exp $
+ * $Id: irsndconfig.h,v 1.47 2013/01/17 07:33:13 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *

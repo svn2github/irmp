@@ -1,19 +1,19 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * @file irsnd.c
  *
- * Copyright (c) 2010-2012 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
  *
  * Supported mikrocontrollers:
  *
  * ATtiny87,  ATtiny167
  * ATtiny45,  ATtiny85
- * ATtiny84
+ * ATtiny44   ATtiny84
  * ATmega8,   ATmega16,  ATmega32
  * ATmega162
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.66 2012/12/12 15:50:03 fm Exp $
+ * $Id: irsnd.c,v 1.67 2013/01/17 06:46:19 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
  *  ATmega pin definition of OC2 / OC2A / OC2B / OC0 / OC0A / OC0B
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if defined (__AVR_ATtiny84__)                                      // ATtiny84 uses OC0A = PB2 or OC0B = PA7
+#if defined (__AVR_ATtiny44__) || defined (__AVR_ATtiny84__)        // ATtiny44/84 uses OC0A = PB2 or OC0B = PA7
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
 #    define IRSND_PORT_LETTER                       B
 #    define IRSND_BIT_NUMBER                        2

@@ -1,8 +1,8 @@
 IRMP - Infrared Multi Protocol Decoder
 --------------------------------------
 
-Version IRMP:  2.3.5 11.12.2012
-Version IRSND: 2.3.5 12.12.2012
+Version IRMP:  2.3.6 17.01.2013
+Version IRSND: 2.3.6 17.01.2013
 
 Dokumentation:
  

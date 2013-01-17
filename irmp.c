@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.c - infrared multi-protocol decoder, supports several remote control protocols
  *
- * Copyright (c) 2009-2012 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.136 2012/12/11 20:27:59 fm Exp $
+ * $Id: irmp.c,v 1.137 2013/01/17 07:33:13 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -11,7 +11,7 @@
  *
  * ATtiny87,  ATtiny167
  * ATtiny45,  ATtiny85
- * ATtiny84
+ * ATtiny44,  ATtiny84
  * ATmega8,   ATmega16,  ATmega32
  * ATmega162
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284
@@ -3237,22 +3237,29 @@ irmp_ISR (void)
 
                             irmp_protocol = irmp_param.protocol;                    // store protocol
                             irmp_address = irmp_tmp_address;                        // store address
-                            irmp_command = irmp_tmp_command ;                       // store command
+                            irmp_command = irmp_tmp_command;                        // store command
                         }
                         else
                         {
-                            if ((irmp_tmp_command & 0x03) == 0)
+                            if ((irmp_tmp_command & 0x03) == 0x00)
                             {
-                                ANALYZE_PRINTF ("%8.3fms waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
+                                ANALYZE_PRINTF ("%8.3fms info Denon: waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
                                 last_irmp_denon_command = irmp_tmp_command;
                                 denon_repetition_len = 0;
+                                irmp_ir_detected = FALSE;
                             }
-                            else
+                            else if ((irmp_tmp_command & 0x03) == 0x03)
                             {
-                                ANALYZE_PRINTF ("%8.3fms got unexpected inverted command, ignoring it\n", (double) (time_counter * 1000) / F_INTERRUPTS);
+                                ANALYZE_PRINTF ("%8.3fms error Denon: got unexpected inverted command, ignoring it\n", (double) (time_counter * 1000) / F_INTERRUPTS);
                                 last_irmp_denon_command = 0;
+                                irmp_ir_detected = FALSE;
                             }
-                            irmp_ir_detected = FALSE;
+                            else    // fm 2013-01-17: 0x01 or 0x10: there is no inverted command
+                            {
+                                irmp_protocol = irmp_param.protocol;                // store protocol
+                                irmp_address = irmp_tmp_address;                    // store address
+                                irmp_command = irmp_tmp_command;                    // store command
+                            }
                         }
                     }
                     else
