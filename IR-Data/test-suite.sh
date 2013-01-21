@@ -64,6 +64,8 @@ for j in                            \
     rc5x.txt                        \
     rc6-hold.txt                    \
     rc6.txt                         \
+    sharp_kurz_10khz.txt	    \
+    sharp_lang_10khz.txt	    \
     xbox360-10kHz.txt
 do
     echo -n "testing $j ... "
@@ -95,6 +97,7 @@ for j in                                \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
     samsung32-15kHz.txt                 \
+    sharp_15khz.txt			\
     Siemens-Gigaset-M740AV-15kHz.txt    \
     thomson-mb100-15kHz.txt             \
     tp400vt-15kHz.txt                   \
