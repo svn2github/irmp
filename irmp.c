@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.137 2013/01/17 07:33:13 fm Exp $
+ * $Id: irmp.c,v 1.138 2013/01/21 11:11:54 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -1884,7 +1884,7 @@ irmp_ISR (void)
 
                             if (denon_repetition_len >= DENON_AUTO_REPETITION_PAUSE_LEN && last_irmp_denon_command != 0)
                             {
-                                ANALYZE_PRINTF ("%8.3fms error 6: did not receive inverted command repetition\n",
+                                ANALYZE_PRINTF ("%8.3fms warning: did not receive inverted command repetition\n",
                                                 (double) (time_counter * 1000) / F_INTERRUPTS);
                                 last_irmp_denon_command = 0;
                                 denon_repetition_len = 0xFFFF;
@@ -3241,24 +3241,18 @@ irmp_ISR (void)
                         }
                         else
                         {
-                            if ((irmp_tmp_command & 0x03) == 0x00)
+                            if ((irmp_tmp_command & 0x01) == 0x00)
                             {
                                 ANALYZE_PRINTF ("%8.3fms info Denon: waiting for inverted command repetition\n", (double) (time_counter * 1000) / F_INTERRUPTS);
                                 last_irmp_denon_command = irmp_tmp_command;
                                 denon_repetition_len = 0;
                                 irmp_ir_detected = FALSE;
                             }
-                            else if ((irmp_tmp_command & 0x03) == 0x03)
+                            else
                             {
-                                ANALYZE_PRINTF ("%8.3fms error Denon: got unexpected inverted command, ignoring it\n", (double) (time_counter * 1000) / F_INTERRUPTS);
+                                ANALYZE_PRINTF ("%8.3fms warning Denon: got unexpected inverted command, ignoring it\n", (double) (time_counter * 1000) / F_INTERRUPTS);
                                 last_irmp_denon_command = 0;
                                 irmp_ir_detected = FALSE;
-                            }
-                            else    // fm 2013-01-17: 0x01 or 0x10: there is no inverted command
-                            {
-                                irmp_protocol = irmp_param.protocol;                // store protocol
-                                irmp_address = irmp_tmp_address;                    // store address
-                                irmp_command = irmp_tmp_command;                    // store command
                             }
                         }
                     }
