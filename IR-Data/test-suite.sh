@@ -23,7 +23,7 @@ make -f makefile.lnx all
 cd ..
 
 for j in                            \
-    3xNEC3xAPPLE.log.txt	    \
+    3xNEC3xAPPLE.log.txt            \
     Dbox.txt                        \
     DK_Digital.txt                  \
     Grundig_TP715.txt               \
@@ -64,30 +64,30 @@ for j in                            \
     rc5x.txt                        \
     rc6-hold.txt                    \
     rc6.txt                         \
-    sharp_kurz_10khz.txt	    \
-    sharp_lang_10khz.txt	    \
+    sharp_kurz_10khz.txt            \
+    sharp_lang_10khz.txt            \
     xbox360-10kHz.txt
 do
     echo -n "testing $j ... "
     if tmpsrc/irmp-10kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-10kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-10kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     else
-	if tmpsrc/irmp-10kHz -v < $j | grep -q checked
-	then
-	    echo "checked!"
-	else
-	    echo "successful"
-	fi
+        if tmpsrc/irmp-10kHz -v < $j | grep -q checked
+        then
+            echo "checked!"
+        else
+            echo "successful"
+        fi
     fi
 done
 
 # t-home-mediareceiver-15kHz.txt (RUWIDO) conflicts with Denon
 
 for j in                                \
-    a1tvbox-15kHz.txt			\
+    a1tvbox-15kHz.txt                   \
     bo_beolink1000-15kHz.txt            \
     bose_wave_system_15khz.txt          \
     denon-15kHz.txt                     \
@@ -96,8 +96,9 @@ for j in                                \
     irc-15kHz.txt                       \
     kathrein-15kHz.txt                  \
     recs80-15kHz.txt                    \
+    saa3004-15kHz.txt                   \
     samsung32-15kHz.txt                 \
-    sharp_15khz.txt			\
+    sharp_15khz.txt                     \
     Siemens-Gigaset-M740AV-15kHz.txt    \
     thomson-mb100-15kHz.txt             \
     tp400vt-15kHz.txt                   \
@@ -107,38 +108,39 @@ do
     echo -n "testing $j ... "
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-15kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-15kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     else
-	if tmpsrc/irmp-15kHz -v < $j | grep -q checked
-	then
-	    echo "checked!"
-	else
-	    echo "successful"
-	fi
+        if tmpsrc/irmp-15kHz -v < $j | grep -q checked
+        then
+            echo "checked!"
+        else
+            echo "successful"
+        fi
     fi
 done
 
 for j in                                \
-    a1tvbox-20kHz.txt			\
+    a1tvbox-20kHz.txt                   \
     rc-car-20kHz.txt                    \
     fdc-20kHz.txt                       \
-    fdc2-20kHz.txt
+    fdc2-20kHz.txt                      \
+    saa3004-20kHz.txt
 do
     echo -n "testing $j ... "
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-	tmpsrc/irmp-20kHz -v < $j | grep error
-	echo "test failed"
-	exit 1
+        tmpsrc/irmp-20kHz -v < $j | grep error
+        echo "test failed"
+        exit 1
     else
-	if tmpsrc/irmp-20kHz -v < $j | grep -q checked
-	then
-	    echo "checked!"
-	else
-	    echo "successful"
-	fi
+        if tmpsrc/irmp-20kHz -v < $j | grep -q checked
+        then
+            echo "checked!"
+        else
+            echo "successful"
+        fi
     fi
 done
 

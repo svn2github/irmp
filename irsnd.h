@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.15 2013/01/17 07:33:13 fm Exp $
+ * $Id: irsnd.h,v 1.16 2013/03/12 12:49:59 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -88,14 +88,14 @@
 #  define IRSND_SUPPORT_A1TVBOX_PROTOCOL        0
 #endif
 
-#if IRSND_SUPPORT_RECS80_PROTOCOL == 1 && F_INTERRUPTS < 20000
-#  warning F_INTERRUPTS too low, RECS80 protocol disabled (should be at least 20000)
+#if IRSND_SUPPORT_RECS80_PROTOCOL == 1 && F_INTERRUPTS < 15000
+#  warning F_INTERRUPTS too low, RECS80 protocol disabled (should be at least 15000)
 #  undef IRSND_SUPPORT_RECS80_PROTOCOL
 #  define IRSND_SUPPORT_RECS80_PROTOCOL         0
 #endif
 
-#if IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 && F_INTERRUPTS < 20000
-#  warning F_INTERRUPTS too low, RECS80EXT protocol disabled (should be at least 20000)
+#if IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 && F_INTERRUPTS < 15000
+#  warning F_INTERRUPTS too low, RECS80EXT protocol disabled (should be at least 15000)
 #  undef IRSND_SUPPORT_RECS80EXT_PROTOCOL
 #  define IRSND_SUPPORT_RECS80EXT_PROTOCOL      0
 #endif
