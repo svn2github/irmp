@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.139 2013/03/12 12:49:59 fm Exp $
+ * $Id: irmp.c,v 1.140 2013/03/19 15:11:55 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -43,7 +43,8 @@
     IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
     IRMP_SUPPORT_IR60_PROTOCOL == 1 ||                  \
-    IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
+    IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1 ||               \
+    IRMP_SUPPORT_ORTEK_PROTOCOL == 1
 #  define IRMP_SUPPORT_MANCHESTER                   1
 #else
 #  define IRMP_SUPPORT_MANCHESTER                   0
@@ -382,6 +383,28 @@
 #define A1TVBOX_BIT_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define A1TVBOX_BIT_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 
+#define ORTEK_START_BIT_PULSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define ORTEK_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define ORTEK_START_BIT_PAUSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define ORTEK_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define ORTEK_BIT_PULSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define ORTEK_BIT_PULSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define ORTEK_BIT_PAUSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define ORTEK_BIT_PAUSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+
+#define TELEFUNKEN_START_BIT_PULSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define TELEFUNKEN_START_BIT_PULSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define TELEFUNKEN_START_BIT_PAUSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * (TELEFUNKEN_START_BIT_PAUSE_TIME) * MIN_TOLERANCE_10 + 0.5) - 1)
+#define TELEFUNKEN_START_BIT_PAUSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * (TELEFUNKEN_START_BIT_PAUSE_TIME) * MAX_TOLERANCE_10 + 0.5) - 1)
+#define TELEFUNKEN_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define TELEFUNKEN_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define TELEFUNKEN_1_PAUSE_LEN_MIN              ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define TELEFUNKEN_1_PAUSE_LEN_MAX              ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define TELEFUNKEN_0_PAUSE_LEN_MIN              ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_0_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define TELEFUNKEN_0_PAUSE_LEN_MAX              ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+// autodetect TELEFUNKEN repetition frame within 50 msec:
+// #define TELEFUNKEN_FRAME_REPEAT_PAUSE_LEN_MAX   (uint16_t)(F_INTERRUPTS * TELEFUNKEN_FRAME_REPEAT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5)
+
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
 #ifdef ANALYZE
@@ -446,6 +469,8 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "THOMSON",
     "BOSE",
     "A1TVBOX",
+    "ORTEK",
+    "TELEFUNKEN"
 };
 #endif
 
@@ -870,6 +895,31 @@ static const PROGMEM IRMP_PARAMETER samsung_param =
     SAMSUNG_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
     SAMSUNG_LSB,                                                        // lsb_first:       flag: LSB first
     SAMSUNG_FLAGS                                                       // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_TELEFUNKEN_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER telefunken_param =
+{
+    IRMP_TELEFUNKEN_PROTOCOL,                                           // protocol:        ir protocol
+    TELEFUNKEN_PULSE_LEN_MIN,                                           // pulse_1_len_min: minimum length of pulse with bit value 1
+    TELEFUNKEN_PULSE_LEN_MAX,                                           // pulse_1_len_max: maximum length of pulse with bit value 1
+    TELEFUNKEN_1_PAUSE_LEN_MIN,                                         // pause_1_len_min: minimum length of pause with bit value 1
+    TELEFUNKEN_1_PAUSE_LEN_MAX,                                         // pause_1_len_max: maximum length of pause with bit value 1
+    TELEFUNKEN_PULSE_LEN_MIN,                                           // pulse_0_len_min: minimum length of pulse with bit value 0
+    TELEFUNKEN_PULSE_LEN_MAX,                                           // pulse_0_len_max: maximum length of pulse with bit value 0
+    TELEFUNKEN_0_PAUSE_LEN_MIN,                                         // pause_0_len_min: minimum length of pause with bit value 0
+    TELEFUNKEN_0_PAUSE_LEN_MAX,                                         // pause_0_len_max: maximum length of pause with bit value 0
+    TELEFUNKEN_ADDRESS_OFFSET,                                          // address_offset:  address offset
+    TELEFUNKEN_ADDRESS_OFFSET + TELEFUNKEN_ADDRESS_LEN,                 // address_end:     end of address
+    TELEFUNKEN_COMMAND_OFFSET,                                          // command_offset:  command offset
+    TELEFUNKEN_COMMAND_OFFSET + TELEFUNKEN_COMMAND_LEN,                 // command_end:     end of command
+    TELEFUNKEN_COMPLETE_DATA_LEN,                                       // complete_len:    complete length of frame
+    TELEFUNKEN_STOP_BIT,                                                // stop_bit:        flag: frame has stop bit
+    TELEFUNKEN_LSB,                                                     // lsb_first:       flag: LSB first
+    TELEFUNKEN_FLAGS                                                    // flags:           some flags
 };
 
 #endif
@@ -1375,6 +1425,32 @@ static const PROGMEM IRMP_PARAMETER a1tvbox_param =
     A1TVBOX_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
     A1TVBOX_LSB,                                                        // lsb_first:       flag: LSB first
     A1TVBOX_FLAGS                                                       // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER ortek_param =
+{
+    IRMP_ORTEK_PROTOCOL,                                                // protocol:        ir protocol
+
+    ORTEK_BIT_PULSE_LEN_MIN,                                            // pulse_1_len_min: here: minimum length of short pulse
+    ORTEK_BIT_PULSE_LEN_MAX,                                            // pulse_1_len_max: here: maximum length of short pulse
+    ORTEK_BIT_PAUSE_LEN_MIN,                                            // pause_1_len_min: here: minimum length of short pause
+    ORTEK_BIT_PAUSE_LEN_MAX,                                            // pause_1_len_max: here: maximum length of short pause
+    0,                                                                  // pulse_0_len_min: here: not used
+    0,                                                                  // pulse_0_len_max: here: not used
+    0,                                                                  // pause_0_len_min: here: not used
+    0,                                                                  // pause_0_len_max: here: not used
+    ORTEK_ADDRESS_OFFSET,                                               // address_offset:  address offset
+    ORTEK_ADDRESS_OFFSET + ORTEK_ADDRESS_LEN,                           // address_end:     end of address
+    ORTEK_COMMAND_OFFSET,                                               // command_offset:  command offset
+    ORTEK_COMMAND_OFFSET + ORTEK_COMMAND_LEN,                           // command_end:     end of command
+    ORTEK_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame
+    ORTEK_STOP_BIT,                                                     // stop_bit:        flag: frame has stop bit
+    ORTEK_LSB,                                                          // lsb_first:       flag: LSB first
+    ORTEK_FLAGS                                                         // flags:           some flags
 };
 
 #endif
@@ -2017,6 +2093,18 @@ irmp_ISR (void)
 
 #endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
 
+#if IRMP_SUPPORT_TELEFUNKEN_PROTOCOL == 1
+                    if (irmp_pulse_time >= TELEFUNKEN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= TELEFUNKEN_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= TELEFUNKEN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= TELEFUNKEN_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        ANALYZE_PRINTF ("protocol = TELEFUNKEN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        TELEFUNKEN_START_BIT_PULSE_LEN_MIN, TELEFUNKEN_START_BIT_PULSE_LEN_MAX,
+                                        TELEFUNKEN_START_BIT_PAUSE_LEN_MIN, TELEFUNKEN_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &telefunken_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_TELEFUNKEN_PROTOCOL == 1
+
 #if IRMP_SUPPORT_NIKON_PROTOCOL == 1
                     if (irmp_pulse_time >= NIKON_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NIKON_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= NIKON_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NIKON_START_BIT_PAUSE_LEN_MAX)
@@ -2344,7 +2432,21 @@ irmp_ISR (void)
                         last_value = 1;
                     }
                     else
-#endif // IRMP_SUPPORT_RC6_PROTOCOL == 1
+#endif // IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
+
+#if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
+                    if (irmp_pulse_time >= ORTEK_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= ORTEK_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= ORTEK_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= ORTEK_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's ORTEK (Hama)
+                        ANALYZE_PRINTF ("protocol = ORTEK, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        ORTEK_START_BIT_PULSE_LEN_MIN, ORTEK_START_BIT_PULSE_LEN_MAX,
+                                        ORTEK_START_BIT_PAUSE_LEN_MIN, ORTEK_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &ortek_param;
+                        last_pause = 0;
+                        last_value = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
 
                     {
                         ANALYZE_PRINTF ("protocol = UNKNOWN\n");
