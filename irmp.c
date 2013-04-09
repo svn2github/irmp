@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.140 2013/03/19 15:11:55 fm Exp $
+ * $Id: irmp.c,v 1.141 2013/04/09 11:55:39 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -387,10 +387,10 @@
 #define ORTEK_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define ORTEK_START_BIT_PAUSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define ORTEK_START_BIT_PAUSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define ORTEK_BIT_PULSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define ORTEK_BIT_PULSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
-#define ORTEK_BIT_PAUSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define ORTEK_BIT_PAUSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define ORTEK_BIT_PULSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define ORTEK_BIT_PULSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define ORTEK_BIT_PAUSE_LEN_MIN                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define ORTEK_BIT_PAUSE_LEN_MAX                 ((uint8_t)(F_INTERRUPTS * ORTEK_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define TELEFUNKEN_START_BIT_PULSE_LEN_MIN      ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define TELEFUNKEN_START_BIT_PULSE_LEN_MAX      ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -404,6 +404,21 @@
 #define TELEFUNKEN_0_PAUSE_LEN_MAX              ((uint8_t)(F_INTERRUPTS * TELEFUNKEN_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 // autodetect TELEFUNKEN repetition frame within 50 msec:
 // #define TELEFUNKEN_FRAME_REPEAT_PAUSE_LEN_MAX   (uint16_t)(F_INTERRUPTS * TELEFUNKEN_FRAME_REPEAT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5)
+
+#define ROOMBA_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * ROOMBA_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define ROOMBA_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * ROOMBA_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define ROOMBA_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * ROOMBA_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define ROOMBA_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * ROOMBA_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define ROOMBA_1_PAUSE_LEN                      ((uint8_t)(F_INTERRUPTS * ROOMBA_1_PAUSE_TIME))
+#define ROOMBA_1_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * ROOMBA_1_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define ROOMBA_1_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * ROOMBA_1_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define ROOMBA_1_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * ROOMBA_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define ROOMBA_1_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * ROOMBA_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define ROOMBA_0_PAUSE_LEN                      ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PAUSE_TIME))
+#define ROOMBA_0_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define ROOMBA_0_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define ROOMBA_0_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define ROOMBA_0_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -427,6 +442,9 @@ static int                                      verbose;
 #if IRMP_USE_CALLBACK == 1
 static void                                     (*irmp_callback_ptr) (uint8_t);
 #endif // IRMP_USE_CALLBACK == 1
+
+#define PARITY_CHECK_OK                         1
+#define PARITY_CHECK_FAILED                     0
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  Protocol names
@@ -470,8 +488,10 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "BOSE",
     "A1TVBOX",
     "ORTEK",
-    "TELEFUNKEN"
+    "TELEFUNKEN",
+    "ROOMBA"
 };
+
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1455,6 +1475,31 @@ static const PROGMEM IRMP_PARAMETER ortek_param =
 
 #endif
 
+#if IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER roomba_param =
+{
+    IRMP_ROOMBA_PROTOCOL,                                               // protocol:        ir protocol
+    ROOMBA_1_PULSE_LEN_MIN,                                             // pulse_1_len_min: minimum length of pulse with bit value 1
+    ROOMBA_1_PULSE_LEN_MAX,                                             // pulse_1_len_max: maximum length of pulse with bit value 1
+    ROOMBA_1_PAUSE_LEN_MIN,                                             // pause_1_len_min: minimum length of pause with bit value 1
+    ROOMBA_1_PAUSE_LEN_MAX,                                             // pause_1_len_max: maximum length of pause with bit value 1
+    ROOMBA_0_PULSE_LEN_MIN,                                             // pulse_0_len_min: minimum length of pulse with bit value 0
+    ROOMBA_0_PULSE_LEN_MAX,                                             // pulse_0_len_max: maximum length of pulse with bit value 0
+    ROOMBA_0_PAUSE_LEN_MIN,                                             // pause_0_len_min: minimum length of pause with bit value 0
+    ROOMBA_0_PAUSE_LEN_MAX,                                             // pause_0_len_max: maximum length of pause with bit value 0
+    ROOMBA_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    ROOMBA_ADDRESS_OFFSET + ROOMBA_ADDRESS_LEN,                         // address_end:     end of address
+    ROOMBA_COMMAND_OFFSET,                                              // command_offset:  command offset
+    ROOMBA_COMMAND_OFFSET + ROOMBA_COMMAND_LEN,                         // command_end:     end of command
+    ROOMBA_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    ROOMBA_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    ROOMBA_LSB,                                                         // lsb_first:       flag: LSB first
+    ROOMBA_FLAGS                                                        // flags:           some flags
+};
+
+#endif
+
 static uint8_t                              irmp_bit;                   // current bit position
 static IRMP_PARAMETER                       irmp_param;
 
@@ -1729,6 +1774,10 @@ static uint8_t  xor_check[6];                                                   
 static uint8_t  genre2;                                                                 // save genre2 bits here, later copied to MSB in flags
 #endif
 
+#if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
+static uint8_t  parity;                                                                 // number of '1' of the first 14 bits, check if even.
+#endif
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  store bit
  *  @details  store bit in temp address or temp command
@@ -1741,6 +1790,44 @@ static uint8_t  genre2;                                                         
 static void
 irmp_store_bit (uint8_t value)
 {
+#if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
+    if (irmp_param.protocol == IRMP_ORTEK_PROTOCOL)
+    {
+        if (irmp_bit < 14)
+        {
+            if (value)
+            {
+                parity++;
+            }
+        }
+        else if (irmp_bit == 14)
+        {
+            if (value)                                                                                      // value == 1: even parity
+            {
+                if (parity & 0x01)
+                {
+                    parity = PARITY_CHECK_FAILED;
+                }
+                else
+                {
+                    parity = PARITY_CHECK_OK;
+                }
+            }
+            else
+            {
+                if (parity & 0x01)                                                                          // value == 0: odd parity
+                {
+                    parity = PARITY_CHECK_OK;
+                }
+                else
+                {
+                    parity = PARITY_CHECK_FAILED;
+                }
+            }
+        }
+    }
+#endif
+
 #if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
     if (irmp_bit == 0 && irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL)
     {
@@ -2105,6 +2192,18 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_TELEFUNKEN_PROTOCOL == 1
 
+#if IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
+                    if (irmp_pulse_time >= ROOMBA_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= ROOMBA_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= ROOMBA_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= ROOMBA_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        ANALYZE_PRINTF ("protocol = ROOMBA, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        ROOMBA_START_BIT_PULSE_LEN_MIN, ROOMBA_START_BIT_PULSE_LEN_MAX,
+                                        ROOMBA_START_BIT_PAUSE_LEN_MIN, ROOMBA_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &roomba_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
+
 #if IRMP_SUPPORT_NIKON_PROTOCOL == 1
                     if (irmp_pulse_time >= NIKON_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= NIKON_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= NIKON_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NIKON_START_BIT_PAUSE_LEN_MAX)
@@ -2442,8 +2541,9 @@ irmp_ISR (void)
                                         ORTEK_START_BIT_PULSE_LEN_MIN, ORTEK_START_BIT_PULSE_LEN_MAX,
                                         ORTEK_START_BIT_PAUSE_LEN_MIN, ORTEK_START_BIT_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &ortek_param;
-                        last_pause = 0;
-                        last_value = 1;
+                        last_pause  = 0;
+                        last_value  = 1;
+                        parity      = 0;
                     }
                     else
 #endif // IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
@@ -2734,6 +2834,23 @@ irmp_ISR (void)
                                 irmp_tmp_command <<= 4;
                                 irmp_tmp_command |= last_value;
                             }
+                        }
+                        else
+#endif
+#if IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_ROOMBA_PROTOCOL &&                          // Roomba has no stop bit
+                            irmp_bit >= ROOMBA_COMPLETE_DATA_LEN - 1)                               // it's the last datab bit...
+                        {                                                                           // break and close this frame
+                            if (irmp_pulse_time >= ROOMBA_1_PULSE_LEN_MIN && irmp_pulse_time <= ROOMBA_1_PULSE_LEN_MAX)
+                            {
+                                irmp_pause_time = ROOMBA_1_PAUSE_LEN;
+                            }
+                            else if (irmp_pulse_time >= ROOMBA_0_PULSE_LEN_MIN && irmp_pulse_time <= ROOMBA_0_PULSE_LEN_MAX)
+                            {
+                                irmp_pause_time = ROOMBA_0_PAUSE_LEN;
+                            }
+
+                            got_light = TRUE;                                                       // this is a lie, but helps (generates stop bit)
                         }
                         else
 #endif
@@ -3292,6 +3409,17 @@ irmp_ISR (void)
                 else
 #endif
 
+#if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
+                // if ORTEK protocol and the code will be repeated within 50 ms, we will ignore 2nd repetition frame
+                if (irmp_param.protocol == IRMP_ORTEK_PROTOCOL && repetition_frame_number == 1)
+                {
+                    ANALYZE_PRINTF ("code skipped: ORTEK auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                                    repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    key_repetition_len = 0;
+                }
+                else
+#endif
+
 #if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
                 // if KASEIKYO protocol and the code will be repeated within 50 ms, we will ignore 2nd repetition frame
                 if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && repetition_frame_number == 1)
@@ -3426,6 +3554,24 @@ irmp_ISR (void)
                             irmp_flags |= genre2;       // write the genre2 bits into MSB of the flag byte
                         }
 #endif // IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+
+#if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_ORTEK_PROTOCOL)
+                        {
+                            if (parity == PARITY_CHECK_FAILED)
+                            {
+                                ANALYZE_PRINTF ("error 6: parity check failed\n");
+                                irmp_ir_detected = FALSE;
+                            }
+
+                            if ((irmp_tmp_address & 0x03) == 0x02)
+                            {
+                                ANALYZE_PRINTF ("code skipped: ORTEK end of transmission frame (key release)\n");
+                                irmp_ir_detected = FALSE;
+                            }
+                            irmp_tmp_address >>= 2;
+                        }
+#endif // IRMP_SUPPORT_ORTEK_PROTOCOL == 1
 
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_param.complete_len == RC6_COMPLETE_DATA_LEN_LONG)     // RC6 mode = 6?
