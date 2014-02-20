@@ -126,6 +126,7 @@ for j in                                \
     rc-car-20kHz.txt                    \
     fdc-20kHz.txt                       \
     fdc2-20kHz.txt                      \
+    rcmm-20kHz.txt                      \
     saa3004-20kHz.txt                   \
     telefunken-1560-20kHz.txt
 do
