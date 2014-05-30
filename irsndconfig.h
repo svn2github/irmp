@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.55 2014/05/30 13:09:46 fm Exp $
+ * $Id: irsndconfig.h,v 1.56 2014/05/30 13:19:42 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -62,6 +62,7 @@
 // exotic protocols, enable here!               Enable  Remarks                 F_INTERRUPTS            Program Space
 #define IRSND_SUPPORT_KATHREIN_PROTOCOL         0       // Kathrein             >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           0       // NUBERT               >= 10000                 ~100 bytes
+#define IRSND_SUPPORT_SPEAKER_PROTOCOL          0       // SPEAKER              >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     0       // Bang&Olufsen         >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_RECS80_PROTOCOL           0       // RECS80               >= 15000                 ~100 bytes
 #define IRSND_SUPPORT_RECS80EXT_PROTOCOL        0       // RECS80EXT            >= 15000                 ~100 bytes
@@ -98,7 +99,7 @@
  */
 #elif defined(PIC_C18)
 #  define IRSND_OCx                             IRSND_PIC_CCP2          // Use PWMx for PIC
-									// change other PIC C18 specific settings:
+                                                                        // change other PIC C18 specific settings:
 #  define F_CPU                                 48000000UL              // PIC frequency: set your freq here
 #  define Pre_Scaler                            4                       // define prescaler for timer2 e.g. 1,4,16
 #  define PIC_Scaler                            2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
