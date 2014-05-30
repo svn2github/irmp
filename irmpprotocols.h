@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.20 2014/05/19 18:55:43 fm Exp $
+ * $Id: irmpprotocols.h,v 1.22 2014/05/30 12:48:54 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,9 +63,10 @@
 #define IRMP_RCMM32_PROTOCOL                    36              // Fujitsu-Siemens (Activy remote control)
 #define IRMP_RCMM24_PROTOCOL                    37              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_RCMM12_PROTOCOL                    38              // Fujitsu-Siemens (Activy keyboard)
-#define IRMP_RADIO1_PROTOCOL                    39
+#define IRMP_SPEAKER_PROTOCOL                   39              // Another loudspeaker protocol, similar to Nubert
+#define IRMP_RADIO1_PROTOCOL                    40              // Radio protocol (devel status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        39              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        40              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -334,6 +335,28 @@ typedef uint8_t     PAUSE_LEN;
 #define NUBERT_STOP_BIT                         1                               // has stop bit
 #define NUBERT_LSB                              0                               // MSB?
 #define NUBERT_FLAGS                            0                               // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * SPEAKER:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define SPEAKER_START_BIT_PULSE_TIME             440.0e-6                       // 1340 usec pulse
+#define SPEAKER_START_BIT_PAUSE_TIME            1250.0e-6                       //  340 usec pause
+#define SPEAKER_1_PULSE_TIME                    1250.0e-6                       // 1340 usec pulse
+#define SPEAKER_1_PAUSE_TIME                     440.0e-6                       //  340 usec pause
+#define SPEAKER_0_PULSE_TIME                     440.0e-6                       //  500 usec pulse
+#define SPEAKER_0_PAUSE_TIME                    1250.0e-6                       // 1300 usec pause
+#define SPEAKER_FRAMES                          2                               // Nubert sends 2 frames
+#define SPEAKER_AUTO_REPETITION_PAUSE_TIME        35.0e-3                       // auto repetition after 35ms
+#define SPEAKER_FRAME_REPEAT_PAUSE_TIME           35.0e-3                       // frame repeat after 45ms
+#define SPEAKER_ADDRESS_OFFSET                  0                               // skip 0 bits
+#define SPEAKER_ADDRESS_LEN                     0                               // read 0 address bits
+#define SPEAKER_COMMAND_OFFSET                  0                               // skip 0 bits
+#define SPEAKER_COMMAND_LEN                     10                              // read 10 bits
+#define SPEAKER_COMPLETE_DATA_LEN               10                              // complete length
+#define SPEAKER_STOP_BIT                        1                               // has stop bit
+#define SPEAKER_LSB                             0                               // MSB?
+#define SPEAKER_FLAGS                           0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * BANG_OLUFSEN:

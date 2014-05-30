@@ -18,6 +18,9 @@ all-irsnd:  irsnd-10kHz irsnd-15kHz irsnd-20kHz
 irmp-10kHz: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=10000 irmp.c -o irmp-10kHz
 
+irmp-11718Hz: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
+	cc -Wall -DF_INTERRUPTS=11718 irmp.c -o irmp-11718Hz
+
 irmp-15kHz: irmp.c irmp.h irmpconfig.h irmpsystem.h irmpprotocols.h
 	cc -Wall -DF_INTERRUPTS=15000 irmp.c -o irmp-15kHz
 

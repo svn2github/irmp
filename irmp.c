@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.146 2014/05/19 18:55:43 fm Exp $
+ * $Id: irmp.c,v 1.148 2014/05/30 12:48:54 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -229,6 +229,19 @@
 #define NUBERT_0_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * NUBERT_0_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define NUBERT_0_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * NUBERT_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define NUBERT_0_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * NUBERT_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
+#define SPEAKER_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define SPEAKER_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define SPEAKER_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define SPEAKER_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define SPEAKER_1_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * SPEAKER_1_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define SPEAKER_1_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * SPEAKER_1_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define SPEAKER_1_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * SPEAKER_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define SPEAKER_1_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * SPEAKER_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define SPEAKER_0_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * SPEAKER_0_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define SPEAKER_0_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * SPEAKER_0_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define SPEAKER_0_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * SPEAKER_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define SPEAKER_0_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * SPEAKER_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
 #define BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT1_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX   ((uint8_t)(F_INTERRUPTS * BANG_OLUFSEN_START_BIT1_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -523,6 +536,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "RCMM32",
     "RCMM24",
     "RCMM12",
+    "SPEAKER",
     "RADIO1"
 };
 
@@ -1175,6 +1189,31 @@ static const PROGMEM IRMP_PARAMETER nubert_param =
     NUBERT_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
     NUBERT_LSB,                                                         // lsb_first:       flag: LSB first
     NUBERT_FLAGS                                                        // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_SPEAKER_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER speaker_param =
+{
+    IRMP_SPEAKER_PROTOCOL,                                              // protocol:        ir protocol
+    SPEAKER_1_PULSE_LEN_MIN,                                            // pulse_1_len_min: minimum length of pulse with bit value 1
+    SPEAKER_1_PULSE_LEN_MAX,                                            // pulse_1_len_max: maximum length of pulse with bit value 1
+    SPEAKER_1_PAUSE_LEN_MIN,                                            // pause_1_len_min: minimum length of pause with bit value 1
+    SPEAKER_1_PAUSE_LEN_MAX,                                            // pause_1_len_max: maximum length of pause with bit value 1
+    SPEAKER_0_PULSE_LEN_MIN,                                            // pulse_0_len_min: minimum length of pulse with bit value 0
+    SPEAKER_0_PULSE_LEN_MAX,                                            // pulse_0_len_max: maximum length of pulse with bit value 0
+    SPEAKER_0_PAUSE_LEN_MIN,                                            // pause_0_len_min: minimum length of pause with bit value 0
+    SPEAKER_0_PAUSE_LEN_MAX,                                            // pause_0_len_max: maximum length of pause with bit value 0
+    SPEAKER_ADDRESS_OFFSET,                                             // address_offset:  address offset
+    SPEAKER_ADDRESS_OFFSET + SPEAKER_ADDRESS_LEN,                       // address_end:     end of address
+    SPEAKER_COMMAND_OFFSET,                                             // command_offset:  command offset
+    SPEAKER_COMMAND_OFFSET + SPEAKER_COMMAND_LEN,                       // command_end:     end of command
+    SPEAKER_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame
+    SPEAKER_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
+    SPEAKER_LSB,                                                        // lsb_first:       flag: LSB first
+    SPEAKER_FLAGS                                                       // flags:           some flags
 };
 
 #endif
@@ -2504,6 +2543,18 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_NUBERT_PROTOCOL == 1
 
+#if IRMP_SUPPORT_SPEAKER_PROTOCOL == 1
+                    if (irmp_pulse_time >= SPEAKER_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SPEAKER_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= SPEAKER_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= SPEAKER_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's SPEAKER
+                        ANALYZE_PRINTF ("protocol = SPEAKER, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        SPEAKER_START_BIT_PULSE_LEN_MIN, SPEAKER_START_BIT_PULSE_LEN_MAX,
+                                        SPEAKER_START_BIT_PAUSE_LEN_MIN, SPEAKER_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &speaker_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_SPEAKER_PROTOCOL == 1
+
 #if IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
                     if (irmp_pulse_time >= BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN && irmp_pulse_time <= BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX &&
                         irmp_pause_time >= BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MIN && irmp_pause_time <= BANG_OLUFSEN_START_BIT1_PAUSE_LEN_MAX)
@@ -3621,6 +3672,17 @@ irmp_ISR (void)
                 else
 #endif
 
+#if IRMP_SUPPORT_SPEAKER_PROTOCOL == 1
+                // if SPEAKER protocol and the code will be repeated within 50 ms, we will ignore every 2nd frame
+                if (irmp_param.protocol == IRMP_SPEAKER_PROTOCOL && (repetition_frame_number & 0x01))
+                {
+                    ANALYZE_PRINTF ("code skipped: SPEAKER auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                                    repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
+                    key_repetition_len = 0;
+                }
+                else
+#endif
+
                 {
                     ANALYZE_PRINTF ("%8.3fms code detected, length = %d\n", (double) (time_counter * 1000) / F_INTERRUPTS, irmp_bit);
                     irmp_ir_detected = TRUE;
@@ -3924,6 +3986,11 @@ print_timings (void)
             NUBERT_START_BIT_PULSE_LEN_MIN, NUBERT_START_BIT_PULSE_LEN_MAX, NUBERT_START_BIT_PAUSE_LEN_MIN, NUBERT_START_BIT_PAUSE_LEN_MAX,
             NUBERT_0_PULSE_LEN_MIN, NUBERT_0_PULSE_LEN_MAX, NUBERT_0_PAUSE_LEN_MIN, NUBERT_0_PAUSE_LEN_MAX,
             NUBERT_1_PULSE_LEN_MIN, NUBERT_1_PULSE_LEN_MAX, NUBERT_1_PAUSE_LEN_MIN, NUBERT_1_PAUSE_LEN_MAX);
+
+    printf ("SPEAKER        1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            SPEAKER_START_BIT_PULSE_LEN_MIN, SPEAKER_START_BIT_PULSE_LEN_MAX, SPEAKER_START_BIT_PAUSE_LEN_MIN, SPEAKER_START_BIT_PAUSE_LEN_MAX,
+            SPEAKER_0_PULSE_LEN_MIN, SPEAKER_0_PULSE_LEN_MAX, SPEAKER_0_PAUSE_LEN_MIN, SPEAKER_0_PAUSE_LEN_MAX,
+            SPEAKER_1_PULSE_LEN_MIN, SPEAKER_1_PULSE_LEN_MAX, SPEAKER_1_PAUSE_LEN_MIN, SPEAKER_1_PAUSE_LEN_MAX);
 
     printf ("BANG_OLUFSEN   1  %3d - %3d  %3d - %3d\n",
             BANG_OLUFSEN_START_BIT1_PULSE_LEN_MIN, BANG_OLUFSEN_START_BIT1_PULSE_LEN_MAX,
