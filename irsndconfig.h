@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.50 2014/02/20 14:55:17 fm Exp $
+ * $Id: irsndconfig.h,v 1.52 2014/05/19 18:55:43 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -57,7 +57,7 @@
 #define IRSND_SUPPORT_IR60_PROTOCOL             0       // IR60 (SDA2008)       >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_GRUNDIG_PROTOCOL          0       // Grundig              >= 10000                 ~300 bytes
 #define IRSND_SUPPORT_SIEMENS_PROTOCOL          0       // Siemens, Gigaset     >= 15000                 ~150 bytes
-#define IRSND_SUPPORT_NOKIA_PROTOCOL            0       // Nokia                >= 10000                 ~400 bytes
+#define IRSND_SUPPORT_NOKIA_PROTOCOL            1       // Nokia                >= 10000                 ~400 bytes
 
 // exotic protocols, enable here!               Enable  Remarks                 F_INTERRUPTS            Program Space
 #define IRSND_SUPPORT_KATHREIN_PROTOCOL         0       // Kathrein             >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
@@ -71,7 +71,7 @@
 #define IRSND_SUPPORT_FDC_PROTOCOL              0       // FDC IR keyboard      >= 10000 (better 15000)  ~150 bytes
 #define IRSND_SUPPORT_RCCAR_PROTOCOL            0       // RC CAR               >= 10000 (better 15000)  ~150 bytes
 #define IRSND_SUPPORT_ROOMBA_PROTOCOL           0       // iRobot Roomba        >= 10000                 ~150 bytes
-#define IRSND_SUPPORT_RUWIDO_PROTOCOL           0       // RUWIDO, T-Home       >= 15000                 ~250 bytes
+#define IRSND_SUPPORT_RUWIDO_PROTOCOL           1       // RUWIDO, T-Home       >= 15000                 ~250 bytes
 #define IRSND_SUPPORT_A1TVBOX_PROTOCOL          0       // A1 TV BOX            >= 15000 (better 20000)  ~200 bytes
 #define IRSND_SUPPORT_LEGO_PROTOCOL             0       // LEGO Power RC        >= 20000                 ~150 bytes
 

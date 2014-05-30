@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.72 2014/02/20 14:55:17 fm Exp $
+ * $Id: irsnd.c,v 1.73 2014/05/19 18:55:43 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1271,17 +1271,9 @@ irsnd_ISR (void)
                     return irsnd_busy;
                 }
             }
-#if 0
             else if (packet_repeat_pause_counter < repeat_frame_pause_len)
-#else
-            // fm 2013-05-06: SIRCs has 2 autorepetitions and N normal repetitions.
-            // if auto_repetition_counter == 0, we have to repeat the frame according to flags
-            if (auto_repetition_counter == 0 && packet_repeat_pause_counter < repeat_frame_pause_len)
-#endif
             {
                 packet_repeat_pause_counter++;
-// fprintf (stdout, "!%d %d!\n", packet_repeat_pause_counter, repeat_frame_pause_len);
-// fflush (stdout);
 #ifdef ANALYZE
                 if (irsnd_is_on)
                 {

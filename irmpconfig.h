@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.103 2014/02/20 14:55:17 fm Exp $
+ * $Id: irmpconfig.h,v 1.105 2014/05/19 18:55:43 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -87,6 +87,7 @@
 #define IRMP_SUPPORT_A1TVBOX_PROTOCOL           0       // A1 TV BOX            >= 15000 (better 20000)  ~300 bytes
 #define IRMP_SUPPORT_LEGO_PROTOCOL              0       // LEGO Power RC        >= 20000                 ~150 bytes
 #define IRMP_SUPPORT_RCMM_PROTOCOL              0       // RCMM 12,24, or 32    >= 20000                 ~150 bytes
+#define IRMP_SUPPORT_RADIO1_PROTOCOL            0       // RADIO, e.g. TEVION   >= 10000                 ~250 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here for ATMEL AVR

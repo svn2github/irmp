@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.17 2014/02/20 14:55:17 fm Exp $
+ * $Id: irmpprotocols.h,v 1.20 2014/05/19 18:55:43 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +63,9 @@
 #define IRMP_RCMM32_PROTOCOL                    36              // Fujitsu-Siemens (Activy remote control)
 #define IRMP_RCMM24_PROTOCOL                    37              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_RCMM12_PROTOCOL                    38              // Fujitsu-Siemens (Activy keyboard)
+#define IRMP_RADIO1_PROTOCOL                    39
 
-#define IRMP_N_PROTOCOLS                        38              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        39              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -158,8 +159,8 @@ typedef uint8_t     PAUSE_LEN;
 #define SAMSUNG_START_BIT_PULSE_TIME            4500.0e-6                       // 4500 usec pulse
 #define SAMSUNG_START_BIT_PAUSE_TIME            4500.0e-6                       // 4500 usec pause
 #define SAMSUNG_PULSE_TIME                       550.0e-6                       //  550 usec pulse
-#define SAMSUNG_1_PAUSE_TIME                    1650.0e-6                       // 1650 usec pause
-#define SAMSUNG_0_PAUSE_TIME                     550.0e-6                       //  550 usec pause
+#define SAMSUNG_1_PAUSE_TIME                    1500.0e-6                       // 1550 usec pause
+#define SAMSUNG_0_PAUSE_TIME                     500.0e-6                       //  500 usec pause
 
 #define SAMSUNG_FRAME_REPEAT_PAUSE_TIME           25.0e-3                       // frame repeat after 25ms
 #define SAMSUNG_ADDRESS_OFFSET                   0                              // skip 0 bits
@@ -405,12 +406,23 @@ typedef uint8_t     PAUSE_LEN;
  * SIEMENS & RUWIDO:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+
+#if 0
 #define SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME    275.0e-6                      //  275 usec pulse
 #define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME    550.0e-6                      //  550 usec pause
 #define SIEMENS_OR_RUWIDO_BIT_PULSE_TIME          275.0e-6                      //  275 usec short pulse
 #define SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2        550.0e-6                      //  550 usec long pulse
 #define SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME          275.0e-6                      //  275 usec short pause
 #define SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2        550.0e-6                      //  550 usec long pause
+#else
+#define SIEMENS_OR_RUWIDO_START_BIT_PULSE_TIME    370.0e-6                      //  370 usec pulse
+#define SIEMENS_OR_RUWIDO_START_BIT_PAUSE_TIME    550.0e-6                      //  550 usec pause
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_TIME          370.0e-6                      //  370 usec short pulse
+#define SIEMENS_OR_RUWIDO_BIT_PULSE_TIME_2        680.0e-6                      //  680 usec long pulse
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME          275.0e-6                      //  275 usec short pause
+#define SIEMENS_OR_RUWIDO_BIT_PAUSE_TIME_2        550.0e-6                      //  550 usec long pause
+#endif
+
 #define SIEMENS_OR_RUWIDO_FRAME_REPEAT_PAUSE_TIME 45.0e-3                       // frame repeat after 45ms
 #define SIEMENS_OR_RUWIDO_STOP_BIT                0                             // has no stop bit
 #define SIEMENS_OR_RUWIDO_LSB                     0                             // MSB...LSB
@@ -694,8 +706,8 @@ typedef uint8_t     PAUSE_LEN;
 #define RCMM32_START_BIT_PAUSE_TIME              220.0e-6                       // 220 usec pause
 #define RCMM32_PULSE_TIME                        230.0e-6                       // 230 usec pulse
 #define RCMM32_00_PAUSE_TIME                     220.0e-6                       // 220 usec pause
-#define RCMM32_01_PAUSE_TIME                     380.0e-6                       // 380 usec pause
-#define RCMM32_10_PAUSE_TIME                     550.0e-6                       // 550 usec pause
+#define RCMM32_01_PAUSE_TIME                     370.0e-6                       // 370 usec pause
+#define RCMM32_10_PAUSE_TIME                     540.0e-6                       // 540 usec pause
 #define RCMM32_11_PAUSE_TIME                     720.0e-6                       // 720 usec pause
 
 #define RCMM32_FRAME_REPEAT_PAUSE_TIME            80.0e-3                       // frame repeat after 80 ms
@@ -707,6 +719,27 @@ typedef uint8_t     PAUSE_LEN;
 #define RCMM32_STOP_BIT                         1                               // has stop bit
 #define RCMM32_LSB                              0                               // LSB...MSB
 #define RCMM32_FLAGS                            0                               // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * RADIO1 - e.g. Tevion
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define RADIO1_START_BIT_PULSE_TIME            3000.0e-6                       // 3000 usec pulse
+#define RADIO1_START_BIT_PAUSE_TIME            7000.0e-6                       // 7000 usec pulse
+#define RADIO1_0_PULSE_TIME                     500.0e-6                       //  500 usec pulse
+#define RADIO1_0_PAUSE_TIME                    1000.0e-6                       // 1000 usec pause
+#define RADIO1_1_PULSE_TIME                    1000.0e-6                       // 1000 usec pulse
+#define RADIO1_1_PAUSE_TIME                     500.0e-6                       //  500 usec pause
+
+#define RADIO1_FRAME_REPEAT_PAUSE_TIME           25.0e-3                       // frame repeat after 25ms
+#define RADIO1_ADDRESS_OFFSET                   4                              // skip 4 bits
+#define RADIO1_ADDRESS_LEN                     16                              // read 16 address bits
+#define RADIO1_COMMAND_OFFSET                  20                              // skip 4 + 16 bits
+#define RADIO1_COMMAND_LEN                      3                              // read 3 command bits
+#define RADIO1_COMPLETE_DATA_LEN               23                              // complete length
+#define RADIO1_STOP_BIT                        1                               // has stop bit
+#define RADIO1_LSB                             1                               // LSB...MSB?
+#define RADIO1_FLAGS                           0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Frame Repetitions:

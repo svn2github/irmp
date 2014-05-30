@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.145 2014/02/20 14:55:17 fm Exp $
+ * $Id: irmp.c,v 1.146 2014/05/19 18:55:43 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -420,20 +420,35 @@
 #define ROOMBA_0_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define ROOMBA_0_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * ROOMBA_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
-#define RCMM32_START_BIT_PULSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_START_BIT_PULSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
-#define RCMM32_START_BIT_PAUSE_LEN_MIN            ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_START_BIT_PAUSE_LEN_MAX            ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
-#define RCMM32_BIT_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RCMM32_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_BIT_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RCMM32_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
-#define RCMM32_BIT_00_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * RCMM32_00_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_BIT_00_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * RCMM32_00_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
-#define RCMM32_BIT_01_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * RCMM32_01_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_BIT_01_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * RCMM32_01_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
-#define RCMM32_BIT_10_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * RCMM32_10_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_BIT_10_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * RCMM32_10_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
-#define RCMM32_BIT_11_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * RCMM32_11_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
-#define RCMM32_BIT_11_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * RCMM32_11_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * RCMM32_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_BIT_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * RCMM32_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_BIT_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * RCMM32_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_BIT_00_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * RCMM32_00_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_BIT_00_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * RCMM32_00_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_BIT_01_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * RCMM32_01_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_BIT_01_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * RCMM32_01_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_BIT_10_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * RCMM32_10_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_BIT_10_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * RCMM32_10_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCMM32_BIT_11_PAUSE_LEN_MIN             ((uint8_t)(F_INTERRUPTS * RCMM32_11_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCMM32_BIT_11_PAUSE_LEN_MAX             ((uint8_t)(F_INTERRUPTS * RCMM32_11_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+
+#define RADIO1_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * RADIO1_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RADIO1_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * RADIO1_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RADIO1_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * RADIO1_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RADIO1_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * RADIO1_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define RADIO1_1_PAUSE_LEN_EXACT                ((uint8_t)(F_INTERRUPTS * RADIO1_1_PAUSE_TIME + 0.5))
+#define RADIO1_1_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RADIO1_1_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define RADIO1_1_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RADIO1_1_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define RADIO1_1_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RADIO1_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define RADIO1_1_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RADIO1_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define RADIO1_0_PAUSE_LEN                      ((uint8_t)(F_INTERRUPTS * RADIO1_0_PAUSE_TIME))
+#define RADIO1_0_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RADIO1_0_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define RADIO1_0_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RADIO1_0_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define RADIO1_0_PAUSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * RADIO1_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define RADIO1_0_PAUSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * RADIO1_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
 #define AUTO_FRAME_REPETITION_LEN               (uint16_t)(F_INTERRUPTS * AUTO_FRAME_REPETITION_TIME + 0.5)       // use uint16_t!
 
@@ -507,7 +522,8 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "ROOMBA",
     "RCMM32",
     "RCMM24",
-    "RCMM12"
+    "RCMM12",
+    "RADIO1"
 };
 
 #endif
@@ -1522,24 +1538,50 @@ static const PROGMEM IRMP_PARAMETER roomba_param =
 
 static const PROGMEM IRMP_PARAMETER rcmm_param =
 {
-    IRMP_RCMM32_PROTOCOL,                                                 // protocol:        ir protocol
+    IRMP_RCMM32_PROTOCOL,                                               // protocol:        ir protocol
    
-    RCMM32_BIT_PULSE_LEN_MIN,                                             // pulse_1_len_min: here: minimum length of short pulse
-    RCMM32_BIT_PULSE_LEN_MAX,                                             // pulse_1_len_max: here: maximum length of short pulse
+    RCMM32_BIT_PULSE_LEN_MIN,                                           // pulse_1_len_min: here: minimum length of short pulse
+    RCMM32_BIT_PULSE_LEN_MAX,                                           // pulse_1_len_max: here: maximum length of short pulse
     0,                                                                  // pause_1_len_min: here: minimum length of short pause
     0,                                                                  // pause_1_len_max: here: maximum length of short pause
-    RCMM32_BIT_PULSE_LEN_MIN,                                             // pulse_0_len_min: here: not used
-    RCMM32_BIT_PULSE_LEN_MAX,                                             // pulse_0_len_max: here: not used
+    RCMM32_BIT_PULSE_LEN_MIN,                                           // pulse_0_len_min: here: not used
+    RCMM32_BIT_PULSE_LEN_MAX,                                           // pulse_0_len_max: here: not used
     0,                                                                  // pause_0_len_min: here: not used
     0,                                                                  // pause_0_len_max: here: not used
-    RCMM32_ADDRESS_OFFSET,                                                // address_offset:  address offset
-    RCMM32_ADDRESS_OFFSET + RCMM32_ADDRESS_LEN,                             // address_end:     end of address
-    RCMM32_COMMAND_OFFSET,                                                // command_offset:  command offset
-    RCMM32_COMMAND_OFFSET + RCMM32_COMMAND_LEN,                             // command_end:     end of command
-    RCMM32_COMPLETE_DATA_LEN,                                             // complete_len:    complete length of frame
-    RCMM32_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
-    RCMM32_LSB,                                                           // lsb_first:       flag: LSB first
-    RCMM32_FLAGS                                                          // flags:           some flags
+    RCMM32_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    RCMM32_ADDRESS_OFFSET + RCMM32_ADDRESS_LEN,                         // address_end:     end of address
+    RCMM32_COMMAND_OFFSET,                                              // command_offset:  command offset
+    RCMM32_COMMAND_OFFSET + RCMM32_COMMAND_LEN,                         // command_end:     end of command
+    RCMM32_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    RCMM32_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    RCMM32_LSB,                                                         // lsb_first:       flag: LSB first
+    RCMM32_FLAGS                                                        // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_RADIO1_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER radio1_param =
+{
+    IRMP_RADIO1_PROTOCOL,                                               // protocol:        ir protocol
+   
+    RADIO1_1_PULSE_LEN_MIN,                                             // pulse_1_len_min: minimum length of pulse with bit value 1
+    RADIO1_1_PULSE_LEN_MAX,                                             // pulse_1_len_max: maximum length of pulse with bit value 1
+    RADIO1_1_PAUSE_LEN_MIN,                                             // pause_1_len_min: minimum length of pause with bit value 1
+    RADIO1_1_PAUSE_LEN_MAX,                                             // pause_1_len_max: maximum length of pause with bit value 1
+    RADIO1_0_PULSE_LEN_MIN,                                             // pulse_0_len_min: minimum length of pulse with bit value 0
+    RADIO1_0_PULSE_LEN_MAX,                                             // pulse_0_len_max: maximum length of pulse with bit value 0
+    RADIO1_0_PAUSE_LEN_MIN,                                             // pause_0_len_min: minimum length of pause with bit value 0
+    RADIO1_0_PAUSE_LEN_MAX,                                             // pause_0_len_max: maximum length of pause with bit value 0
+    RADIO1_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    RADIO1_ADDRESS_OFFSET + RADIO1_ADDRESS_LEN,                         // address_end:     end of address
+    RADIO1_COMMAND_OFFSET,                                              // command_offset:  command offset
+    RADIO1_COMMAND_OFFSET + RADIO1_COMMAND_LEN,                         // command_end:     end of command
+    RADIO1_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    RADIO1_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    RADIO1_LSB,                                                         // lsb_first:       flag: LSB first
+    RADIO1_FLAGS                                                        // flags:           some flags
 };
 
 #endif
@@ -1562,6 +1604,7 @@ static volatile uint8_t                     irmp_flags;
 #ifdef ANALYZE
 #define input(x)                            (x)
 static uint8_t                              IRMP_PIN;
+static uint8_t                              radio;
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2296,6 +2339,18 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+
+#if IRMP_SUPPORT_RADIO1_PROTOCOL == 1
+                    if (irmp_pulse_time >= RADIO1_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RADIO1_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= RADIO1_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RADIO1_START_BIT_PAUSE_LEN_MAX)
+                    {
+                        ANALYZE_PRINTF ("protocol = RADIO1, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        RADIO1_START_BIT_PULSE_LEN_MIN, RADIO1_START_BIT_PULSE_LEN_MAX,
+                                        RADIO1_START_BIT_PAUSE_LEN_MIN, RADIO1_START_BIT_PAUSE_LEN_MAX);
+                        irmp_param_p = (IRMP_PARAMETER *) &radio1_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_RRADIO1_PROTOCOL == 1
 
 #if IRMP_SUPPORT_RECS80_PROTOCOL == 1
                     if (irmp_pulse_time >= RECS80_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RECS80_START_BIT_PULSE_LEN_MAX &&
@@ -3963,7 +4018,7 @@ print_spectrum (char * text, int * buf, int is_pulse)
         }
     }
 
-    for (i = 1; i < 100; i++)
+    for (i = 1; i < 200; i++)
     {
         if (buf[i] > 0)
         {
@@ -4303,6 +4358,10 @@ main (int argc, char ** argv)
         {
             print_timings ();
             return (0);
+        }
+        else if (! strcmp (argv[1], "-r"))
+        {
+            radio = TRUE;
         }
     }
 
