@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.22 2014/05/30 12:48:54 fm Exp $
+ * $Id: irmpprotocols.h,v 1.23 2014/06/05 21:00:06 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,9 +64,10 @@
 #define IRMP_RCMM24_PROTOCOL                    37              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_RCMM12_PROTOCOL                    38              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_SPEAKER_PROTOCOL                   39              // Another loudspeaker protocol, similar to Nubert
-#define IRMP_RADIO1_PROTOCOL                    40              // Radio protocol (devel status), do not use it yet!
+#define IRMP_LGAIR_PROTOCOL                     40
+#define IRMP_RADIO1_PROTOCOL                    41              // Radio protocol (devel status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        40              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        41              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -122,7 +123,7 @@ typedef uint8_t     PAUSE_LEN;
 #define SIRCS_FLAGS                             0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * NEC & NEC42 & NEC16:
+ * NEC & NEC42 & NEC16 & LGAIR:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #define NEC_START_BIT_PULSE_TIME                9000.0e-6                       // 9000 usec pulse
@@ -146,6 +147,12 @@ typedef uint8_t     PAUSE_LEN;
 #define NEC42_COMMAND_OFFSET                   26                               // skip 26 bits (2 x 13 address bits)
 #define NEC42_COMMAND_LEN                       8                               // read 8 command bits
 #define NEC42_COMPLETE_DATA_LEN                42                               // complete length (2 x 13 + 2 x 8)
+
+#define LGAIR_ADDRESS_OFFSET                    0                               // skip 0 bits
+#define LGAIR_ADDRESS_LEN                       8                               // read 8 address bits
+#define LGAIR_COMMAND_OFFSET                    8                               // skip 8 bits (8 address)
+#define LGAIR_COMMAND_LEN                      16                               // read 16 bits (16 command)
+#define LGAIR_COMPLETE_DATA_LEN                28                               // complete length (8 address + 16 command + 4 checksum)
 
 #define NEC16_ADDRESS_OFFSET                    0                               // skip 0 bits
 #define NEC16_ADDRESS_LEN                       8                               // read 8 address bits

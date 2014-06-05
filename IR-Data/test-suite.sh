@@ -95,6 +95,7 @@ for j in                                \
     denon-rc-176-repeat-15kHz.txt       \
     irc-15kHz.txt                       \
     kathrein-15kHz.txt                  \
+    lg-air-15kHz.txt                    \
     recs80-15kHz.txt                    \
     saa3004-15kHz.txt                   \
     samsung32-15kHz.txt                 \

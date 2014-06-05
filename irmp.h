@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.84 2014/02/19 12:57:36 fm Exp $
+ * $Id: irmp.h,v 1.85 2014/06/05 21:00:06 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -142,6 +142,12 @@
 
 #if IRMP_SUPPORT_NEC42_PROTOCOL == 1 && IRMP_SUPPORT_NEC_PROTOCOL == 0
 #  warning NEC42 protocol needs also NEC protocol, NEC protocol enabled
+#  undef IRMP_SUPPORT_NEC_PROTOCOL
+#  define IRMP_SUPPORT_NEC_PROTOCOL             1
+#endif
+
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1 && IRMP_SUPPORT_NEC_PROTOCOL == 0
+#  warning LGAIR protocol needs also NEC protocol, NEC protocol enabled
 #  undef IRMP_SUPPORT_NEC_PROTOCOL
 #  define IRMP_SUPPORT_NEC_PROTOCOL             1
 #endif

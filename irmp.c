@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.148 2014/05/30 12:48:54 fm Exp $
+ * $Id: irmp.c,v 1.149 2014/06/05 21:00:06 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -537,6 +537,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "RCMM24",
     "RCMM12",
     "SPEAKER",
+    "LGAIR",
     "RADIO1"
 };
 
@@ -935,6 +936,31 @@ static const PROGMEM IRMP_PARAMETER nec42_param =
     NEC42_COMMAND_OFFSET,                                               // command_offset:  command offset
     NEC42_COMMAND_OFFSET + NEC42_COMMAND_LEN,                           // command_end:     end of command
     NEC42_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame
+    NEC_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
+    NEC_LSB,                                                            // lsb_first:       flag: LSB first
+    NEC_FLAGS                                                           // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER lgair_param =
+{
+    IRMP_LGAIR_PROTOCOL,                                                // protocol:        ir protocol
+    NEC_PULSE_LEN_MIN,                                                  // pulse_1_len_min: minimum length of pulse with bit value 1
+    NEC_PULSE_LEN_MAX,                                                  // pulse_1_len_max: maximum length of pulse with bit value 1
+    NEC_1_PAUSE_LEN_MIN,                                                // pause_1_len_min: minimum length of pause with bit value 1
+    NEC_1_PAUSE_LEN_MAX,                                                // pause_1_len_max: maximum length of pause with bit value 1
+    NEC_PULSE_LEN_MIN,                                                  // pulse_0_len_min: minimum length of pulse with bit value 0
+    NEC_PULSE_LEN_MAX,                                                  // pulse_0_len_max: maximum length of pulse with bit value 0
+    NEC_0_PAUSE_LEN_MIN,                                                // pause_0_len_min: minimum length of pause with bit value 0
+    NEC_0_PAUSE_LEN_MAX,                                                // pause_0_len_max: maximum length of pause with bit value 0
+    LGAIR_ADDRESS_OFFSET,                                               // address_offset:  address offset
+    LGAIR_ADDRESS_OFFSET + LGAIR_ADDRESS_LEN,                           // address_end:     end of address
+    LGAIR_COMMAND_OFFSET,                                               // command_offset:  command offset
+    LGAIR_COMMAND_OFFSET + LGAIR_COMMAND_LEN,                           // command_end:     end of command
+    LGAIR_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame
     NEC_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
     NEC_LSB,                                                            // lsb_first:       flag: LSB first
     NEC_FLAGS                                                           // flags:           some flags
@@ -1893,6 +1919,11 @@ static uint16_t irmp_tmp_address2;                                              
 static uint16_t irmp_tmp_command2;                                                      // ir command
 #endif
 
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1
+static uint16_t irmp_lgair_address;                                                     // ir address
+static uint16_t irmp_lgair_command;                                                     // ir command
+#endif
+
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
 static uint16_t irmp_tmp_id;                                                            // ir id (only SAMSUNG)
 #endif
@@ -1987,6 +2018,23 @@ irmp_store_bit (uint8_t value)
             irmp_tmp_command |= value;
         }
     }
+
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1
+    if (irmp_param.protocol == IRMP_NEC_PROTOCOL || irmp_param.protocol == IRMP_NEC42_PROTOCOL)
+    {
+        if (irmp_bit < 8)
+        {
+            irmp_lgair_address <<= 1;                                                               // LGAIR uses MSB
+            irmp_lgair_address |= value;
+        }
+        else if (irmp_bit < 24)
+        {
+            irmp_lgair_command <<= 1;                                                               // LGAIR uses MSB
+            irmp_lgair_command |= value;
+        }
+    }
+    // NO else!
+#endif
 
 #if IRMP_SUPPORT_NEC42_PROTOCOL == 1
     if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && irmp_bit >= 13 && irmp_bit < 26)
@@ -2154,7 +2202,10 @@ irmp_ISR (void)
                     irmp_tmp_command2       = 0;
                     irmp_tmp_address2       = 0;
 #endif
-
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1
+                    irmp_lgair_command      = 0;
+                    irmp_lgair_address      = 0;
+#endif
                     irmp_bit                = 0xff;
                     irmp_pause_time         = 1;                                // 1st pause: set to 1, not to 0!
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
@@ -2267,7 +2318,6 @@ irmp_ISR (void)
                                         NEC_START_BIT_PAUSE_LEN_MIN, NEC_START_BIT_PAUSE_LEN_MAX);
                         irmp_param_p = (IRMP_PARAMETER *) &nec_param;
 #endif
-
                     }
                     else if (irmp_pulse_time >= NEC_START_BIT_PULSE_LEN_MIN        && irmp_pulse_time <= NEC_START_BIT_PULSE_LEN_MAX &&
                              irmp_pause_time >= NEC_REPEAT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= NEC_REPEAT_START_BIT_PAUSE_LEN_MAX)
@@ -3043,10 +3093,22 @@ irmp_ISR (void)
                                 irmp_start_bit_detected = 1;                                        // tricky: don't wait for another start bit...
                             }
 #endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1
+                            else if (irmp_param.protocol == IRMP_NEC_PROTOCOL && (irmp_bit == 28 || irmp_bit == 29))      // it was a LGAIR stop bit
+                            {
+                                ANALYZE_PRINTF ("Switching to LGAIR protocol, irmp_bit = %d\n", irmp_bit);
+                                irmp_param.stop_bit     = TRUE;                                     // set flag
+                                irmp_param.protocol     = IRMP_LGAIR_PROTOCOL;                      // switch protocol
+                                irmp_param.complete_len = irmp_bit;                                 // patch length: 16 or 17
+                                irmp_tmp_command        = irmp_lgair_command;                       // set command: upper 8 bits are command bits
+                                irmp_tmp_address        = irmp_lgair_address;                       // lower 4 bits are address bits
+                                irmp_start_bit_detected = 1;                                        // tricky: don't wait for another start bit...
+                            }
+#endif // IRMP_SUPPORT_LGAIR_PROTOCOL == 1
 
 #if IRMP_SUPPORT_NEC42_PROTOCOL == 1
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
-                            else if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && irmp_bit == 32)  // it was a NEC stop bit
+                            else if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && irmp_bit == 32)      // it was a NEC stop bit
                             {
                                 ANALYZE_PRINTF ("Switching to NEC protocol\n");
                                 irmp_param.stop_bit     = TRUE;                                     // set flag
@@ -3060,6 +3122,17 @@ irmp_ISR (void)
                                 irmp_tmp_command        = (irmp_tmp_address2 >> 3) | (irmp_tmp_command << 10);
                             }
 #endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
+#if IRMP_SUPPORT_LGAIR_PROTOCOL == 1
+                            else if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && irmp_bit == 28)      // it was a NEC stop bit
+                            {
+                                ANALYZE_PRINTF ("Switching to LGAIR protocol\n");
+                                irmp_param.stop_bit     = TRUE;                                     // set flag
+                                irmp_param.protocol     = IRMP_LGAIR_PROTOCOL;                      // switch protocol
+                                irmp_param.complete_len = irmp_bit;                                 // patch length: 16 or 17
+                                irmp_tmp_address        = irmp_lgair_address;
+                                irmp_tmp_command        = irmp_lgair_command;
+                            }
+#endif // IRMP_SUPPORT_LGAIR_PROTOCOL == 1
 #if IRMP_SUPPORT_JVC_PROTOCOL == 1
                             else if (irmp_param.protocol == IRMP_NEC42_PROTOCOL && (irmp_bit == 16 || irmp_bit == 17))  // it was a JVC stop bit
                             {
