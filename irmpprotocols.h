@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.23 2014/06/05 21:00:06 fm Exp $
+ * $Id: irmpprotocols.h,v 1.24 2014/06/06 09:58:32 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,8 +64,8 @@
 #define IRMP_RCMM24_PROTOCOL                    37              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_RCMM12_PROTOCOL                    38              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_SPEAKER_PROTOCOL                   39              // Another loudspeaker protocol, similar to Nubert
-#define IRMP_LGAIR_PROTOCOL                     40
-#define IRMP_RADIO1_PROTOCOL                    41              // Radio protocol (devel status), do not use it yet!
+#define IRMP_LGAIR_PROTOCOL                     40              // LG air conditioner
+#define IRMP_RADIO1_PROTOCOL                    41              // Radio protocol (experimental status), do not use it yet!
 
 #define IRMP_N_PROTOCOLS                        41              // number of supported protocols
 
