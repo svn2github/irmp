@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.75 2014/06/03 12:28:41 fm Exp $
+ * $Id: irsnd.c,v 1.76 2014/06/23 06:56:00 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -844,6 +844,23 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             break;
         }
 #endif
+#if IRSND_SUPPORT_LGAIR_PROTOCOL == 1
+        case IRMP_LGAIR_PROTOCOL:
+        {
+            address = irmp_data_p->address;
+            command = irmp_data_p->command;
+
+            irsnd_buffer[0] = ( (address & 0x00FF));                                                            // AAAAAAAA
+            irsnd_buffer[1] = ( (command & 0xFF00) >> 8);                                                       // CCCCCCCC
+            irsnd_buffer[2] = ( (command & 0x00FF));                                                            // CCCCCCCC
+            irsnd_buffer[3] = (( ((command & 0xF000) >> 12) +                                                   // checksum
+                                 ((command & 0x0F00) >> 8) +
+                                 ((command & 0x00F0) >>4 ) +
+                                 ((command & 0x000F))) & 0x000F) << 4;
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
 #if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
         case IRMP_SAMSUNG_PROTOCOL:
         {
@@ -1426,6 +1443,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_LGAIR_PROTOCOL == 1
+                    case IRMP_LGAIR_PROTOCOL:
+                    {
+                        startbit_pulse_len          = NEC_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = NEC_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = NEC_PULSE_LEN;
+                        pause_1_len                 = NEC_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = NEC_PULSE_LEN;
+                        pause_0_len                 = NEC_0_PAUSE_LEN - 1;
+                        has_stop_bit                = NEC_STOP_BIT;
+                        complete_data_len           = LGAIR_COMPLETE_DATA_LEN;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = NEC_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
                     case IRMP_SAMSUNG_PROTOCOL:
                     {
@@ -1926,6 +1961,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_NEC42_PROTOCOL == 1
                 case IRMP_NEC42_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_LGAIR_PROTOCOL == 1
+                case IRMP_LGAIR_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
                 case IRMP_SAMSUNG_PROTOCOL:
                 case IRMP_SAMSUNG32_PROTOCOL:
@@ -1980,7 +2018,7 @@ irsnd_ISR (void)
 #endif
 
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_NEC16_PROTOCOL == 1 || IRSND_SUPPORT_NEC42_PROTOCOL == 1 || \
-    IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
+    IRSND_SUPPORT_LGAIR_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
     IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || \
