@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.151 2014/07/01 08:27:22 fm Exp $
+ * $Id: irmp.c,v 1.152 2014/07/01 08:33:10 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -479,12 +479,8 @@ static int                                      verbose;
 #else
 #  define ANALYZE_PUTCHAR(a)
 #  define ANALYZE_ONLY_NORMAL_PUTCHAR(a)
-#  if defined(__XC8)
-#    define ANALYZE_PRINTF(__VA_ARGS)
-#    define ANALYZE_ONLY_NORMAL_PRINTF(__VA_ARGS)
-#  else
-#    define ANALYZE_PRINTF(...)
-#    define ANALYZE_ONLY_NORMAL_PRINTF(...)
+#  define ANALYZE_PRINTF(...)
+#  define ANALYZE_ONLY_NORMAL_PRINTF(...)
 #  endif
 #  define ANALYZE_NEWLINE()
 *********************************/
