@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.109 2014/06/05 21:00:57 fm Exp $
+ * $Id: irmpconfig.h,v 1.110 2014/07/01 07:50:33 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -100,10 +100,10 @@
 #  define IRMP_BIT_NUMBER                       6
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change hardware pin here for PIC C18 compiler
+ * Change hardware pin here for PIC C18 or XC8 compiler
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#elif defined (PIC_C18)                                                 // use RB4 as IR input on PIC
+#elif defined (PIC_C18)                                                 // use RB4 as IR input on PIC (C18 or XC8 compiler)
 #  define IRMP_PIN                              PORTBbits.RB4
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -111,7 +111,7 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif defined (PIC_CCS)
-#  define IRMP_PIN                              PIN_B4                  // use PB4 as IR input on PIC
+#  define IRMP_PIN                              PIN_B4                  // use PB4 as IR input on PIC (CCS compiler)
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here for ARM STM32

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.10 2014/02/19 12:57:36 fm Exp $
+ * $Id: irmpsystem.h,v 1.11 2014/07/01 07:50:33 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
 #endif
 
 #if defined(__18CXX)                                                                // Microchip PIC C18 compiler
+#  define PIC_C18
+#elif defined(__XC8)                                                                // PIC XC8 compiler
+#  include <xc.h>
 #  define PIC_C18
 #elif defined(__PCM__) || defined(__PCB__) || defined(__PCH__)                      // CCS PIC compiler
 #  define PIC_CCS
@@ -102,7 +105,7 @@ typedef unsigned char                   uint8_t;
 typedef unsigned short                  uint16_t;
 #endif
 
-#if defined (PIC_C18)
+#if defined (PIC_C18)                                                               // PIC C18 or XC8 compiler
 #  include <p18cxxx.h>                                                              // main PIC18 h file
 #  include <timers.h>                                                               // timer lib
 #  include <pwm.h>                                                                  // pwm lib

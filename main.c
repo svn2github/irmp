@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.17 2013/01/17 07:33:14 fm Exp $
+ * $Id: main.c,v 1.18 2014/07/01 07:50:33 fm Exp $
  *
  * This demo module is runnable on AVRs and LM4F120 Launchpad (ARM Cortex M4)
  *
@@ -137,6 +137,55 @@ main (void)
             // irmp_data.command is the command code
             // irmp_protocol_names[irmp_data.protocol] is the protocol name (if enabled, see irmpconfig.h)
         }
+    }
+}
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * PIC18F4520 with XC8 compiler:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (__XC8)
+
+#define _XTAL_FREQ  32000000UL                                              // 32MHz clock
+#define FOSC        _XTAL_FREQ
+#define FCY         FOSC / 4UL                                              // --> 8MHz
+
+#define BAUDRATE 19200UL
+#define BRG (( FCY  16  BAUDRATE ) -1UL)
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main (void)
+{
+    IRMP_DATA irmp_data;
+
+    irmp_init();                                                            // initialize irmp
+
+    // infinite loop, interrupts will blink PORTD pins and handle UART communications.
+    while (1)
+    {
+        LATBbits.LATB0 = ~LATBbits.LATB0;
+
+        if (irmp_get_data (&irmp_data))
+        {
+            // ir signal decoded, do something here...
+            // irmp_data.protocol is the protocol, see irmp.h
+            // irmp_data.address is the address/manufacturer code of ir sender
+            // irmp_data.command is the command code
+            // irmp_protocol_names[irmp_data.protocol] is the protocol name (if enabled, see irmpconfig.h)
+            printf("proto %d addr %d cmd %d\n", irmp_data.protocol, irmp_data.address, irmp_data.command );
+        }
+    }
+}
+
+void interrupt high_priority high_isr(void)
+{
+    if (TMR2IF)
+    {
+        TMR2IF = 0;                                                         // clear Timer 0 interrupt flag
+        irmp_ISR();
     }
 }
 
