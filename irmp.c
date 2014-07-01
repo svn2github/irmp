@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.152 2014/07/01 08:33:10 fm Exp $
+ * $Id: irmp.c,v 1.153 2014/07/01 09:04:19 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -3070,9 +3070,8 @@ irmp_ISR (void)
                         {
 #ifdef ANALYZE
                             ANALYZE_PRINTF ("error: stop bit timing wrong, irmp_bit = %d, irmp_pulse_time = %d, pulse_0_len_min = %d, pulse_0_len_max = %d\n",
-#endif
                                             irmp_bit, irmp_pulse_time, irmp_param.pulse_0_len_min, irmp_param.pulse_0_len_max);
-
+#endif
 //                          irmp_busy_flag = FALSE;
                             irmp_start_bit_detected = 0;                        // wait for another start bit...
                             irmp_pulse_time         = 0;
@@ -4097,8 +4096,8 @@ irmp_ISR (void)
                             {
 #ifdef ANALYZE
                                 ANALYZE_PRINTF ("Detected NEC repetition frame, ignoring it: timeout occured, key_repetition_len = %d > %d\n",
-#endif
                                                 key_repetition_len, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
+#endif
                                 irmp_ir_detected = FALSE;
                             }
                         }
