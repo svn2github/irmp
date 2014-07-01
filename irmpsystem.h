@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.11 2014/07/01 07:50:33 fm Exp $
+ * $Id: irmpsystem.h,v 1.12 2014/07/01 20:08:20 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,8 +107,10 @@ typedef unsigned short                  uint16_t;
 
 #if defined (PIC_C18)                                                               // PIC C18 or XC8 compiler
 #  include <p18cxxx.h>                                                              // main PIC18 h file
+#ifndef __XC8
 #  include <timers.h>                                                               // timer lib
 #  include <pwm.h>                                                                  // pwm lib
+#endif
 #  define IRSND_PIC_CCP1                1                                           // PIC C18 RC2 = PWM1 module
 #  define IRSND_PIC_CCP2                2                                           // PIC C18 RC1 = PWM2 module
 #endif

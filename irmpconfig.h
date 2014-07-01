@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.110 2014/07/01 07:50:33 fm Exp $
+ * $Id: irmpconfig.h,v 1.111 2014/07/01 20:08:20 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -27,6 +27,7 @@
  * Change F_INTERRUPTS if you change the number of interrupts per second,
  * Normally, F_INTERRUPTS should be in the range from 10000 to 15000, typical is 15000
  * A value above 15000 costs additional program space, absolute maximum value is 20000.
+ * On PIC with XC8/C18 Compiler, use 15151 as the correct value.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef F_INTERRUPTS
