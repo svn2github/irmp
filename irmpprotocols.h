@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.24 2014/06/06 09:58:32 fm Exp $
+ * $Id: irmpprotocols.h,v 1.25 2014/07/09 14:45:56 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,9 +65,11 @@
 #define IRMP_RCMM12_PROTOCOL                    38              // Fujitsu-Siemens (Activy keyboard)
 #define IRMP_SPEAKER_PROTOCOL                   39              // Another loudspeaker protocol, similar to Nubert
 #define IRMP_LGAIR_PROTOCOL                     40              // LG air conditioner
-#define IRMP_RADIO1_PROTOCOL                    41              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_SAMSUNG48_PROTOCOL                 41              // air conditioner with SAMSUNG protocol (48 bits)
 
-#define IRMP_N_PROTOCOLS                        41              // number of supported protocols
+#define IRMP_RADIO1_PROTOCOL                    42              // Radio protocol (experimental status), do not use it yet!
+
+#define IRMP_N_PROTOCOLS                        42              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -161,7 +163,7 @@ typedef uint8_t     PAUSE_LEN;
 #define NEC16_COMPLETE_DATA_LEN                 16                              // complete length
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * SAMSUNG & SAMSUNG32:
+ * SAMSUNG & SAMSUNG32 & SAMSUNG48:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #define SAMSUNG_START_BIT_PULSE_TIME            4500.0e-6                       // 4500 usec pulse
@@ -185,9 +187,16 @@ typedef uint8_t     PAUSE_LEN;
 #define SAMSUNG32_COMMAND_OFFSET                16                              // skip 16 bits
 #define SAMSUNG32_COMMAND_LEN                   16                              // read 16 command bits
 #define SAMSUNG32_COMPLETE_DATA_LEN             32                              // complete length
-#define SAMSUNG32_FRAMES                        1                               // SAMSUNG32 sends each frame 1 times
+#define SAMSUNG32_FRAMES                        2                               // SAMSUNG32 sends each frame 2 times // fm: correct?
 #define SAMSUNG32_AUTO_REPETITION_PAUSE_TIME    47.0e-3                         // repetition after 47 ms
 #define SAMSUNG32_FRAME_REPEAT_PAUSE_TIME       47.0e-3                         // frame repeat after 47ms
+
+#define SAMSUNG48_COMMAND_OFFSET                16                              // skip 16 bits
+#define SAMSUNG48_COMMAND_LEN                   32                              // read 32 command bits
+#define SAMSUNG48_COMPLETE_DATA_LEN             48                              // complete length
+#define SAMSUNG48_FRAMES                        2                               // SAMSUNG48 sends each frame 2 times
+#define SAMSUNG48_AUTO_REPETITION_PAUSE_TIME    5.0e-3                          // repetition after 5 ms
+#define SAMSUNG48_FRAME_REPEAT_PAUSE_TIME       47.0e-3                         // frame repeat after 47ms
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * MATSUSHITA:

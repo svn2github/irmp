@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.76 2014/06/23 06:56:00 fm Exp $
+ * $Id: irsnd.c,v 1.77 2014/07/09 14:45:56 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1489,7 +1489,7 @@ irsnd_ISR (void)
                         pause_0_len                 = SAMSUNG_0_PAUSE_LEN - 1;
                         has_stop_bit                = SAMSUNG_STOP_BIT;
                         complete_data_len           = SAMSUNG32_COMPLETE_DATA_LEN;
-                        n_auto_repetitions          = SAMSUNG32_FRAMES;                             // 2 frames
+                        n_auto_repetitions          = SAMSUNG32_FRAMES;                             // 1 frame
                         auto_repetition_pause_len   = SAMSUNG32_AUTO_REPETITION_PAUSE_LEN;          // 47 ms pause
                         repeat_frame_pause_len      = SAMSUNG32_FRAME_REPEAT_PAUSE_LEN;
                         irsnd_set_freq (IRSND_FREQ_38_KHZ);

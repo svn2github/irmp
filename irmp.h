@@ -128,6 +128,12 @@
 #  define IRMP_SUPPORT_LEGO_PROTOCOL            0
 #endif
 
+#if IRMP_SUPPORT_SAMSUNG48_PROTOCOL == 1 && IRMP_SUPPORT_SAMSUNG_PROTOCOL == 0
+#  warning SAMSUNG48 protocol needs also SAMSUNG protocol, SAMSUNG protocol enabled
+#  undef IRMP_SUPPORT_SAMSUNG_PROTOCOL
+#  define IRMP_SUPPORT_SAMSUNG_PROTOCOL         1
+#endif
+
 #if IRMP_SUPPORT_JVC_PROTOCOL == 1 && IRMP_SUPPORT_NEC_PROTOCOL == 0
 #  warning JVC protocol needs also NEC protocol, NEC protocol enabled
 #  undef IRMP_SUPPORT_NEC_PROTOCOL

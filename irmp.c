@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.156 2014/07/09 07:12:56 fm Exp $
+ * $Id: irmp.c,v 1.158 2014/07/09 15:03:49 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -542,6 +542,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
     "RCMM12",
     "SPEAKER",
     "LGAIR",
+    "SAMSG48",
     "RADIO1"
 };
 
@@ -1827,7 +1828,15 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                     rtc = TRUE;
                 }
                 break;
+
+#if IRMP_SUPPORT_SAMSUNG48_PROTOCOL == 1
+            case IRMP_SAMSUNG48_PROTOCOL:
+                irmp_command = (irmp_command & 0x00FF) | ((irmp_id & 0x00FF) << 8);
+                rtc = TRUE;
+                break;
 #endif
+#endif
+
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
             case IRMP_NEC_PROTOCOL:
                 if ((irmp_command >> 8) == (~irmp_command & 0x00FF))
@@ -2001,7 +2010,7 @@ irmp_set_callback_ptr (void (*cb)(uint8_t))
 static uint16_t irmp_tmp_address;                                                       // ir address
 static uint16_t irmp_tmp_command;                                                       // ir command
 
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1) || IRMP_SUPPORT_NEC42_PROTOCOL == 1
+#if (IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)) || IRMP_SUPPORT_NEC42_PROTOCOL == 1
 static uint16_t irmp_tmp_address2;                                                      // ir address
 static uint16_t irmp_tmp_command2;                                                      // ir command
 #endif
@@ -2097,7 +2106,16 @@ irmp_store_bit (uint8_t value)
     {
         if (irmp_param.lsb_first)
         {
-            irmp_tmp_command |= (((uint16_t) (value)) << (irmp_bit - irmp_param.command_offset));   // CV wants cast
+#if IRMP_SUPPORT_SAMSUNG48_PROTOCOL == 1
+            if (irmp_param.protocol == IRMP_SAMSUNG48_PROTOCOL && irmp_bit >= 32)
+            {
+                irmp_tmp_id |= (((uint16_t) (value)) << (irmp_bit - 32));   // CV wants cast
+            }
+            else
+#endif
+            {
+                irmp_tmp_command |= (((uint16_t) (value)) << (irmp_bit - irmp_param.command_offset));   // CV wants cast
+            }
         }
         else
         {
@@ -3358,6 +3376,20 @@ irmp_ISR (void)
                             }
 #endif // IRMP_SUPPORT_JVC_PROTOCOL == 1
 #endif // IRMP_SUPPORT_NEC42_PROTOCOL == 1
+
+#if IRMP_SUPPORT_SAMSUNG48_PROTOCOL == 1
+                            else if (irmp_param.protocol == IRMP_SAMSUNG48_PROTOCOL && irmp_bit == 32)          // it was a SAMSUNG32 stop bit
+                            {
+#ifdef ANALYZE
+                                ANALYZE_PRINTF ("Switching to SAMSUNG32 protocol\n");
+#endif // ANALYZE
+                                irmp_param.protocol         = IRMP_SAMSUNG32_PROTOCOL;
+                                irmp_param.command_offset   = SAMSUNG32_COMMAND_OFFSET;
+                                irmp_param.command_end      = SAMSUNG32_COMMAND_OFFSET + SAMSUNG32_COMMAND_LEN;
+                                irmp_param.complete_len     = SAMSUNG32_COMPLETE_DATA_LEN;
+                            }
+#endif // IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
+
 #if IRMP_SUPPORT_RCMM_PROTOCOL == 1
                             else if (irmp_param.protocol == IRMP_RCMM32_PROTOCOL && (irmp_bit == 12 || irmp_bit == 24))  // it was a RCMM stop bit
                             {
@@ -3694,11 +3726,23 @@ irmp_ISR (void)
                         }
                         else  if (irmp_pulse_time >= SAMSUNG_PULSE_LEN_MIN && irmp_pulse_time <= SAMSUNG_PULSE_LEN_MAX)
                         {
+#if IRMP_SUPPORT_SAMSUNG48_PROTOCOL == 1
+#ifdef ANALYZE
+                            ANALYZE_PRINTF ("Switching to SAMSUNG48 protocol ");
+#endif // ANALYZE
+                            irmp_param.protocol         = IRMP_SAMSUNG48_PROTOCOL;
+                            irmp_param.command_offset   = SAMSUNG48_COMMAND_OFFSET;
+                            irmp_param.command_end      = SAMSUNG48_COMMAND_OFFSET + SAMSUNG48_COMMAND_LEN;
+                            irmp_param.complete_len     = SAMSUNG48_COMPLETE_DATA_LEN;
+#else
+#ifdef ANALYZE
+                            ANALYZE_PRINTF ("Switching to SAMSUNG32 protocol ");
+#endif // ANALYZE
                             irmp_param.protocol         = IRMP_SAMSUNG32_PROTOCOL;
                             irmp_param.command_offset   = SAMSUNG32_COMMAND_OFFSET;
                             irmp_param.command_end      = SAMSUNG32_COMMAND_OFFSET + SAMSUNG32_COMMAND_LEN;
                             irmp_param.complete_len     = SAMSUNG32_COMPLETE_DATA_LEN;
-
+#endif
                             if (irmp_pause_time >= SAMSUNG_1_PAUSE_LEN_MIN && irmp_pause_time <= SAMSUNG_1_PAUSE_LEN_MAX)
                             {
 #ifdef ANALYZE
@@ -3717,10 +3761,6 @@ irmp_ISR (void)
                                 irmp_store_bit (0);
                                 wait_for_space = 0;
                             }
-
-#ifdef ANALYZE
-                            ANALYZE_PRINTF ("Switching to SAMSUNG32 protocol\n");
-#endif // ANALYZE
                         }
                         else
                         {                                                           // timing incorrect!
@@ -4032,11 +4072,11 @@ irmp_ISR (void)
 #endif
 
 #if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
-                // if SAMSUNG32 protocol and the code will be repeated within 50 ms, we will ignore every 2nd frame
-                if (irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL && (repetition_frame_number & 0x01))
+                // if SAMSUNG32 or SAMSUNG48 protocol and the code will be repeated within 50 ms, we will ignore every 2nd frame
+                if ((irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL || irmp_param.protocol == IRMP_SAMSUNG48_PROTOCOL) && (repetition_frame_number & 0x01))
                 {
 #ifdef ANALYZE
-                    ANALYZE_PRINTF ("code skipped: SAMSUNG32 auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
+                    ANALYZE_PRINTF ("code skipped: SAMSUNG32/SAMSUNG48 auto repetition frame #%d, counter = %d, auto repetition len = %d\n",
                                     repetition_frame_number + 1, key_repetition_len, AUTO_FRAME_REPETITION_LEN);
 #endif // ANALYZE
                     key_repetition_len = 0;
