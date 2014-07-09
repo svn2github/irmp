@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.158 2014/07/09 15:03:49 fm Exp $
+ * $Id: irmp.c,v 1.159 2014/07/09 15:31:25 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -2302,6 +2302,9 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
                     genre2                  = 0;
 #endif
+#if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
+                    irmp_tmp_id = 0;
+#endif
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1) || IRMP_SUPPORT_NEC42_PROTOCOL == 1
                     irmp_tmp_command2       = 0;
@@ -3721,7 +3724,6 @@ irmp_ISR (void)
                             ANALYZE_PRINTF ("SYNC\n");
 #endif // ANALYZE
                             wait_for_space = 0;
-                            irmp_tmp_id = 0;
                             irmp_bit++;
                         }
                         else  if (irmp_pulse_time >= SAMSUNG_PULSE_LEN_MIN && irmp_pulse_time <= SAMSUNG_PULSE_LEN_MAX)
