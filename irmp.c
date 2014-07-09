@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.155 2014/07/01 09:43:13 fm Exp $
+ * $Id: irmp.c,v 1.156 2014/07/09 07:12:56 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -2314,8 +2314,8 @@ irmp_ISR (void)
                             {
 #ifdef ANALYZE
                                 ANALYZE_PRINTF ("%8.3fms warning: did not receive inverted command repetition\n",
-#endif // ANALYZE
                                                 (double) (time_counter * 1000) / F_INTERRUPTS);
+#endif // ANALYZE
                                 last_irmp_denon_command = 0;
                                 denon_repetition_len = 0xFFFF;
                             }
