@@ -99,6 +99,7 @@ for j in                                \
     recs80-15kHz.txt                    \
     saa3004-15kHz.txt                   \
     samsung32-15kHz.txt                 \
+    samsung48-15kHz.txt                 \
     sharp_15khz.txt                     \
     Siemens-Gigaset-M740AV-15kHz.txt    \
     thomson-mb100-15kHz.txt             \

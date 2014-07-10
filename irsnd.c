@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.77 2014/07/09 14:45:56 fm Exp $
+ * $Id: irsnd.c,v 1.78 2014/07/10 09:48:23 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,6 +192,9 @@
 
 #define SAMSUNG32_AUTO_REPETITION_PAUSE_LEN     (uint16_t)(F_INTERRUPTS * SAMSUNG32_AUTO_REPETITION_PAUSE_TIME + 0.5)           // use uint16_t!
 #define SAMSUNG32_FRAME_REPEAT_PAUSE_LEN        (uint16_t)(F_INTERRUPTS * SAMSUNG32_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
+
+#define SAMSUNG48_AUTO_REPETITION_PAUSE_LEN     (uint16_t)(F_INTERRUPTS * SAMSUNG48_AUTO_REPETITION_PAUSE_TIME + 0.5)           // use uint16_t!
+#define SAMSUNG48_FRAME_REPEAT_PAUSE_LEN        (uint16_t)(F_INTERRUPTS * SAMSUNG48_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
 
 #define MATSUSHITA_START_BIT_PULSE_LEN          (uint8_t)(F_INTERRUPTS * MATSUSHITA_START_BIT_PULSE_TIME + 0.5)
 #define MATSUSHITA_START_BIT_PAUSE_LEN          (uint8_t)(F_INTERRUPTS * MATSUSHITA_START_BIT_PAUSE_TIME + 0.5)
@@ -888,6 +891,22 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             break;
         }
 #endif
+#if IRSND_SUPPORT_SAMSUNG48_PROTOCOL == 1
+        case IRMP_SAMSUNG48_PROTOCOL:
+        {
+            address = bitsrevervse (irmp_data_p->address, SAMSUNG_ADDRESS_LEN);
+            command = bitsrevervse (irmp_data_p->command, 16);
+
+            irsnd_buffer[0] = (address & 0xFF00) >> 8;                                                          // AAAAAAAA
+            irsnd_buffer[1] = (address & 0x00FF);                                                               // AAAAAAAA
+            irsnd_buffer[2] = ((command & 0xFF00) >> 8);                                                        // CCCCCCCC
+            irsnd_buffer[3] = ~((command & 0xFF00) >> 8);                                                       // cccccccc
+            irsnd_buffer[4] = (command & 0x00FF);                                                               // CCCCCCCC
+            irsnd_buffer[5] = ~(command & 0x00FF);                                                              // cccccccc
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
 #if IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1
         case IRMP_MATSUSHITA_PROTOCOL:
         {
@@ -1496,6 +1515,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_SAMSUNG48_PROTOCOL == 1
+                    case IRMP_SAMSUNG48_PROTOCOL:
+                    {
+                        startbit_pulse_len          = SAMSUNG_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = SAMSUNG_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = SAMSUNG_PULSE_LEN;
+                        pause_1_len                 = SAMSUNG_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = SAMSUNG_PULSE_LEN;
+                        pause_0_len                 = SAMSUNG_0_PAUSE_LEN - 1;
+                        has_stop_bit                = SAMSUNG_STOP_BIT;
+                        complete_data_len           = SAMSUNG48_COMPLETE_DATA_LEN;
+                        n_auto_repetitions          = SAMSUNG48_FRAMES;                             // 1 frame
+                        auto_repetition_pause_len   = SAMSUNG48_AUTO_REPETITION_PAUSE_LEN;          // 47 ms pause
+                        repeat_frame_pause_len      = SAMSUNG48_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1
                     case IRMP_MATSUSHITA_PROTOCOL:
                     {
@@ -1967,6 +2004,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1
                 case IRMP_SAMSUNG_PROTOCOL:
                 case IRMP_SAMSUNG32_PROTOCOL:
+#endif
+#if IRSND_SUPPORT_SAMSUNG48_PROTOCOL == 1
+                case IRMP_SAMSUNG48_PROTOCOL:
 #endif
 #if IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1
                 case IRMP_MATSUSHITA_PROTOCOL:

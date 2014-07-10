@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpconfig.h,v 1.114 2014/07/09 15:26:02 fm Exp $
+ * $Id: irmpconfig.h,v 1.116 2014/07/10 09:49:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *

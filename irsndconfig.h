@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.58 2014/06/23 06:56:00 fm Exp $
+ * $Id: irsndconfig.h,v 1.60 2014/07/10 09:49:24 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -79,6 +79,7 @@
 #define IRSND_SUPPORT_LEGO_PROTOCOL             0       // LEGO Power RC        >= 20000                 ~150 bytes
 #define IRSND_SUPPORT_RCMM_PROTOCOL             0       // RCMM 12,24, or 32    >= 20000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_LGAIR_PROTOCOL            0       // LG Air Condition     >= 10000                 ~150 bytes.
+#define IRSND_SUPPORT_SAMSUNG48_PROTOCOL        0       // Samsung48            >= 10000                 ~100 bytes
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * AVR section:
