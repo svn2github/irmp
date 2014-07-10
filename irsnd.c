@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.78 2014/07/10 09:48:23 fm Exp $
+ * $Id: irsnd.c,v 1.79 2014/07/10 10:38:07 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -593,6 +593,7 @@ irsnd_init (void)
         RCC_AHBPeriphClockCmd(IRSND_PORT_RCC, ENABLE);
 #    elif defined (ARM_STM32F10X)
         RCC_APB2PeriphClockCmd(IRSND_PORT_RCC, ENABLE);
+        // RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE); // only in case of remapping, not necessary for default port-timer mapping
 #    elif defined (ARM_STM32F4XX)
         RCC_AHB1PeriphClockCmd(IRSND_PORT_RCC, ENABLE);
 #    endif
@@ -610,7 +611,7 @@ irsnd_init (void)
         GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
         GPIO_Init(IRSND_PORT, &GPIO_InitStructure);
-        GPIO_PinRemapConfig(, ENABLE);         // TODO: remapping required
+        // GPIO_PinRemapConfig(GPIO_*Remap*_TIM[IRSND_TIMER_NUMBER], ENABLE); // only in case of remapping, not necessary for default port-timer mapping
 #    endif
 
         /* TIMx clock enable */
