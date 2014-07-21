@@ -3,11 +3,10 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H!
  *
- * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
+ * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.116 2014/07/10 09:49:24 fm Exp $
- *
- * ATMEGA88 @ 8 MHz
+ * $Id: irmpconfig.h,v 1.117 2014/07/21 08:56:39 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +105,10 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif defined (PIC_C18)                                                 // use RB4 as IR input on PIC (C18 or XC8 compiler)
-#  define IRMP_PIN                              PORTBbits.RB4
+#if defined(__12F1840)
+#  define IRMP_PIN                              RA5                     // on 12F1840 with XC8 compiler
+#endif
+#  define IRMP_PIN                              PORTBbits.RB4           // PIC C18
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here for PIC CCS compiler

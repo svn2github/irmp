@@ -3,9 +3,9 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H or IRSND.H!
  *
- * Copyright (c) 2013 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2013-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.25 2014/07/09 14:45:56 fm Exp $
+ * $Id: irmpprotocols.h,v 1.26 2014/07/21 08:58:58 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -3,9 +3,9 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRSND.H!
  *
- * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.61 2014/07/10 10:38:07 fm Exp $
+ * $Id: irsndconfig.h,v 1.62 2014/07/21 08:56:39 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -22,6 +22,8 @@
 #if !defined(_IRSND_H_)
 #  error please include only irsnd.h, not irsndconfig.h
 #endif
+
+//~ #define IRSND_DEBUG 1                                   // activate debugging
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * F_INTERRUPTS: number of interrupts per second, should be in the range from 10000 to 20000, typically 15000
@@ -96,19 +98,25 @@
 #  define IRSND_OCx                             IRSND_OC2B              // use OC2B
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * PIC C18 section:
+ * PIC C18 or XC8 section:
  *
  * Change hardware pin here:                    IRSND_PIC_CCP1 = RC2 on PIC 18F2550/18F4550, ...
  *                                              IRSND_PIC_CCP2 = RC1 on PIC 18F2550/18F4550, ...
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#elif defined(PIC_C18)
+#elif defined(PIC_C18)                                                  // C18 or XC8 compiler
+# if defined(__12F1840)                                                 // XC8 compiler
+#  define Pre_Scaler                            1                       // define prescaler for timer2 e.g. 1,4,16
+#  define F_CPU                                 32000000UL              // PIC frequency: set your freq here
+#  define PIC_Scaler                            2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
+
+# else                                                                  // C18 compiler
 #  define IRSND_OCx                             IRSND_PIC_CCP2          // Use PWMx for PIC
                                                                         // change other PIC C18 specific settings:
 #  define F_CPU                                 48000000UL              // PIC frequency: set your freq here
 #  define Pre_Scaler                            4                       // define prescaler for timer2 e.g. 1,4,16
 #  define PIC_Scaler                            2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
-#  warning Timer2 used for IRSND (PWM out) ! Do not use/setup Timer 2 yourself !
+# endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * ARM STM32 section:

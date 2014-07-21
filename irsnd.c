@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * @file irsnd.c
  *
- * Copyright (c) 2010-2013 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2014 Frank Meyer - frank(at)fli4l.de
  *
  * Supported mikrocontrollers:
  *
@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.79 2014/07/10 10:38:07 fm Exp $
+ * $Id: irsnd.c,v 1.81 2014/07/21 08:58:58 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -505,14 +505,34 @@ irsnd_off (void)
  *  @details  sets pwm frequency
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+#if defined(__12F1840)
+extern void pwm_init(uint16_t freq);
+#include <stdio.h>
+#endif
+
 static void
 irsnd_set_freq (IRSND_FREQ_TYPE freq)
 {
 #ifndef ANALYZE
-#  if defined(PIC_C18)                                                                      // PIC C18
-         OpenPWM(freq); 
-         SetDCPWM( (uint16_t) (freq * 2) + 1); // freq*2 = Duty cycles 50%
-         PWMoff();
+#  if defined(PIC_C18)                                                                      // PIC C18 or XC8
+#    if defined(__12F1840)                                                                  // XC8
+        TRISA2=0; 
+        PR2=freq;
+        CCP1M0=1;
+        CCP1M1=1;
+        CCP1M2=1;
+        CCP1M3=1;
+        DC1B0=1;
+        DC1B1=0;
+        CCPR1L = 0b01101001;
+        TMR2IF = 0;
+        TMR2ON=1;
+        CCP1CON &=(~0b0011); // p 197 "active high"
+#    else                                                                                   // PIC C18
+        OpenPWM(freq); 
+        SetDCPWM( (uint16_t) (freq * 2) + 1); // freq*2 = Duty cycles 50%
+#    endif
+        PWMoff();
 #  elif defined (ARM_STM32)                                                                 // STM32
          static uint32_t      TimeBaseFreq = 0;
 
@@ -578,8 +598,10 @@ void
 irsnd_init (void)
 {
 #ifndef ANALYZE
-#  if defined(PIC_C18)                                                      // PIC C18
+#  if defined(PIC_C18)                                                      // PIC C18 or XC8 compiler
+#    if ! defined(__12F1840)                                                // only C18:
         OpenTimer;
+#    endif
         irsnd_set_freq (IRSND_FREQ_36_KHZ);                                 // default frequency
         IRSND_PIN = 0;                                                      // set IO to outout
         PWMoff();
@@ -2095,7 +2117,7 @@ irsnd_ISR (void)
                                 if (current_bit < SAMSUNG_ADDRESS_LEN)                              // send address bits
                                 {
                                     pulse_len = SAMSUNG_PULSE_LEN;
-                                    pause_len = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ?
+                                    pause_len = (irsnd_buffer[current_bit >> 3] & (1<<(7-(current_bit & 7)))) ?
                                                     (SAMSUNG_1_PAUSE_LEN - 1) : (SAMSUNG_0_PAUSE_LEN - 1);
                                 }
                                 else if (current_bit == SAMSUNG_ADDRESS_LEN)                        // send SYNC bit (16th bit)
@@ -2108,7 +2130,7 @@ irsnd_ISR (void)
                                     uint8_t cur_bit = current_bit - 1;                              // sync skipped, offset = -1 !
 
                                     pulse_len = SAMSUNG_PULSE_LEN;
-                                    pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
+                                    pause_len = (irsnd_buffer[cur_bit >> 3] & (1<<(7-(cur_bit & 7)))) ?
                                                     (SAMSUNG_1_PAUSE_LEN - 1) : (SAMSUNG_0_PAUSE_LEN - 1);
                                 }
                             }
@@ -2121,7 +2143,7 @@ irsnd_ISR (void)
                                 if (current_bit < NEC16_ADDRESS_LEN)                                // send address bits
                                 {
                                     pulse_len = NEC_PULSE_LEN;
-                                    pause_len = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ?
+                                    pause_len = (irsnd_buffer[current_bit >> 3] & (1<<(7-(current_bit & 7)))) ?
                                                     (NEC_1_PAUSE_LEN - 1) : (NEC_0_PAUSE_LEN - 1);
                                 }
                                 else if (current_bit == NEC16_ADDRESS_LEN)                          // send SYNC bit (8th bit)
@@ -2134,7 +2156,7 @@ irsnd_ISR (void)
                                     uint8_t cur_bit = current_bit - 1;                              // sync skipped, offset = -1 !
 
                                     pulse_len = NEC_PULSE_LEN;
-                                    pause_len = (irsnd_buffer[cur_bit / 8] & (1<<(7-(cur_bit % 8)))) ?
+                                    pause_len = (irsnd_buffer[cur_bit >> 3] & (1<<(7-(cur_bit & 7)))) ?
                                                     (NEC_1_PAUSE_LEN - 1) : (NEC_0_PAUSE_LEN - 1);
                                 }
                             }
@@ -2166,7 +2188,7 @@ irsnd_ISR (void)
                                 }
                                 else if (current_bit < BANG_OLUFSEN_COMPLETE_DATA_LEN)              // send n'th bit
                                 {
-                                    uint8_t cur_bit_value = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ? 1 : 0;
+                                    uint8_t cur_bit_value = (irsnd_buffer[current_bit >> 3] & (1<<(7-(current_bit & 7)))) ? 1 : 0;
                                     pulse_len = BANG_OLUFSEN_PULSE_LEN;
 
                                     if (cur_bit_value == last_bit_value)
@@ -2182,7 +2204,7 @@ irsnd_ISR (void)
                             }
                             else
 #endif
-                            if (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8))))
+                            if (irsnd_buffer[current_bit >> 3] & (1<<(7-(current_bit & 7))))
                             {
                                 pulse_len = pulse_1_len;
                                 pause_len = pause_1_len;
@@ -2349,7 +2371,7 @@ irsnd_ISR (void)
                             {
                                 pulse_len = GRUNDIG_NOKIA_IR60_BIT_LEN;
                                 pause_len = GRUNDIG_NOKIA_IR60_BIT_LEN;
-                                first_pulse = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ? TRUE : FALSE;
+                                first_pulse = (irsnd_buffer[current_bit >> 3] & (1<<(7-(current_bit & 7)))) ? TRUE : FALSE;
                             }
                         }
                         else // if (irsnd_protocol == IRMP_RC5_PROTOCOL || irsnd_protocol == IRMP_RC6_PROTOCOL || irsnd_protocol == IRMP_RC6A_PROTOCOL ||
@@ -2409,7 +2431,7 @@ irsnd_ISR (void)
                                     }
                                 }
 #endif
-                                first_pulse = (irsnd_buffer[current_bit / 8] & (1<<(7-(current_bit % 8)))) ? TRUE : FALSE;
+                                first_pulse = (irsnd_buffer[current_bit >> 3] & (1<<(7-(current_bit & 7)))) ? TRUE : FALSE;
                             }
 
                             if (irsnd_protocol == IRMP_RC5_PROTOCOL)

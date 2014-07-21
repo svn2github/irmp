@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.c - infrared multi-protocol decoder, supports several remote control protocols
  *
- * Copyright (c) 2009-2013 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.159 2014/07/09 15:31:25 fm Exp $
+ * $Id: irmp.c,v 1.161 2014/07/21 08:58:58 fm Exp $
  *
  * ATMEGA88 @ 8 MHz
  *
@@ -498,7 +498,7 @@ static void                                     (*irmp_callback_ptr) (uint8_t);
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if defined(UNIX_OR_WINDOWS) || IRMP_PROTOCOL_NAMES == 1
-char *
+const char *
 irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
 {
     "UNKNOWN",
