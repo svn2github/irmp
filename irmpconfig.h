@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.117 2014/07/21 08:56:39 fm Exp $
+ * $Id: irmpconfig.h,v 1.119 2014/09/15 10:31:22 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

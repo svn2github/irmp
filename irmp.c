@@ -3,11 +3,9 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.161 2014/07/21 08:58:58 fm Exp $
+ * $Id: irmp.c,v 1.162 2014/09/15 10:27:37 fm Exp $
  *
- * ATMEGA88 @ 8 MHz
- *
- * Supported mikrocontrollers:
+ * Supported AVR mikrocontrollers:
  *
  * ATtiny87,  ATtiny167
  * ATtiny45,  ATtiny85
@@ -498,52 +496,96 @@ static void                                     (*irmp_callback_ptr) (uint8_t);
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if defined(UNIX_OR_WINDOWS) || IRMP_PROTOCOL_NAMES == 1
-const char *
-irmp_protocol_names[IRMP_N_PROTOCOLS + 1] =
+static const char proto_unknown[]       PROGMEM = "UNKNOWN";
+static const char proto_sircs[]         PROGMEM = "SIRCS";
+static const char proto_nec[]           PROGMEM = "NEC";
+static const char proto_samsung[]       PROGMEM = "SAMSUNG";
+static const char proto_matsushita[]    PROGMEM = "MATSUSH";
+static const char proto_kaseikyo[]      PROGMEM = "KASEIKYO";
+static const char proto_recs80[]        PROGMEM = "RECS80";
+static const char proto_rc5[]           PROGMEM = "RC5";
+static const char proto_denon[]         PROGMEM = "DENON";
+static const char proto_rc6[]           PROGMEM = "RC6";
+static const char proto_samsung32[]     PROGMEM = "SAMSG32";
+static const char proto_apple[]         PROGMEM = "APPLE";
+static const char proto_recs80ext[]     PROGMEM = "RECS80EX";
+static const char proto_nubert[]        PROGMEM = "NUBERT";
+static const char proto_bang_olufsen[]  PROGMEM = "BANG OLU";
+static const char proto_grundig[]       PROGMEM = "GRUNDIG";
+static const char proto_nokia[]         PROGMEM = "NOKIA";
+static const char proto_siemens[]       PROGMEM = "SIEMENS";
+static const char proto_fdc[]           PROGMEM = "FDC";
+static const char proto_rccar[]         PROGMEM = "RCCAR";
+static const char proto_jvc[]           PROGMEM = "JVC";
+static const char proto_rc6a[]          PROGMEM = "RC6A";
+static const char proto_nikon[]         PROGMEM = "NIKON";
+static const char proto_ruwido[]        PROGMEM = "RUWIDO";
+static const char proto_ir60[]          PROGMEM = "IR60";
+static const char proto_kathrein[]      PROGMEM = "KATHREIN";
+static const char proto_netbox[]        PROGMEM = "NETBOX";
+static const char proto_nec16[]         PROGMEM = "NEC16";
+static const char proto_nec42[]         PROGMEM = "NEC42";
+static const char proto_lego[]          PROGMEM = "LEGO";
+static const char proto_thomson[]       PROGMEM = "THOMSON";
+static const char proto_bose[]          PROGMEM = "BOSE";
+static const char proto_a1tvbox[]       PROGMEM = "A1TVBOX";
+static const char proto_ortek[]         PROGMEM = "ORTEK";
+static const char proto_telefunken[]    PROGMEM = "TELEFUNKEN";
+static const char proto_roomba[]        PROGMEM = "ROOMBA";
+static const char proto_rcmm32[]        PROGMEM = "RCMM32";
+static const char proto_rcmm24[]        PROGMEM = "RCMM24";
+static const char proto_rcmm12[]        PROGMEM = "RCMM12";
+static const char proto_speaker[]       PROGMEM = "SPEAKER";
+static const char proto_lgair[]         PROGMEM = "LGAIR";
+static const char proto_samsung48[]     PROGMEM = "SAMSG48";
+static const char proto_radio1[]        PROGMEM = "RADIO1";
+
+const char * const
+irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
 {
-    "UNKNOWN",
-    "SIRCS",
-    "NEC",
-    "SAMSUNG",
-    "MATSUSH",
-    "KASEIKYO",
-    "RECS80",
-    "RC5",
-    "DENON",
-    "RC6",
-    "SAMSG32",
-    "APPLE",
-    "RECS80EX",
-    "NUBERT",
-    "BANG OLU",
-    "GRUNDIG",
-    "NOKIA",
-    "SIEMENS",
-    "FDC",
-    "RCCAR",
-    "JVC",
-    "RC6A",
-    "NIKON",
-    "RUWIDO",
-    "IR60",
-    "KATHREIN",
-    "NETBOX",
-    "NEC16",
-    "NEC42",
-    "LEGO",
-    "THOMSON",
-    "BOSE",
-    "A1TVBOX",
-    "ORTEK",
-    "TELEFUNKEN",
-    "ROOMBA",
-    "RCMM32",
-    "RCMM24",
-    "RCMM12",
-    "SPEAKER",
-    "LGAIR",
-    "SAMSG48",
-    "RADIO1"
+    proto_unknown,
+    proto_sircs,
+    proto_nec,
+    proto_samsung,
+    proto_matsushita,
+    proto_kaseikyo,
+    proto_recs80,
+    proto_rc5,
+    proto_denon,
+    proto_rc6,
+    proto_samsung32,
+    proto_apple,
+    proto_recs80ext,
+    proto_nubert,
+    proto_bang_olufsen,
+    proto_grundig,
+    proto_nokia,
+    proto_siemens,
+    proto_fdc,
+    proto_rccar,
+    proto_jvc,
+    proto_rc6a,
+    proto_nikon,
+    proto_ruwido,
+    proto_ir60,
+    proto_kathrein,
+    proto_netbox,
+    proto_nec16,
+    proto_nec42,
+    proto_lego,
+    proto_thomson,
+    proto_bose,
+    proto_a1tvbox,
+    proto_ortek,
+    proto_telefunken,
+    proto_roomba,
+    proto_rcmm32,
+    proto_rcmm24,
+    proto_rcmm12,
+    proto_speaker,
+    proto_lgair,
+    proto_samsung48,
+    proto_radio1
 };
 
 #endif
@@ -737,79 +779,6 @@ irmp_uart_putc (unsigned char ch)
 #define ENDBITS                        1000                                 // number of sequenced highbits to detect end
 #define DATALEN                         700                                 // log buffer size
 
-#if 0                                                                       // old log routine
-
-static void
-irmp_log (uint8_t val)
-{
-    static uint8_t  buf[DATALEN];                                           // logging buffer
-    static uint16_t buf_idx;                                                // number of written bits
-    static uint8_t  startcycles;                                            // current number of start-zeros
-    static uint16_t cnt;                                                    // counts sequenced highbits - to detect end
-
-    if (! val && (startcycles < STARTCYCLES) && !buf_idx)                   // prevent that single random zeros init logging
-    {
-        startcycles++;
-    }
-    else
-    {
-        startcycles = 0;
-
-        if (! val || (val && buf_idx != 0))                                 // start or continue logging on "0", "1" cannot init logging
-        {
-            if (buf_idx < DATALEN * 8)                                      // index in range?
-            {                                                               // yes
-                if (val)
-                {
-                    buf[(buf_idx / 8)] |=  (1<<(buf_idx % 8));              // set bit
-                }
-                else
-                {
-                    buf[(buf_idx / 8)] &= ~(1<<(buf_idx % 8));              // reset bit
-                }
-
-                buf_idx++;
-            }
-
-            if (val)
-            {                                                               // if high received then look at log-stop condition
-                cnt++;
-
-                if (cnt > ENDBITS)
-                {                                                           // if stop condition is true, output on uart
-                    uint16_t i;
-
-                    for (i = 0; i < STARTCYCLES; i++)
-                    {
-                        irmp_uart_putc ('0');                               // the ignored starting zeros
-                    }
-
-                    for (i = 0; i < (buf_idx - ENDBITS + 20) / 8; i++)      // transform bitset into uart chars
-                    {
-                        uint8_t d = buf[i];
-                        uint8_t j;
-
-                        for (j = 0; j < 8; j++)
-                        {
-                            irmp_uart_putc ((d & 1) + '0');
-                            d >>= 1;
-                        }
-                    }
-
-                    irmp_uart_putc ('\n');
-                    buf_idx = 0;
-                }
-            }
-            else
-            {
-                cnt = 0;
-            }
-        }
-    }
-}
-
-#else                                                                       // new log routine
-
 static void
 irmp_log (uint8_t val)
 {
@@ -897,8 +866,6 @@ irmp_log (uint8_t val)
         }
     }
 }
-
-#endif
 
 #else
 #define irmp_log(val)
