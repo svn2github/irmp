@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.162 2014/09/15 10:27:37 fm Exp $
+ * $Id: irmp.c,v 1.164 2014/09/15 12:36:28 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -143,10 +143,10 @@
 #define MATSUSHITA_0_PAUSE_LEN_MIN              ((uint8_t)(F_INTERRUPTS * MATSUSHITA_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define MATSUSHITA_0_PAUSE_LEN_MAX              ((uint8_t)(F_INTERRUPTS * MATSUSHITA_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 
-#define KASEIKYO_START_BIT_PULSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define KASEIKYO_START_BIT_PULSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define KASEIKYO_START_BIT_PAUSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define KASEIKYO_START_BIT_PAUSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define KASEIKYO_START_BIT_PULSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define KASEIKYO_START_BIT_PULSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define KASEIKYO_START_BIT_PAUSE_LEN_MIN        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define KASEIKYO_START_BIT_PAUSE_LEN_MAX        ((uint8_t)(F_INTERRUPTS * KASEIKYO_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define KASEIKYO_PULSE_LEN_MIN                  ((uint8_t)(F_INTERRUPTS * KASEIKYO_PULSE_TIME * MIN_TOLERANCE_50 + 0.5) - 1)
 #define KASEIKYO_PULSE_LEN_MAX                  ((uint8_t)(F_INTERRUPTS * KASEIKYO_PULSE_TIME * MAX_TOLERANCE_50 + 0.5) + 1)
 #define KASEIKYO_1_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
@@ -538,6 +538,7 @@ static const char proto_rcmm12[]        PROGMEM = "RCMM12";
 static const char proto_speaker[]       PROGMEM = "SPEAKER";
 static const char proto_lgair[]         PROGMEM = "LGAIR";
 static const char proto_samsung48[]     PROGMEM = "SAMSG48";
+
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
 const char * const
@@ -585,6 +586,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_speaker,
     proto_lgair,
     proto_samsung48,
+
     proto_radio1
 };
 
@@ -1703,7 +1705,7 @@ static IRMP_PARAMETER                       irmp_param;
 static IRMP_PARAMETER                       irmp_param2;
 #endif
 
-static volatile uint8_t                     irmp_ir_detected;
+static volatile uint8_t                     irmp_ir_detected = FALSE;
 static volatile uint8_t                     irmp_protocol;
 static volatile uint16_t                    irmp_address;
 static volatile uint16_t                    irmp_command;
@@ -2349,7 +2351,8 @@ irmp_ISR (void)
                 }
                 else
                 {                                                               // receiving first data pulse!
-                    IRMP_PARAMETER * irmp_param_p = (IRMP_PARAMETER *) 0;
+                    IRMP_PARAMETER * irmp_param_p;
+                    irmp_param_p = (IRMP_PARAMETER *) 0;
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
                     irmp_param2.protocol = 0;

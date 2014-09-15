@@ -51,6 +51,7 @@ for j in                            \
     elta_radio.txt                  \
     fdc.txt                         \
     jvc.txt                         \
+    jvc-rm-rk250-10kHz.txt	    \
     nec-repetition.txt              \
     nec-skymaster-dt500.txt         \
     nec.txt                         \
@@ -71,16 +72,16 @@ do
     echo -n "testing $j ... "
     if tmpsrc/irmp-10kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-10kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-10kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     else
-        if tmpsrc/irmp-10kHz -v < $j | grep -q checked
-        then
-            echo "checked!"
-        else
-            echo "successful"
-        fi
+	if tmpsrc/irmp-10kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
@@ -110,16 +111,16 @@ do
     echo -n "testing $j ... "
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-15kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-15kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     else
-        if tmpsrc/irmp-15kHz -v < $j | grep -q checked
-        then
-            echo "checked!"
-        else
-            echo "successful"
-        fi
+	if tmpsrc/irmp-15kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
@@ -135,16 +136,16 @@ do
     echo -n "testing $j ... "
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-20kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-20kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     else
-        if tmpsrc/irmp-20kHz -v < $j | grep -q checked
-        then
-            echo "checked!"
-        else
-            echo "successful"
-        fi
+	if tmpsrc/irmp-20kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
