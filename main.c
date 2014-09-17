@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.20 2014/09/15 10:27:38 fm Exp $
+ * $Id: main.c,v 1.21 2014/09/17 09:44:47 fm Exp $
  *
  * This demo module is runnable on AVRs and LM4F120 Launchpad (ARM Cortex M4)
  *
@@ -207,7 +207,7 @@ main (void)
 
 #if IRMP_PROTOCOL_NAMES == 1
             uart_puts_P (PSTR("   "));
-            uart_puts_P (irmp_protocol_names[irmp_data.protocol]);
+            uart_puts_P (pgm_read_word (&(irmp_protocol_names[irmp_data.protocol])));
 #endif
 
             uart_puts_P (PSTR("   address: 0x"));
