@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.164 2014/09/15 12:36:28 fm Exp $
+ * $Id: irmp.c,v 1.165 2014/09/18 09:18:45 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -596,22 +596,25 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
  *  Logging
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if IRMP_LOGGING == 1                                               // logging via UART
+#if IRMP_LOGGING == 1                                                   // logging via UART
 
 #if defined(ARM_STM32F4XX)
-#  define  STM32_GPIO_CLOCK   RCC_AHB1Periph_GPIOA                    // per UART2 an PA2
+#  define  STM32_GPIO_CLOCK   RCC_AHB1Periph_GPIOA                      // UART2 on PA2
 #  define  STM32_UART_CLOCK   RCC_APB1Periph_USART2
 #  define  STM32_GPIO_PORT    GPIOA
 #  define  STM32_GPIO_PIN     GPIO_Pin_2
 #  define  STM32_GPIO_SOURCE  GPIO_PinSource2
 #  define  STM32_UART_AF      GPIO_AF_USART2
 #  define  STM32_UART_COM     USART2
-#  define  STM32_UART_BAUD    115200                                  // mit 115200 Baud
+#  define  STM32_UART_BAUD    115200                                    // 115200 Baud
 #  include "stm32f4xx_usart.h"
+#elif defined(ARM_STM32F10X)
+#  define  STM32_UART_COM     USART3                                    // UART3 on PB10
+#  include "stm32f10x_usart.h"
 #else
-#  if IRMP_EXT_LOGGING == 1                                           // use external logging
+#  if IRMP_EXT_LOGGING == 1                                             // use external logging
 #    include "irmpextlog.h"
-#  else                                                               // normal UART log (IRMP_EXT_LOGGING == 0)
+#  else                                                                 // normal UART log (IRMP_EXT_LOGGING == 0)
 #    define BAUD                                    9600L
 #  ifndef UNIX_OR_WINDOWS
 #    include <util/setbaud.h>
@@ -706,7 +709,39 @@ irmp_uart_init (void)
     // UART enable
     USART_Cmd(STM32_UART_COM, ENABLE);
 
-#else
+#elif defined(ARM_STM32F10X)
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+
+    // Clock enable vom TX Pin
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE); // UART3 an PB10
+
+    // Clock enable der UART
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+
+    // UART als Alternative-Funktion mit PushPull
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+
+    // TX-Pin
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    // Oversampling
+    USART_OverSampling8Cmd(STM32_UART_COM, ENABLE);
+
+    // init mit Baudrate, 8Databits, 1Stopbit, keine Parität, kein RTS+CTS
+    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Tx;
+    USART_Init(STM32_UART_COM, &USART_InitStructure);
+
+    // UART enable
+    USART_Cmd(STM32_UART_COM, ENABLE);#else
+
 #if (IRMP_EXT_LOGGING == 0)                                                                         // use UART
     UART0_UBRRH = UBRRH_VALUE;                                                                      // set baud rate
     UART0_UBRRL = UBRRL_VALUE;
@@ -736,7 +771,7 @@ void
 irmp_uart_putc (unsigned char ch)
 {
 #ifndef UNIX_OR_WINDOWS
-#if defined(ARM_STM32F4XX)
+#if defined(ARM_STM32F4XX) || defined(ARM_STM32F10X)
     // warten bis altes Byte gesendet wurde
     while (USART_GetFlagStatus(STM32_UART_COM, USART_FLAG_TXE) == RESET)
     {
