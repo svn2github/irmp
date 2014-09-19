@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.165 2014/09/18 09:18:45 fm Exp $
+ * $Id: irmp.c,v 1.166 2014/09/19 13:26:00 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
