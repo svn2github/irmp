@@ -740,7 +740,8 @@ irmp_uart_init (void)
     USART_Init(STM32_UART_COM, &USART_InitStructure);
 
     // UART enable
-    USART_Cmd(STM32_UART_COM, ENABLE);#else
+    USART_Cmd(STM32_UART_COM, ENABLE);
+#else
 
 #if (IRMP_EXT_LOGGING == 0)                                                                         // use UART
     UART0_UBRRH = UBRRH_VALUE;                                                                      // set baud rate
