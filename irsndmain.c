@@ -15,7 +15,7 @@
 #include "irsnd.h"
 
 #ifndef F_CPU
-#  error F_CPU unkown
+#  error F_CPU unknown
 #endif
 
 void

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.21 2014/09/17 09:44:47 fm Exp $
+ * $Id: main.c,v 1.23 2014/11/17 11:56:19 fm Exp $
  *
  * This demo module is runnable on AVRs and LM4F120 Launchpad (ARM Cortex M4)
  *
@@ -20,7 +20,7 @@
 #include "irmp.h"
 
 #ifndef F_CPU
-#error F_CPU unkown
+#error F_CPU unknown
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 #define UART0_TXEN_BIT_VALUE                    (1<<TXEN0)
 #define UART0_UDR                               UDR0
 #define UART0_U2X                               U2X0
-        
+
 #else
 
 #define UART0_UBRRH                             UBRRH

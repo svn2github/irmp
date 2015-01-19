@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.14 2014/09/15 10:27:38 fm Exp $
+ * $Id: irmpsystem.h,v 1.15 2015/01/19 10:54:37 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
 #  include <stm32f4xx.h>
 #  define ARM_STM32
 #  define ARM_STM32F4XX
-#elif defined(TARGET_IS_BLIZZARD_RA2)                                                                                           // TI Stellaris (tested on Stellaris Launchpad with Code Composer Studio)
+#elif defined(TARGET_IS_BLIZZARD_RA2)                                               // TI Stellaris (tested on Stellaris Launchpad with Code Composer Studio)
 #  define STELLARIS_ARM_CORTEX_M4
 #  define F_CPU (SysCtlClockGet())
 #elif defined(unix) || defined(WIN32) || defined(__APPLE__)                         // Unix/Linux or Windows or Apple
@@ -128,9 +128,9 @@ typedef unsigned short                  uint16_t;
 #  define FALSE                         0
 #endif
 
-typedef struct
+typedef struct __attribute__ ((__packed__))
 {
-  uint8_t                               protocol;                                   // protocol, i.e. NEC_PROTOCOL
+  uint8_t                               protocol;                                   // protocol, e.g. NEC_PROTOCOL
   uint16_t                              address;                                    // address
   uint16_t                              command;                                    // command
   uint8_t                               flags;                                      // flags, e.g. repetition

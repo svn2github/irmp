@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.166 2014/09/19 13:26:00 fm Exp $
+ * $Id: irmp.c,v 1.168 2015/01/19 10:54:37 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -42,6 +42,7 @@
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
     IRMP_SUPPORT_IR60_PROTOCOL == 1 ||                  \
     IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1 ||               \
+    IRMP_SUPPORT_MERLIN_PROTOCOL == 1 ||                \
     IRMP_SUPPORT_ORTEK_PROTOCOL == 1
 #  define IRMP_SUPPORT_MANCHESTER                   1
 #else
@@ -385,14 +386,23 @@
 #define BOSE_0_PAUSE_LEN_MAX                     ((uint8_t)(F_INTERRUPTS * BOSE_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define BOSE_FRAME_REPEAT_PAUSE_LEN_MAX          (uint16_t)(F_INTERRUPTS * 100.0e-3 * MAX_TOLERANCE_20 + 0.5)
 
-#define A1TVBOX_START_BIT_PULSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define A1TVBOX_START_BIT_PULSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define A1TVBOX_START_BIT_PAUSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
-#define A1TVBOX_START_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
-#define A1TVBOX_BIT_PULSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define A1TVBOX_BIT_PULSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
-#define A1TVBOX_BIT_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
-#define A1TVBOX_BIT_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define A1TVBOX_START_BIT_PULSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define A1TVBOX_START_BIT_PULSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define A1TVBOX_START_BIT_PAUSE_LEN_MIN         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define A1TVBOX_START_BIT_PAUSE_LEN_MAX         ((uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define A1TVBOX_BIT_PULSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define A1TVBOX_BIT_PULSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define A1TVBOX_BIT_PAUSE_LEN_MIN               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define A1TVBOX_BIT_PAUSE_LEN_MAX               ((uint8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+
+#define MERLIN_START_BIT_PULSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define MERLIN_START_BIT_PULSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define MERLIN_START_BIT_PAUSE_LEN_MIN          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define MERLIN_START_BIT_PAUSE_LEN_MAX          ((uint8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define MERLIN_BIT_PULSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * MERLIN_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define MERLIN_BIT_PULSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * MERLIN_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define MERLIN_BIT_PAUSE_LEN_MIN                ((uint8_t)(F_INTERRUPTS * MERLIN_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define MERLIN_BIT_PAUSE_LEN_MAX                ((uint8_t)(F_INTERRUPTS * MERLIN_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
 
 #define ORTEK_START_BIT_PULSE_LEN_MIN           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define ORTEK_START_BIT_PULSE_LEN_MAX           ((uint8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -538,6 +548,7 @@ static const char proto_rcmm12[]        PROGMEM = "RCMM12";
 static const char proto_speaker[]       PROGMEM = "SPEAKER";
 static const char proto_lgair[]         PROGMEM = "LGAIR";
 static const char proto_samsung48[]     PROGMEM = "SAMSG48";
+static const char proto_merlin[]        PROGMEM = "MERLIN";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -586,6 +597,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_speaker,
     proto_lgair,
     proto_samsung48,
+    proto_merlin,
 
     proto_radio1
 };
@@ -610,7 +622,6 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
 #  include "stm32f4xx_usart.h"
 #elif defined(ARM_STM32F10X)
 #  define  STM32_UART_COM     USART3                                    // UART3 on PB10
-#  include "stm32f10x_usart.h"
 #else
 #  if IRMP_EXT_LOGGING == 1                                             // use external logging
 #    include "irmpextlog.h"
@@ -1627,6 +1638,32 @@ static const PROGMEM IRMP_PARAMETER a1tvbox_param =
     A1TVBOX_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
     A1TVBOX_LSB,                                                        // lsb_first:       flag: LSB first
     A1TVBOX_FLAGS                                                       // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER merlin_param =
+{
+    IRMP_MERLIN_PROTOCOL,                                               // protocol:        ir protocol
+
+    MERLIN_BIT_PULSE_LEN_MIN,                                           // pulse_1_len_min: here: minimum length of short pulse
+    MERLIN_BIT_PULSE_LEN_MAX,                                           // pulse_1_len_max: here: maximum length of short pulse
+    MERLIN_BIT_PAUSE_LEN_MIN,                                           // pause_1_len_min: here: minimum length of short pause
+    MERLIN_BIT_PAUSE_LEN_MAX,                                           // pause_1_len_max: here: maximum length of short pause
+    0,                                                                  // pulse_0_len_min: here: not used
+    0,                                                                  // pulse_0_len_max: here: not used
+    0,                                                                  // pause_0_len_min: here: not used
+    0,                                                                  // pause_0_len_max: here: not used
+    MERLIN_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    MERLIN_ADDRESS_OFFSET + MERLIN_ADDRESS_LEN,                         // address_end:     end of address
+    MERLIN_COMMAND_OFFSET,                                              // command_offset:  command offset
+    MERLIN_COMMAND_OFFSET + MERLIN_COMMAND_LEN,                         // command_end:     end of command
+    MERLIN_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    MERLIN_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    MERLIN_LSB,                                                         // lsb_first:       flag: LSB first
+    MERLIN_FLAGS                                                        // flags:           some flags
 };
 
 #endif
@@ -2921,6 +2958,22 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
+
+#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
+                    if (irmp_pulse_time >= MERLIN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MERLIN_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= MERLIN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= MERLIN_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's MERLIN
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = MERLIN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        MERLIN_START_BIT_PULSE_LEN_MIN, MERLIN_START_BIT_PULSE_LEN_MAX,
+                                        MERLIN_START_BIT_PAUSE_LEN_MIN, MERLIN_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &merlin_param;
+                        last_pause = 0;
+                        last_value = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_MERLIN_PROTOCOL == 1
 
 #if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
                     if (irmp_pulse_time >= ORTEK_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= ORTEK_START_BIT_PULSE_LEN_MAX &&
