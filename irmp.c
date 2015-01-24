@@ -1852,7 +1852,7 @@ irmp_init (void)
  *  @return    TRUE: successful, FALSE: failed
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-uint8_t
+uint_fast8_t
 irmp_get_data (IRMP_DATA * irmp_data_p)
 {
     uint8_t   rtc = FALSE;
@@ -2269,7 +2269,7 @@ irmp_store_bit2 (uint8_t value)
  *  @details  ISR routine, called 10000 times per second
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-uint8_t
+uint_fast8_t
 irmp_ISR (void)
 {
     static uint8_t      irmp_start_bit_detected;                                // flag: start bit detected
