@@ -3,9 +3,9 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRSND.H!
  *
- * Copyright (c) 2010-2014 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.63 2014/09/15 10:27:38 fm Exp $
+ * $Id: irsndconfig.h,v 1.64 2015/01/26 13:09:28 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

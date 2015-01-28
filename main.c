@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * main.c - demo main module to test irmp decoder
  *
- * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.23 2014/11/17 11:56:19 fm Exp $
+ * $Id: main.c,v 1.24 2015/01/26 13:09:28 fm Exp $
  *
  * This demo module is runnable on AVRs and LM4F120 Launchpad (ARM Cortex M4)
  *

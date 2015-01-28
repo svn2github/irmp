@@ -3,10 +3,10 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H!
  *
- * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.123 2015/01/19 10:54:37 fm Exp $
+ * $Id: irmpconfig.h,v 1.124 2015/01/26 13:07:01 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.h
  *
- * Copyright (c) 2009-2014 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.90 2015/01/19 10:54:37 fm Exp $
+ * $Id: irmp.h,v 1.92 2015/01/28 09:18:30 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,34 +61,11 @@
 #  define sei()                                 IntMasterEnable()
 #endif
 
-#if IRMP_SUPPORT_DENON_PROTOCOL == 1 && (IRMP_SUPPORT_RUWIDO_PROTOCOL == 1 || IRMP_SUPPORT_SIEMENS_PROTOCOL == 1)
-#  warning DENON protocol conflicts wih RUWIDO/SIEMENS, please enable only one of both protocols
+#if IRMP_SUPPORT_DENON_PROTOCOL == 1 && IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
+#  warning DENON protocol conflicts wih RUWIDO, please enable only one of both protocols
 #  warning RUWIDO protocol disabled
-#  warning SIEMENS protocol disabled
-#  warning DENON protocol stays enabled
 #  undef IRMP_SUPPORT_RUWIDO_PROTOCOL
 #  define IRMP_SUPPORT_RUWIDO_PROTOCOL          0
-#  undef IRMP_SUPPORT_SIEMENS_PROTOCOL
-#  define IRMP_SUPPORT_SIEMENS_PROTOCOL          0
-#endif
-
-#if IRMP_SUPPORT_DENON_PROTOCOL == 1 && (IRMP_SUPPORT_RUWIDO_PROTOCOL == 1 || IRMP_SUPPORT_SIEMENS_PROTOCOL == 1)
-#  warning MERLIN protocol conflicts wih RUWIDO/SIEMENS, please enable only one of both protocols
-#  warning RUWIDO protocol disabled
-#  warning SIEMENS protocol disabled
-#  warning MERLIN protocol stays enabled
-#  undef IRMP_SUPPORT_RUWIDO_PROTOCOL
-#  define IRMP_SUPPORT_RUWIDO_PROTOCOL          0
-#  undef IRMP_SUPPORT_SIEMENS_PROTOCOL
-#  define IRMP_SUPPORT_SIEMENS_PROTOCOL          0
-#endif
-
-#if IRMP_SUPPORT_DENON_PROTOCOL == 1 && IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
-#  warning MERLIN protocol conflicts wih A1TVBOX, please enable only one of both protocols
-#  warning A1TVBOX protocol disabled
-#  warning MERLIN protocol stays enabled
-#  undef IRMP_SUPPORT_A1TVBOX_PROTOCOL
-#  define IRMP_SUPPORT_A1TVBOX_PROTOCOL          0
 #endif
 
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1 && IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
@@ -195,7 +172,6 @@
 
 extern void                             irmp_init (void);
 extern uint_fast8_t                     irmp_get_data (IRMP_DATA *);
-extern uint_fast8_t                     irmp_is_busy (void);
 extern uint_fast8_t                     irmp_ISR (void);
 
 #if IRMP_PROTOCOL_NAMES == 1
