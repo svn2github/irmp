@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: main.c,v 1.24 2015/01/26 13:09:28 fm Exp $
+ * $Id: main.c,v 1.27 2015/02/27 10:19:20 fm Exp $
  *
  * This demo module is runnable on AVRs and LM4F120 Launchpad (ARM Cortex M4)
  *
@@ -122,30 +122,14 @@ uart_puts_P (PGM_P s)
     }
 }
 
-static uint8_t
-itox (uint8_t val)
+static char *
+itoh (char * buf, uint8_t digits, uint16_t number)
 {
-    uint8_t rtc;
-
-    val &= 0x0F;
-
-    if (val <= 9)
+    for (buf[digits] = 0; digits--; number >>= 4)
     {
-        rtc = val + '0';
+        buf[digits] = "0123456789ABCDEF"[number & 0x0F];
     }
-    else
-    {
-        rtc = val - 10 + 'A';
-    }
-    return (rtc);
-}
-
-static void
-itoxx (char * xx, unsigned char i)
-{
-    *xx++ = itox (i >> 4);
-    *xx++ = itox (i & 0x0F);
-    *xx = '\0';
+    return buf;
 }
 
 static void
@@ -202,7 +186,7 @@ main (void)
         if (irmp_get_data (&irmp_data))
         {
             uart_puts_P (PSTR("protocol: 0x"));
-            itoxx (buf, irmp_data.protocol);
+            itoh (buf, 2, irmp_data.protocol);
             uart_puts (buf);
 
 #if IRMP_PROTOCOL_NAMES == 1
@@ -211,19 +195,15 @@ main (void)
 #endif
 
             uart_puts_P (PSTR("   address: 0x"));
-            itoxx (buf, irmp_data.address >> 8);
-            uart_puts (buf);
-            itoxx (buf, irmp_data.address & 0xFF);
+            itoh (buf, 4, irmp_data.address);
             uart_puts (buf);
 
             uart_puts_P (PSTR("   command: 0x"));
-            itoxx (buf, irmp_data.command >> 8);
-            uart_puts (buf);
-            itoxx (buf, irmp_data.command & 0xFF);
+            itoh (buf, 4, irmp_data.command);
             uart_puts (buf);
 
             uart_puts_P (PSTR("   flags: 0x"));
-            itoxx (buf, irmp_data.flags);
+            itoh (buf, 2, irmp_data.flags);
             uart_puts (buf);
 
             uart_puts_P (PSTR("\r\n"));

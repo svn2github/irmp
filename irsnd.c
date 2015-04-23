@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.83 2015/01/26 13:09:28 fm Exp $
+ * $Id: irsnd.c,v 1.84 2015/02/26 15:42:53 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__)      // ATtiny45/85 uses OC0A = PB0 or OC0B = PB1
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
 #    define IRSND_PORT_LETTER                       B
@@ -53,6 +54,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATtiny87__) || defined (__AVR_ATtiny167__)     // ATtiny87/167 uses OC0A = PA2
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
 #    define IRSND_PORT_LETTER                       A
@@ -60,6 +62,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATmega8__)                                     // ATmega8 uses only OC2 = PB3
 #  if IRSND_OCx == IRSND_OC2                                        // OC0A
 #    define IRSND_PORT_LETTER                       B
@@ -74,6 +77,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2 in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATmega162__)                                   // ATmega162 uses OC2 = PB1 or OC0 = PB0
 #  if IRSND_OCx == IRSND_OC2                                        // OC2
 #    define IRSND_PORT_LETTER                       B
@@ -84,6 +88,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2 or IRSND_OC0 in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATmega164__)   \
    || defined (__AVR_ATmega324__)   \
    || defined (__AVR_ATmega644__)   \
@@ -105,6 +110,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2A, IRSND_OC2B, IRSND_OC0A, or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATmega48__)    \
    || defined (__AVR_ATmega88__)    \
    || defined (__AVR_ATmega88P__)   \
@@ -126,6 +132,7 @@
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2A, IRSND_OC2B, IRSND_OC0A, or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (__AVR_ATmega8515__)                                  // ATmega8515 uses OC0 = PB0 or OC1A = PD5 or OC1B = PE2
 #  if IRSND_OCx == IRSND_OC0   
 #    define IRSND_PORT_LETTER                       B
@@ -136,9 +143,36 @@
 #  elif IRSND_OCx == IRSND_OC1B 
 #    define IRSND_PORT_LETTER                       E
 #    define IRSND_BIT_NUMBER                        2
+#  endif // IRSND_OCx
+
+#elif defined (__AVR_ATxmega128A1U__)                               // ATxmega128A1U 
+#  if (XMEGA_Timer_NR == 1)
+#               define IRSND_PORT_PRE               PORTC
+#  elif (XMEGA_Timer_NR == 2)
+#               define IRSND_PORT_PRE               PORTD
+#  elif (XMEGA_Timer_NR == 3)
+#               define IRSND_PORT_PRE               PORTE
+#  elif (XMEGA_Timer_NR == 4)
+#               define IRSND_PORT_PRE               PORTF
+#  else
+#    warning wrong XMEGA_Timer_NR, choose correct value in irsndconfig.h
+#  endif
+#  if IRSND_OCx == IRSND_XMEGA_OC0A   
+#    define IRSND_BIT_NUMBER                        0
+#  elif IRSND_OCx == IRSND_XMEGA_OC0B
+#    define IRSND_BIT_NUMBER                        1
+#  elif IRSND_OCx == IRSND_XMEGA_OC0C
+#    define IRSND_BIT_NUMBER                        2
+#  elif IRSND_OCx == IRSND_XMEGA_OC0D
+#    define IRSND_BIT_NUMBER                        3
+#  elif IRSND_OCx == IRSND_XMEGA_OC1A
+#    define IRSND_BIT_NUMBER                        4
+#  elif IRSND_OCx == IRSND_XMEGA_OC1B
+#    define IRSND_BIT_NUMBER                        5
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0, IRSND_OC1A, or IRSND_OC1B in irsndconfig.h
 #  endif // IRSND_OCx
+
 #elif defined (PIC_C18)    //Microchip C18 compiler
     //Nothing here to do here -> See irsndconfig.h
 #elif defined (ARM_STM32)  //STM32
@@ -149,7 +183,15 @@
 #  endif // unix, WIN32
 #endif // __AVR...
 
-#if defined(ATMEL_AVR)
+#if defined(__AVR_XMEGA__)
+#  define _CONCAT(a,b)                              a##b
+#  define CONCAT(a,b)                               _CONCAT(a,b)
+#  define IRSND_PORT                                IRSND_PORT_PRE.OUT
+#  define IRSND_DDR                                 IRSND_DDR_PRE.DIR
+#  define IRSND_PIN                                 IRSND_PIN_PRE.IN
+#  define IRSND_BIT                                 IRSND_BIT_NUMBER
+
+#elif defined(ATMEL_AVR)
 #  define _CONCAT(a,b)                              a##b
 #  define CONCAT(a,b)                               _CONCAT(a,b)
 #  define IRSND_PORT                                CONCAT(PORT, IRSND_PORT_LETTER)
@@ -414,10 +456,25 @@ irsnd_on (void)
 #  if defined(PIC_C18)                                  // PIC C18
         PWMon();
         // IRSND_PIN = 0; // output mode -> enable PWM outout pin (0=PWM on, 1=PWM off)
+
 #  elif defined (ARM_STM32)                             // STM32
         TIM_SelectOCxM(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_OCMode_PWM1); // enable PWM as OC-mode
         TIM_CCxCmd(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_CCx_Enable);      // enable OC-output (is being disabled in TIM_SelectOCxM())
         TIM_Cmd(IRSND_TIMER, ENABLE);                   // enable counter
+
+#  elif defined (__AVR_XMEGA__) 
+#    if ( (IRSND_OCx == IRSND_XMEGA_OC0A) | (IRSND_OCx == IRSND_XMEGA_OC1A) )           // use OC0A or OC1A
+        XMEGA_Timer.CTRLB |= (1<<TC0_CCAEN_bp);                                         // Compare A 
+#    elif ((IRSND_OCx == IRSND_XMEGA_OC0B) | (IRSND_OCx == IRSND_XMEGA_OC1B) )          // use OC0B or OC1B
+        XMEGA_Timer.CTRLB |= (1<<TC0_CCBEN_bp);                                         // Compare B 
+#    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC0C
+        XMEGA_Timer.CTRLB |= (1<<TC0_CCCEN_bp);                                         // Compare C
+#    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC0D
+        XMEGA_Timer.CTRLB |= (1<<TC0_CCDEN_bp);                                         // Compare D
+#    else
+#       error wrong value of IRSND_OCx
+#    endif // IRSND_OCx
+
 #  else                                                 // AVR
 #    if   IRSND_OCx == IRSND_OC2                        // use OC2
         TCCR2 |= (1<<COM20)|(1<<WGM21);                 // toggle OC2 on compare match,  clear Timer 2 at compare match OCR2
@@ -463,11 +520,26 @@ irsnd_off (void)
 #  if defined(PIC_C18)                                  // PIC C18
         PWMoff();
         // IRSND_PIN = 1; //input mode -> disbale PWM output pin (0=PWM on, 1=PWM off)
+
 #  elif defined (ARM_STM32)                             // STM32
         TIM_Cmd(IRSND_TIMER, DISABLE);                  // disable counter
         TIM_SelectOCxM(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_ForcedAction_InActive);   // force output inactive
         TIM_CCxCmd(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_CCx_Enable);      // enable OC-output (is being disabled in TIM_SelectOCxM())
         TIM_SetCounter(IRSND_TIMER, 0);                 // reset counter value
+
+#  elif defined (__AVR_XMEGA__)
+#    if ( (IRSND_OCx == IRSND_XMEGA_OC0A) | (IRSND_OCx == IRSND_XMEGA_OC1A) )           // use OC0A or OC1A
+        XMEGA_Timer.CTRLB &= ~(1<<TC0_CCAEN_bp);                                        // Compare A disconnected
+#    elif ((IRSND_OCx == IRSND_XMEGA_OC0B) | (IRSND_OCx == IRSND_XMEGA_OC1B) )          // use OC0B or OC1B
+        XMEGA_Timer.CTRLB &= ~(1<<TC0_CCBEN_bp);                                        // Compare B disconnected
+#    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC0C
+        XMEGA_Timer.CTRLB &= ~(1<<TC0_CCCEN_bp);                                        // Compare C disconnected
+#    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC0D
+        XMEGA_Timer.CTRLB &= ~(1<<TC0_CCDEN_bp);                                        // Compare D disconnected
+#    else
+#       error wrong value of IRSND_OCx
+#    endif // IRSND_OCx
+
 #  else //AVR
 
 #    if   IRSND_OCx == IRSND_OC2                        // use OC2
@@ -568,6 +640,10 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
          TIM_SetAutoreload(IRSND_TIMER, freq - 1);
          /* Set duty cycle */
          TIM_SetCompare1(IRSND_TIMER, (freq + 1) / 2);
+
+#  elif defined (__AVR_XMEGA__)
+        XMEGA_Timer.CCA = freq;
+
 #  else                                                                                     // AVR
 
 #    if IRSND_OCx == IRSND_OC2

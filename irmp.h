@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.92 2015/01/28 09:18:30 fm Exp $
+ * $Id: irmp.h,v 1.93 2015/02/26 15:42:53 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,19 @@
 #  include "irmpconfig.h"
 #endif
 
-#if defined (ATMEL_AVR)
+#if defined (__AVR_XMEGA__)
+#  define _CONCAT(a,b)                          a##b
+#  define CONCAT(a,b)                           _CONCAT(a,b)
+#  define IRMP_PORT_PRE                         CONCAT(PORT, IRMP_PORT_LETTER)
+#  define IRMP_DDR_PRE                          CONCAT(DDR, IRMP_PORT_LETTER)
+#  define IRMP_PIN_PRE                          CONCAT(PIN, IRMP_PORT_LETTER)
+#  define IRMP_PORT                             IRMP_PORT_PRE.OUT
+#  define IRMP_DDR                              IRMP_DDR_PRE.DIR
+#  define IRMP_PIN                              IRMP_PIN_PRE.IN
+#  define IRMP_BIT                              IRMP_BIT_NUMBER
+#  define input(x)                              ((x) & (1 << IRMP_BIT))
+
+#elif defined (ATMEL_AVR)
 #  define _CONCAT(a,b)                          a##b
 #  define CONCAT(a,b)                           _CONCAT(a,b)
 #  define IRMP_PORT                             CONCAT(PORT, IRMP_PORT_LETTER)
@@ -29,10 +41,10 @@
 #  define IRMP_PIN                              CONCAT(PIN, IRMP_PORT_LETTER)
 #  define IRMP_BIT                              IRMP_BIT_NUMBER
 #  define input(x)                              ((x) & (1 << IRMP_BIT))
-#elif defined (PIC_C18)
+
+#elif defined (PIC_C18) || defined (PIC_CCS)
 #  define input(x)                              (x)
-#elif defined (PIC_CCS)
-#  define input(x)                              (x)
+
 #elif defined (ARM_STM32)
 #  define _CONCAT(a,b)                          a##b
 #  define CONCAT(a,b)                           _CONCAT(a,b)
@@ -50,6 +62,7 @@
 #  ifndef USE_STDPERIPH_DRIVER
 #    warning The STM32 port of IRMP uses the ST standard peripheral drivers which are not enabled in your build configuration.
 #  endif
+
 #elif defined (STELLARIS_ARM_CORTEX_M4)
 #  define _CONCAT(a,b)                          a##b
 #  define CONCAT(a,b)                           _CONCAT(a,b)
@@ -59,6 +72,7 @@
 #  define IRMP_PIN                              IRMP_PORT_PIN
 #  define input(x)                              ((uint8_t)(ROM_GPIOPinRead(IRMP_PORT_BASE, IRMP_PORT_PIN)))
 #  define sei()                                 IntMasterEnable()
+
 #endif
 
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1 && IRMP_SUPPORT_RUWIDO_PROTOCOL == 1

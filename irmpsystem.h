@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.16 2015/01/26 13:07:01 fm Exp $
+ * $Id: irmpsystem.h,v 1.17 2015/02/26 15:42:53 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,16 @@ typedef unsigned short                  uint16_t;
 #  define IRSND_OC0                     3       // OC0
 #  define IRSND_OC0A                    4       // OC0A
 #  define IRSND_OC0B                    5       // OC0B
+
+#  define IRSND_XMEGA_OC0A              0       // OC0A
+#  define IRSND_XMEGA_OC0B              1       // OC0B
+#  define IRSND_XMEGA_OC0C              2       // OC0C
+#  define IRSND_XMEGA_OC0D              3       // OC0D
+#  define IRSND_XMEGA_OC1A              4       // OC1A
+#  define IRSND_XMEGA_OC1B              5       // OC1B
+
 #elif defined(STELLARIS_ARM_CORTEX_M4)
+
 #  include "inc/hw_ints.h"
 #  include "inc/hw_memmap.h"
 #  include "inc/hw_types.h"
@@ -93,19 +102,24 @@ typedef unsigned short                  uint16_t;
 #  include "driverlib/systick.h"
 #  include "driverlib/pin_map.h"
 #  include "driverlib/timer.h"
-#  define PROGMEM volatile
-#  define memcpy_P memcpy
+#  define PROGMEM
+#  define memcpy_P                      memcpy
 #  define APP_SYSTICKS_PER_SEC          32
+
 #elif defined(ARM_STM32F10X)
+
 #  include "stm32f10x_gpio.h"
 #  include "stm32f10x_rcc.h"
 #  include "stm32f10x_tim.h"
 #  include "misc.h"
 #  define PROGMEM
 #  define memcpy_P                      memcpy
+
 #else
+
 #  define PROGMEM
 #  define memcpy_P                      memcpy
+
 #endif
 
 #if defined(PIC_CCS) || defined(PIC_C18) || defined(ARM_STM32) || defined(STELLARIS_ARM_CORTEX_M4)

@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.124 2015/01/26 13:07:01 fm Exp $
+ * $Id: irmpconfig.h,v 1.125 2015/02/26 15:42:53 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,10 +94,10 @@
 #define IRMP_SUPPORT_RADIO1_PROTOCOL            0       // RADIO, e.g. TEVION   >= 10000                 ~250 bytes (experimental)
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Change hardware pin here for ATMEL AVR
+ * Change hardware pin here for ATMEL ATMega/ATTiny/XMega
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if defined (ATMEL_AVR)                                                 // use PB6 as IR input on AVR
+#if defined (ATMEL_AVR) || defined (__AVR_XMEGA__)                      // use PB6 as IR input on AVR
 #  define IRMP_PORT_LETTER                      B
 #  define IRMP_BIT_NUMBER                       6
 
@@ -106,10 +106,11 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif defined (PIC_C18)                                                 // use RB4 as IR input on PIC (C18 or XC8 compiler)
-#if defined(__12F1840)
-#  define IRMP_PIN                              RA5                     // on 12F1840 with XC8 compiler
-#endif
-#  define IRMP_PIN                              PORTBbits.RB4           // PIC C18
+#  if defined(__12F1840)
+#    define IRMP_PIN                            RA5                     // on 12F1840 with XC8 compiler
+#  else
+#    define IRMP_PIN                            PORTBbits.RB4           // PIC C18
+#  endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here for PIC CCS compiler
@@ -175,4 +176,4 @@
 #  define IRMP_USE_CALLBACK                     0       // 1: use callbacks. 0: do not. default is 0
 #endif
 
-#endif /* _WC_IRMPCONFIG_H_ */
+#endif // _IRMPCONFIG_H_

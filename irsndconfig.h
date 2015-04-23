@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.64 2015/01/26 13:09:28 fm Exp $
+ * $Id: irsndconfig.h,v 1.65 2015/02/26 15:42:53 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,8 +81,25 @@
 #define IRSND_SUPPORT_LGAIR_PROTOCOL            0       // LG Air Condition     >= 10000                 ~150 bytes.
 #define IRSND_SUPPORT_SAMSUNG48_PROTOCOL        0       // Samsung48            >= 10000                 ~100 bytes
 
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * AVR section:
+ * AVR XMega section:
+ *
+ * Change hardware pin here:                    IRSND_XMEGA_OC0A = OC0A on ATxmegas  supporting OC0A, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC0B = OC0B on ATxmegas  supporting OC0B, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC0C = OC0C on ATxmegas  supporting OC0C, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC0D = OC0D on ATxmegas  supporting OC0D, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC1A = OC0A on ATxmegas  supporting OC1A, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC1B = OC0B on ATxmegas  supporting OC1B, e.g. ATxmega128A1U
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#if defined(__AVR_XMEGA__)                                              // XMEGA
+#  define XMEGA_Timer_NR                        2                       // 1 == Timer PORTC //2 == Timer PORTD //3 == Timer PORTE //4 == Timer PORTF
+#  define XMEGA_Timer                           TCD0
+#  define IRSND_OCx                             IRSND_XMEGA_OC0B        // use OC0B
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * AVR ATMega/ATTiny section:
  *
  * Change hardware pin here:                    IRSND_OC2  = OC2  on ATmegas         supporting OC2,  e.g. ATmega8
  *                                              IRSND_OC2A = OC2A on ATmegas         supporting OC2A, e.g. ATmega88
@@ -92,7 +109,7 @@
  *                                              IRSND_OC0B = OC0B on ATmegas/ATtinys supporting OC0B, e.g. ATtiny84, ATtiny85
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if defined(ATMEL_AVR)
+#elif defined(ATMEL_AVR)
 #  define IRSND_OCx                             IRSND_OC2B              // use OC2B
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -103,18 +120,18 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif defined(PIC_C18)                                                  // C18 or XC8 compiler
-# if defined(__12F1840)                                                 // XC8 compiler
-#  define Pre_Scaler                            1                       // define prescaler for timer2 e.g. 1,4,16
-#  define F_CPU                                 32000000UL              // PIC frequency: set your freq here
-#  define PIC_Scaler                            2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
+#  if defined(__12F1840)                                                // XC8 compiler
+#    define Pre_Scaler                          1                       // define prescaler for timer2 e.g. 1,4,16
+#    define F_CPU                               32000000UL              // PIC frequency: set your freq here
+#    define PIC_Scaler                          2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
 
-# else                                                                  // C18 compiler
-#  define IRSND_OCx                             IRSND_PIC_CCP2          // Use PWMx for PIC
+#  else                                                                 // C18 compiler
+#    define IRSND_OCx                           IRSND_PIC_CCP2          // Use PWMx for PIC
                                                                         // change other PIC C18 specific settings:
-#  define F_CPU                                 48000000UL              // PIC frequency: set your freq here
-#  define Pre_Scaler                            4                       // define prescaler for timer2 e.g. 1,4,16
-#  define PIC_Scaler                            2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
-# endif
+#    define F_CPU                               48000000UL              // PIC frequency: set your freq here
+#    define Pre_Scaler                          4                       // define prescaler for timer2 e.g. 1,4,16
+#    define PIC_Scaler                          2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
+#  endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * ARM STM32 section:
@@ -127,7 +144,7 @@
 #  define IRSND_TIMER_CHANNEL_NUMBER            1                       // only channel 1 can be used at the moment, others won't work
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * Other target system
+ * Other target systems
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif !defined (UNIX_OR_WINDOWS)
