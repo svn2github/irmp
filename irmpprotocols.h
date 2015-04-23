@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.31 2015/02/26 15:42:53 fm Exp $
+ * $Id: irmpprotocols.h,v 1.32 2015/04/23 12:46:13 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,10 +67,10 @@
 #define IRMP_LGAIR_PROTOCOL                     40              // LG air conditioner
 #define IRMP_SAMSUNG48_PROTOCOL                 41              // air conditioner with SAMSUNG protocol (48 bits)
 #define IRMP_MERLIN_PROTOCOL                    42              // Merlin (Pollin 620 185)
+#define IRMP_PENTAX_PROTOCOL                    43              // Pentax camera
+#define IRMP_RADIO1_PROTOCOL                    44              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_RADIO1_PROTOCOL                    43              // Radio protocol (experimental status), do not use it yet!
-
-#define IRMP_N_PROTOCOLS                        43              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        44              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -772,7 +772,7 @@ typedef uint8_t     PAUSE_LEN;
 
 #define RCMM32_FRAME_REPEAT_PAUSE_TIME            80.0e-3                       // frame repeat after 80 ms
 #define RCMM32_ADDRESS_OFFSET                    0                              // skip 0 bits
-#define RCMM32_ADDRESS_LEN                      16                              // read 16 address bits
+#define RCMM32_ADDRESS_LEN                      16                              //  read 16 address bits
 #define RCMM32_COMMAND_OFFSET                   17                              // skip 17 bits
 #define RCMM32_COMMAND_LEN                      15                              // read 15 bits
 #define RCMM32_COMPLETE_DATA_LEN                32                              // complete length
@@ -781,25 +781,44 @@ typedef uint8_t     PAUSE_LEN;
 #define RCMM32_FLAGS                            0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * PENTAX:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define PENTAX_START_BIT_PULSE_TIME             13000.0e-6                      // 13 msec pulse
+#define PENTAX_START_BIT_PAUSE_TIME              3000.0e-6                      // 3 msec pause
+#define PENTAX_PULSE_TIME                        1000.0e-6                      // 1 msec pulse
+#define PENTAX_1_PAUSE_TIME                      3000.0e-6                      // 3 msec pause
+#define PENTAX_0_PAUSE_TIME                      1000.0e-6                      // 1 msec pause
+#define PENTAX_FRAME_REPEAT_PAUSE_TIME             60.0e-3                      // frame repeat after 60ms
+#define PENTAX_ADDRESS_OFFSET                  0                                // skip 0 bits
+#define PENTAX_ADDRESS_LEN                     0                                // read 0 address bits
+#define PENTAX_COMMAND_OFFSET                  0                                // skip 0 bits
+#define PENTAX_COMMAND_LEN                     6                                // read 6 bits
+#define PENTAX_COMPLETE_DATA_LEN               6                                // complete length
+#define PENTAX_STOP_BIT                        1                                // has stop bit
+#define PENTAX_LSB                             0                                // LSB...MSB
+#define PENTAX_FLAGS                           0                                // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
  * RADIO1 - e.g. Tevion
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define RADIO1_START_BIT_PULSE_TIME            3000.0e-6                       // 3000 usec pulse
-#define RADIO1_START_BIT_PAUSE_TIME            7000.0e-6                       // 7000 usec pulse
-#define RADIO1_0_PULSE_TIME                     500.0e-6                       //  500 usec pulse
-#define RADIO1_0_PAUSE_TIME                    1000.0e-6                       // 1000 usec pause
-#define RADIO1_1_PULSE_TIME                    1000.0e-6                       // 1000 usec pulse
-#define RADIO1_1_PAUSE_TIME                     500.0e-6                       //  500 usec pause
+#define RADIO1_START_BIT_PULSE_TIME            3000.0e-6                        // 3000 usec pulse
+#define RADIO1_START_BIT_PAUSE_TIME            7000.0e-6                        // 7000 usec pulse
+#define RADIO1_0_PULSE_TIME                     500.0e-6                        //  500 usec pulse
+#define RADIO1_0_PAUSE_TIME                    1000.0e-6                        // 1000 usec pause
+#define RADIO1_1_PULSE_TIME                    1000.0e-6                        // 1000 usec pulse
+#define RADIO1_1_PAUSE_TIME                     500.0e-6                        //  500 usec pause
 
-#define RADIO1_FRAME_REPEAT_PAUSE_TIME           25.0e-3                       // frame repeat after 25ms
-#define RADIO1_ADDRESS_OFFSET                   4                              // skip 4 bits
-#define RADIO1_ADDRESS_LEN                     16                              // read 16 address bits
-#define RADIO1_COMMAND_OFFSET                  20                              // skip 4 + 16 bits
-#define RADIO1_COMMAND_LEN                      3                              // read 3 command bits
-#define RADIO1_COMPLETE_DATA_LEN               23                              // complete length
-#define RADIO1_STOP_BIT                        1                               // has stop bit
-#define RADIO1_LSB                             1                               // LSB...MSB?
-#define RADIO1_FLAGS                           0                               // flags
+#define RADIO1_FRAME_REPEAT_PAUSE_TIME           25.0e-3                        // frame repeat after 25ms
+#define RADIO1_ADDRESS_OFFSET                   4                               // skip 4 bits
+#define RADIO1_ADDRESS_LEN                     16                               // read 16 address bits
+#define RADIO1_COMMAND_OFFSET                  20                               // skip 4 + 16 bits
+#define RADIO1_COMMAND_LEN                      3                               // read 3 command bits
+#define RADIO1_COMPLETE_DATA_LEN               23                               // complete length
+#define RADIO1_STOP_BIT                        1                                // has stop bit
+#define RADIO1_LSB                             1                                // LSB...MSB?
+#define RADIO1_FLAGS                           0                                // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Frame Repetitions:

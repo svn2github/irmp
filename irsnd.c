@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.84 2015/02/26 15:42:53 fm Exp $
+ * $Id: irsnd.c,v 1.85 2015/04/23 12:46:13 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -432,6 +432,14 @@
 #define ROOMBA_1_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * ROOMBA_1_PAUSE_TIME + 0.5)
 #define ROOMBA_0_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * ROOMBA_0_PAUSE_TIME + 0.5)
 #define ROOMBA_FRAME_REPEAT_PAUSE_LEN           (uint16_t)(F_INTERRUPTS * ROOMBA_FRAME_REPEAT_PAUSE_TIME + 0.5)               // use uint16_t!
+
+#define PENTAX_START_BIT_PULSE_LEN              (uint8_t)(F_INTERRUPTS * PENTAX_START_BIT_PULSE_TIME + 0.5)
+#define PENTAX_START_BIT_PAUSE_LEN              (uint8_t)(F_INTERRUPTS * PENTAX_START_BIT_PAUSE_TIME + 0.5)
+#define PENTAX_REPEAT_START_BIT_PAUSE_LEN       (uint8_t)(F_INTERRUPTS * PENTAX_REPEAT_START_BIT_PAUSE_TIME + 0.5)
+#define PENTAX_PULSE_LEN                        (uint8_t)(F_INTERRUPTS * PENTAX_PULSE_TIME + 0.5)
+#define PENTAX_1_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * PENTAX_1_PAUSE_TIME + 0.5)
+#define PENTAX_0_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * PENTAX_0_PAUSE_TIME + 0.5)
+#define PENTAX_FRAME_REPEAT_PAUSE_LEN           (uint16_t)(F_INTERRUPTS * PENTAX_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
 
 static volatile uint8_t                         irsnd_busy = 0;
 static volatile uint8_t                         irsnd_protocol = 0;
@@ -1308,12 +1316,20 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 #if IRSND_SUPPORT_ROOMBA_PROTOCOL == 1
         case IRMP_ROOMBA_PROTOCOL:
         {
-
             irsnd_buffer[0] = (irmp_data_p->command & 0x7F) << 1;                                               // CCCCCCC.
             irsnd_busy      = TRUE;
             break;
         }
 #endif
+#if IRSND_SUPPORT_PENTAX_PROTOCOL == 1
+        case IRMP_PENTAX_PROTOCOL:
+        {
+            irsnd_buffer[0] = (irmp_data_p->command & 0x3F) << 2;                                               // CCCCCC..
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+
         default:
         {
             break;
@@ -2070,6 +2086,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_PENTAX_PROTOCOL == 1
+                    case IRMP_PENTAX_PROTOCOL:
+                    {
+                        startbit_pulse_len          = PENTAX_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = PENTAX_START_BIT_PAUSE_LEN;
+                        complete_data_len           = PENTAX_COMPLETE_DATA_LEN;
+                        pulse_1_len                 = PENTAX_PULSE_LEN;
+                        pause_1_len                 = PENTAX_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = PENTAX_PULSE_LEN;
+                        pause_0_len                 = PENTAX_0_PAUSE_LEN - 1;
+                        has_stop_bit                = PENTAX_STOP_BIT;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = PENTAX_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
                     default:
                     {
                         irsnd_busy = FALSE;
@@ -2155,13 +2189,16 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_ROOMBA_PROTOCOL == 1
                 case IRMP_ROOMBA_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_PENTAX_PROTOCOL == 1
+                case IRMP_PENTAX_PROTOCOL:
+#endif
 
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_NEC16_PROTOCOL == 1 || IRSND_SUPPORT_NEC42_PROTOCOL == 1 || \
     IRSND_SUPPORT_LGAIR_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
     IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || \
-    IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1
+    IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1 || IRSND_SUPPORT_PENTAX_PROTOCOL == 1
                 {
 #if IRSND_SUPPORT_DENON_PROTOCOL == 1
                     if (irsnd_protocol == IRMP_DENON_PROTOCOL)
