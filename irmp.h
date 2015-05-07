@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.93 2015/02/26 15:42:53 fm Exp $
+ * $Id: irmp.h,v 1.94 2015/05/07 06:51:10 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
 #  define _CONCAT(a,b)                          a##b
 #  define CONCAT(a,b)                           _CONCAT(a,b)
 #  define IRMP_PORT_PRE                         CONCAT(PORT, IRMP_PORT_LETTER)
-#  define IRMP_DDR_PRE                          CONCAT(DDR, IRMP_PORT_LETTER)
-#  define IRMP_PIN_PRE                          CONCAT(PIN, IRMP_PORT_LETTER)
+#  define IRMP_DDR_PRE                          CONCAT(PORT, IRMP_PORT_LETTER)
+#  define IRMP_PIN_PRE                          CONCAT(PORT, IRMP_PORT_LETTER)
 #  define IRMP_PORT                             IRMP_PORT_PRE.OUT
 #  define IRMP_DDR                              IRMP_DDR_PRE.DIR
 #  define IRMP_PIN                              IRMP_PIN_PRE.IN

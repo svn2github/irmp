@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.85 2015/04/23 12:46:13 fm Exp $
+ * $Id: irsnd.c,v 1.86 2015/05/07 06:51:10 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,17 +146,6 @@
 #  endif // IRSND_OCx
 
 #elif defined (__AVR_ATxmega128A1U__)                               // ATxmega128A1U 
-#  if (XMEGA_Timer_NR == 1)
-#               define IRSND_PORT_PRE               PORTC
-#  elif (XMEGA_Timer_NR == 2)
-#               define IRSND_PORT_PRE               PORTD
-#  elif (XMEGA_Timer_NR == 3)
-#               define IRSND_PORT_PRE               PORTE
-#  elif (XMEGA_Timer_NR == 4)
-#               define IRSND_PORT_PRE               PORTF
-#  else
-#    warning wrong XMEGA_Timer_NR, choose correct value in irsndconfig.h
-#  endif
 #  if IRSND_OCx == IRSND_XMEGA_OC0A   
 #    define IRSND_BIT_NUMBER                        0
 #  elif IRSND_OCx == IRSND_XMEGA_OC0B
@@ -187,10 +176,9 @@
 #  define _CONCAT(a,b)                              a##b
 #  define CONCAT(a,b)                               _CONCAT(a,b)
 #  define IRSND_PORT                                IRSND_PORT_PRE.OUT
-#  define IRSND_DDR                                 IRSND_DDR_PRE.DIR
-#  define IRSND_PIN                                 IRSND_PIN_PRE.IN
+#  define IRSND_DDR                                 IRSND_PORT_PRE.DIR
+#  define IRSND_PIN                                 IRSND_PORT_PRE.IN
 #  define IRSND_BIT                                 IRSND_BIT_NUMBER
-
 #elif defined(ATMEL_AVR)
 #  define _CONCAT(a,b)                              a##b
 #  define CONCAT(a,b)                               _CONCAT(a,b)
@@ -471,14 +459,18 @@ irsnd_on (void)
         TIM_Cmd(IRSND_TIMER, ENABLE);                   // enable counter
 
 #  elif defined (__AVR_XMEGA__) 
-#    if ( (IRSND_OCx == IRSND_XMEGA_OC0A) | (IRSND_OCx == IRSND_XMEGA_OC1A) )           // use OC0A or OC1A
+#    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                                                                                 // use OC0A
         XMEGA_Timer.CTRLB |= (1<<TC0_CCAEN_bp);                                         // Compare A 
-#    elif ((IRSND_OCx == IRSND_XMEGA_OC0B) | (IRSND_OCx == IRSND_XMEGA_OC1B) )          // use OC0B or OC1B
+#    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                                                                                               // use OC0B
         XMEGA_Timer.CTRLB |= (1<<TC0_CCBEN_bp);                                         // Compare B 
 #    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC0C
         XMEGA_Timer.CTRLB |= (1<<TC0_CCCEN_bp);                                         // Compare C
 #    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC0D
         XMEGA_Timer.CTRLB |= (1<<TC0_CCDEN_bp);                                         // Compare D
+#    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC1C
+                XMEGA_Timer.CTRLB |= (1<<TC1_CCAEN_bp);                                                                                 // Compare A
+#    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC1D
+                XMEGA_Timer.CTRLB |= (1<<TC1_CCBEN_bp);                                                                                 // Compare B
 #    else
 #       error wrong value of IRSND_OCx
 #    endif // IRSND_OCx
@@ -536,14 +528,18 @@ irsnd_off (void)
         TIM_SetCounter(IRSND_TIMER, 0);                 // reset counter value
 
 #  elif defined (__AVR_XMEGA__)
-#    if ( (IRSND_OCx == IRSND_XMEGA_OC0A) | (IRSND_OCx == IRSND_XMEGA_OC1A) )           // use OC0A or OC1A
+#    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                                                                                 // use OC0A 
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCAEN_bp);                                        // Compare A disconnected
-#    elif ((IRSND_OCx == IRSND_XMEGA_OC0B) | (IRSND_OCx == IRSND_XMEGA_OC1B) )          // use OC0B or OC1B
+#    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                                                                                               // use OC0B 
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCBEN_bp);                                        // Compare B disconnected
 #    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC0C
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCCEN_bp);                                        // Compare C disconnected
 #    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC0D
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCDEN_bp);                                        // Compare D disconnected
+#    elif IRSND_OCx == IRSND_XMEGA_OC1A                                                 // use OC1A
+                XMEGA_Timer.CTRLB &= ~(1<<TC1_CCAEN_bp);                                        // Compare A disconnected
+#    elif IRSND_OCx == IRSND_XMEGA_OC1B                                                 // use OC1B
+                XMEGA_Timer.CTRLB &= ~(1<<TC1_CCBEN_bp);                                        // Compare B disconnected
 #    else
 #       error wrong value of IRSND_OCx
 #    endif // IRSND_OCx
@@ -746,7 +742,21 @@ irsnd_init (void)
         TIM_OC1PreloadConfig(IRSND_TIMER, TIM_OCPreload_Enable);
 
         irsnd_set_freq (IRSND_FREQ_36_KHZ);                                         // set default frequency
-#  else                                                                             // AVR
+
+# elif defined (__AVR_XMEGA__)
+        IRSND_PORT &= ~(1<<IRSND_BIT);                                              // set IRSND_BIT to low
+        IRSND_DDR |= (1<<IRSND_BIT);                                                // set IRSND_BIT to output
+
+        XMEGA_Timer.PER = 0xFFFF; //Topwert
+        XMEGA_Timer.CTRLB |= TC_WGMODE_FRQ_gc; //Modus: Frequenz entspricht CTC
+
+#    if AVR_PRESCALER == 8
+        XMEGA_Timer.CTRLA |= TC_CLKSEL_DIV8_gc;                                     // start Timer  prescaler = 8
+#    else
+        XMEGA_Timer.CTRLA |= TC_CLKSEL_DIV1_gc;                                     // start Timer  prescaler = 1
+#    endif
+                
+# else                                                                              // AVR
         IRSND_PORT &= ~(1<<IRSND_BIT);                                              // set IRSND_BIT to low
         IRSND_DDR |= (1<<IRSND_BIT);                                                // set IRSND_BIT to output
 

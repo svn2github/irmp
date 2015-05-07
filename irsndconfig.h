@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.67 2015/04/23 12:47:29 fm Exp $
+ * $Id: irsndconfig.h,v 1.68 2015/05/07 06:51:10 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,12 +90,12 @@
  *                                              IRSND_XMEGA_OC0B = OC0B on ATxmegas  supporting OC0B, e.g. ATxmega128A1U
  *                                              IRSND_XMEGA_OC0C = OC0C on ATxmegas  supporting OC0C, e.g. ATxmega128A1U
  *                                              IRSND_XMEGA_OC0D = OC0D on ATxmegas  supporting OC0D, e.g. ATxmega128A1U
- *                                              IRSND_XMEGA_OC1A = OC0A on ATxmegas  supporting OC1A, e.g. ATxmega128A1U
- *                                              IRSND_XMEGA_OC1B = OC0B on ATxmegas  supporting OC1B, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC1A = OC1A on ATxmegas  supporting OC1A, e.g. ATxmega128A1U
+ *                                              IRSND_XMEGA_OC1B = OC1B on ATxmegas  supporting OC1B, e.g. ATxmega128A1U
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if defined(__AVR_XMEGA__)                                              // XMEGA
-#  define XMEGA_Timer_NR                        2                       // 1 == Timer PORTC //2 == Timer PORTD //3 == Timer PORTE //4 == Timer PORTF
+#  define IRSND_PORT_PRE                        PORTD                   
 #  define XMEGA_Timer                           TCD0
 #  define IRSND_OCx                             IRSND_XMEGA_OC0B        // use OC0B
 
