@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.17 2015/02/26 15:42:53 fm Exp $
+ * $Id: irmpsystem.h,v 1.18 2015/05/18 10:51:07 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #  include <stm32l1xx.h>
 #  define ARM_STM32
 #  define ARM_STM32L1XX
+#  define F_CPU (SysCtlClockGet())
 #elif defined(STM32F10X_LD) || defined(STM32F10X_LD_VL) \
    || defined(STM32F10X_MD) || defined(STM32F10X_MD_VL) \
    || defined(STM32F10X_HD) || defined(STM32F10X_HD_VL) \
