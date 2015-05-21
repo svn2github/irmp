@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.86 2015/05/07 06:51:10 fm Exp $
+ * $Id: irsnd.c,v 1.87 2015/05/21 06:17:31 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -459,18 +459,18 @@ irsnd_on (void)
         TIM_Cmd(IRSND_TIMER, ENABLE);                   // enable counter
 
 #  elif defined (__AVR_XMEGA__) 
-#    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                                                                                 // use OC0A
-        XMEGA_Timer.CTRLB |= (1<<TC0_CCAEN_bp);                                         // Compare A 
-#    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                                                                                               // use OC0B
-        XMEGA_Timer.CTRLB |= (1<<TC0_CCBEN_bp);                                         // Compare B 
-#    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC0C
-        XMEGA_Timer.CTRLB |= (1<<TC0_CCCEN_bp);                                         // Compare C
-#    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC0D
-        XMEGA_Timer.CTRLB |= (1<<TC0_CCDEN_bp);                                         // Compare D
-#    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC1C
-                XMEGA_Timer.CTRLB |= (1<<TC1_CCAEN_bp);                                                                                 // Compare A
-#    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC1D
-                XMEGA_Timer.CTRLB |= (1<<TC1_CCBEN_bp);                                                                                 // Compare B
+#    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                 // use OC0A
+                XMEGA_Timer.CTRLB |= (1<<TC0_CCAEN_bp);                 // Compare A 
+#    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                               // use OC0B
+                XMEGA_Timer.CTRLB |= (1<<TC0_CCBEN_bp);                 // Compare B 
+#    elif IRSND_OCx == IRSND_XMEGA_OC0C                                 // use OC0C
+                XMEGA_Timer.CTRLB |= (1<<TC0_CCCEN_bp);                 // Compare C
+#    elif IRSND_OCx == IRSND_XMEGA_OC0D                                 // use OC0D
+                XMEGA_Timer.CTRLB |= (1<<TC0_CCDEN_bp);                 // Compare D
+#    elif IRSND_OCx == IRSND_XMEGA_OC1A                                 // use OC1A
+                XMEGA_Timer.CTRLB |= (1<<TC1_CCAEN_bp);                 // Compare A
+#    elif IRSND_OCx == IRSND_XMEGA_OC1B                                 // use OC1B
+                XMEGA_Timer.CTRLB |= (1<<TC1_CCBEN_bp);                 // Compare B
 #    else
 #       error wrong value of IRSND_OCx
 #    endif // IRSND_OCx
