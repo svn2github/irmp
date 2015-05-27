@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.171 2015/04/23 12:46:13 fm Exp $
+ * $Id: irmp.c,v 1.172 2015/05/27 09:33:14 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -42,6 +42,7 @@
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
     IRMP_SUPPORT_IR60_PROTOCOL == 1 ||                  \
     IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1 ||               \
+    IRMP_SUPPORT_MERLIN_PROTOCOL == 1 ||                \
     IRMP_SUPPORT_ORTEK_PROTOCOL == 1
 #  define IRMP_SUPPORT_MANCHESTER                   1
 #else
@@ -228,6 +229,19 @@
 #define NUBERT_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * NUBERT_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define NUBERT_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * NUBERT_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
+#define FAN_START_BIT_PULSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * FAN_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FAN_START_BIT_PULSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * FAN_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FAN_START_BIT_PAUSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * FAN_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FAN_START_BIT_PAUSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * FAN_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FAN_1_PULSE_LEN_MIN                     ((uint_fast8_t)(F_INTERRUPTS * FAN_1_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FAN_1_PULSE_LEN_MAX                     ((uint_fast8_t)(F_INTERRUPTS * FAN_1_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FAN_1_PAUSE_LEN_MIN                     ((uint_fast8_t)(F_INTERRUPTS * FAN_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FAN_1_PAUSE_LEN_MAX                     ((uint_fast8_t)(F_INTERRUPTS * FAN_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FAN_0_PULSE_LEN_MIN                     ((uint_fast8_t)(F_INTERRUPTS * FAN_0_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FAN_0_PULSE_LEN_MAX                     ((uint_fast8_t)(F_INTERRUPTS * FAN_0_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define FAN_0_PAUSE_LEN_MIN                     ((uint_fast8_t)(F_INTERRUPTS * FAN_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define FAN_0_PAUSE_LEN_MAX                     ((uint_fast8_t)(F_INTERRUPTS * FAN_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
 #define SPEAKER_START_BIT_PULSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define SPEAKER_START_BIT_PULSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define SPEAKER_START_BIT_PAUSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
@@ -394,6 +408,15 @@
 #define A1TVBOX_BIT_PAUSE_LEN_MIN               ((uint_fast8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define A1TVBOX_BIT_PAUSE_LEN_MAX               ((uint_fast8_t)(F_INTERRUPTS * A1TVBOX_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 
+#define MERLIN_START_BIT_PULSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define MERLIN_START_BIT_PULSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * MERLIN_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define MERLIN_START_BIT_PAUSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define MERLIN_START_BIT_PAUSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * MERLIN_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define MERLIN_BIT_PULSE_LEN_MIN                ((uint_fast8_t)(F_INTERRUPTS * MERLIN_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define MERLIN_BIT_PULSE_LEN_MAX                ((uint_fast8_t)(F_INTERRUPTS * MERLIN_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define MERLIN_BIT_PAUSE_LEN_MIN                ((uint_fast8_t)(F_INTERRUPTS * MERLIN_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define MERLIN_BIT_PAUSE_LEN_MAX                ((uint_fast8_t)(F_INTERRUPTS * MERLIN_BIT_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+
 #define ORTEK_START_BIT_PULSE_LEN_MIN           ((uint_fast8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define ORTEK_START_BIT_PULSE_LEN_MAX           ((uint_fast8_t)(F_INTERRUPTS * ORTEK_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define ORTEK_START_BIT_PAUSE_LEN_MIN           ((uint_fast8_t)(F_INTERRUPTS * ORTEK_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
@@ -555,6 +578,7 @@ static const char proto_lgair[]         PROGMEM = "LGAIR";
 static const char proto_samsung48[]     PROGMEM = "SAMSG48";
 static const char proto_merlin[]        PROGMEM = "MERLIN";
 static const char proto_pentax[]        PROGMEM = "PENTAX";
+static const char proto_fan[]           PROGMEM = "FAN";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -605,6 +629,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_samsung48,
     proto_merlin,
     proto_pentax,
+    proto_fan,
     proto_radio1
 };
 
@@ -1319,6 +1344,31 @@ static const PROGMEM IRMP_PARAMETER nubert_param =
 
 #endif
 
+#if IRMP_SUPPORT_FAN_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER fan_param =
+{
+    IRMP_FAN_PROTOCOL,                                                  // protocol:        ir protocol
+    FAN_1_PULSE_LEN_MIN,                                                // pulse_1_len_min: minimum length of pulse with bit value 1
+    FAN_1_PULSE_LEN_MAX,                                                // pulse_1_len_max: maximum length of pulse with bit value 1
+    FAN_1_PAUSE_LEN_MIN,                                                // pause_1_len_min: minimum length of pause with bit value 1
+    FAN_1_PAUSE_LEN_MAX,                                                // pause_1_len_max: maximum length of pause with bit value 1
+    FAN_0_PULSE_LEN_MIN,                                                // pulse_0_len_min: minimum length of pulse with bit value 0
+    FAN_0_PULSE_LEN_MAX,                                                // pulse_0_len_max: maximum length of pulse with bit value 0
+    FAN_0_PAUSE_LEN_MIN,                                                // pause_0_len_min: minimum length of pause with bit value 0
+    FAN_0_PAUSE_LEN_MAX,                                                // pause_0_len_max: maximum length of pause with bit value 0
+    FAN_ADDRESS_OFFSET,                                                 // address_offset:  address offset
+    FAN_ADDRESS_OFFSET + FAN_ADDRESS_LEN,                               // address_end:     end of address
+    FAN_COMMAND_OFFSET,                                                 // command_offset:  command offset
+    FAN_COMMAND_OFFSET + FAN_COMMAND_LEN,                               // command_end:     end of command
+    FAN_COMPLETE_DATA_LEN,                                              // complete_len:    complete length of frame
+    FAN_STOP_BIT,                                                       // stop_bit:        flag: frame has NO stop bit
+    FAN_LSB,                                                            // lsb_first:       flag: LSB first
+    FAN_FLAGS                                                           // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_SPEAKER_PROTOCOL == 1
 
 static const PROGMEM IRMP_PARAMETER speaker_param =
@@ -1644,6 +1694,32 @@ static const PROGMEM IRMP_PARAMETER a1tvbox_param =
     A1TVBOX_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
     A1TVBOX_LSB,                                                        // lsb_first:       flag: LSB first
     A1TVBOX_FLAGS                                                       // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER merlin_param =
+{
+    IRMP_MERLIN_PROTOCOL,                                               // protocol:        ir protocol
+
+    MERLIN_BIT_PULSE_LEN_MIN,                                           // pulse_1_len_min: here: minimum length of short pulse
+    MERLIN_BIT_PULSE_LEN_MAX,                                           // pulse_1_len_max: here: maximum length of short pulse
+    MERLIN_BIT_PAUSE_LEN_MIN,                                           // pause_1_len_min: here: minimum length of short pause
+    MERLIN_BIT_PAUSE_LEN_MAX,                                           // pause_1_len_max: here: maximum length of short pause
+    0,                                                                  // pulse_0_len_min: here: not used
+    0,                                                                  // pulse_0_len_max: here: not used
+    0,                                                                  // pause_0_len_min: here: not used
+    0,                                                                  // pause_0_len_max: here: not used
+    MERLIN_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    MERLIN_ADDRESS_OFFSET + MERLIN_ADDRESS_LEN,                         // address_end:     end of address
+    MERLIN_COMMAND_OFFSET,                                              // command_offset:  command offset
+    MERLIN_COMMAND_OFFSET + MERLIN_COMMAND_LEN,                         // command_end:     end of command
+    MERLIN_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    MERLIN_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    MERLIN_LSB,                                                         // lsb_first:       flag: LSB first
+    MERLIN_FLAGS                                                        // flags:           some flags
 };
 
 #endif
@@ -2811,6 +2887,20 @@ irmp_ISR (void)
                     else
 #endif // IRMP_SUPPORT_NUBERT_PROTOCOL == 1
 
+#if IRMP_SUPPORT_FAN_PROTOCOL == 1
+                    if (irmp_pulse_time >= FAN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= FAN_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= FAN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= FAN_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's FAN
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = FAN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        FAN_START_BIT_PULSE_LEN_MIN, FAN_START_BIT_PULSE_LEN_MAX,
+                                        FAN_START_BIT_PAUSE_LEN_MIN, FAN_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &fan_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_FAN_PROTOCOL == 1
+
 #if IRMP_SUPPORT_SPEAKER_PROTOCOL == 1
                     if (irmp_pulse_time >= SPEAKER_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SPEAKER_START_BIT_PULSE_LEN_MAX &&
                         irmp_pause_time >= SPEAKER_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= SPEAKER_START_BIT_PAUSE_LEN_MAX)
@@ -2865,6 +2955,22 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
+
+#if IRMP_SUPPORT_MERLIN_PROTOCOL == 1 // check MERLIN before RUWIDO!
+                    if (irmp_pulse_time >= MERLIN_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MERLIN_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= MERLIN_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= MERLIN_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's MERLIN
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = MERLIN, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        MERLIN_START_BIT_PULSE_LEN_MIN, MERLIN_START_BIT_PULSE_LEN_MAX,
+                                        MERLIN_START_BIT_PAUSE_LEN_MIN, MERLIN_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &merlin_param;
+                        last_pause = 0;
+                        last_value = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_MERLIN_PROTOCOL == 1
 
 #if IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1
                     if (((irmp_pulse_time >= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SIEMENS_OR_RUWIDO_START_BIT_PULSE_LEN_MAX) ||
@@ -3234,6 +3340,23 @@ irmp_ISR (void)
                             irmp_tmp_address |= (irmp_bit - SIRCS_MINIMUM_DATA_LEN + 1) << 8;       // new: store number of additional bits in upper byte of address!
                             irmp_param.command_end = irmp_param.command_offset + irmp_bit + 1;      // correct command length
                             irmp_pause_time = SIRCS_PAUSE_LEN_MAX - 1;                              // correct pause length
+                        }
+                        else
+#endif
+#if IRMP_SUPPORT_FAN_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_FAN_PROTOCOL &&                             // FAN has no stop bit.
+                            irmp_bit >= FAN_COMPLETE_DATA_LEN - 1)                                  // last bit in frame
+                        {                                                                           // yes, break and close this frame
+                            if (irmp_pulse_time <= FAN_0_PULSE_LEN_MAX && irmp_pause_time >= FAN_0_PAUSE_LEN_MIN)
+                            {
+                                ANALYZE_PRINTF ("Generating virtual stop bit\n");
+                                got_light = TRUE;                                                   // this is a lie, but helps (generates stop bit)
+                            }
+                            else if (irmp_pulse_time >= FAN_1_PULSE_LEN_MIN && irmp_pause_time >= FAN_1_PAUSE_LEN_MIN)
+                            {
+                                ANALYZE_PRINTF ("Generating virtual stop bit\n");
+                                got_light = TRUE;                                                   // this is a lie, but helps (generates stop bit)
+                            }
                         }
                         else
 #endif
@@ -4492,6 +4615,11 @@ print_timings (void)
             NUBERT_START_BIT_PULSE_LEN_MIN, NUBERT_START_BIT_PULSE_LEN_MAX, NUBERT_START_BIT_PAUSE_LEN_MIN, NUBERT_START_BIT_PAUSE_LEN_MAX,
             NUBERT_0_PULSE_LEN_MIN, NUBERT_0_PULSE_LEN_MAX, NUBERT_0_PAUSE_LEN_MIN, NUBERT_0_PAUSE_LEN_MAX,
             NUBERT_1_PULSE_LEN_MIN, NUBERT_1_PULSE_LEN_MAX, NUBERT_1_PAUSE_LEN_MIN, NUBERT_1_PAUSE_LEN_MAX);
+
+    printf ("FAN            1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
+            FAN_START_BIT_PULSE_LEN_MIN, FAN_START_BIT_PULSE_LEN_MAX, FAN_START_BIT_PAUSE_LEN_MIN, FAN_START_BIT_PAUSE_LEN_MAX,
+            FAN_0_PULSE_LEN_MIN, FAN_0_PULSE_LEN_MAX, FAN_0_PAUSE_LEN_MIN, FAN_0_PAUSE_LEN_MAX,
+            FAN_1_PULSE_LEN_MIN, FAN_1_PULSE_LEN_MAX, FAN_1_PAUSE_LEN_MIN, FAN_1_PAUSE_LEN_MAX);
 
     printf ("SPEAKER        1  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d  %3d - %3d\n",
             SPEAKER_START_BIT_PULSE_LEN_MIN, SPEAKER_START_BIT_PULSE_LEN_MAX, SPEAKER_START_BIT_PAUSE_LEN_MIN, SPEAKER_START_BIT_PAUSE_LEN_MAX,

@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.32 2015/04/23 12:46:13 fm Exp $
+ * $Id: irmpprotocols.h,v 1.33 2015/05/27 09:33:14 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,9 +68,10 @@
 #define IRMP_SAMSUNG48_PROTOCOL                 41              // air conditioner with SAMSUNG protocol (48 bits)
 #define IRMP_MERLIN_PROTOCOL                    42              // Merlin (Pollin 620 185)
 #define IRMP_PENTAX_PROTOCOL                    43              // Pentax camera
-#define IRMP_RADIO1_PROTOCOL                    44              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_FAN_PROTOCOL                       44              // FAN (ventilator), very similar to NUBERT, but last bit is data bit instead of stop bit
+#define IRMP_RADIO1_PROTOCOL                    45              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        44              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        45              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -354,16 +355,42 @@ typedef uint8_t     PAUSE_LEN;
 #define NUBERT_FLAGS                            0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * FAN: (ventilator)
+ *
+ * Similar to NUBERT, but
+ *   - has data bit instead of stop bit
+ *   - has NO frame repetition
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define FAN_START_BIT_PULSE_TIME                1340.0e-6                       // 1340 usec pulse
+#define FAN_START_BIT_PAUSE_TIME                 340.0e-6                       //  340 usec pause
+#define FAN_1_PULSE_TIME                        1340.0e-6                       // 1340 usec pulse
+#define FAN_1_PAUSE_TIME                         340.0e-6                       //  340 usec pause
+#define FAN_0_PULSE_TIME                         500.0e-6                       //  500 usec pulse
+#define FAN_0_PAUSE_TIME                        1300.0e-6                       // 1300 usec pause
+#define FAN_FRAMES                              1                               // FAN sends only 1 frame (NUBERT sends 2)
+#define FAN_AUTO_REPETITION_PAUSE_TIME            35.0e-3                       // auto repetition after 35ms
+#define FAN_FRAME_REPEAT_PAUSE_TIME               35.0e-3                       // frame repeat after 45ms
+#define FAN_ADDRESS_OFFSET                      0                               // skip 0 bits
+#define FAN_ADDRESS_LEN                         0                               // read 0 address bits
+#define FAN_COMMAND_OFFSET                      0                               // skip 0 bits
+#define FAN_COMMAND_LEN                         11                              // read 10 bits
+#define FAN_COMPLETE_DATA_LEN                   11                              // complete length
+#define FAN_STOP_BIT                            0                               // has NO stop bit
+#define FAN_LSB                                 0                               // MSB
+#define FAN_FLAGS                               0                               // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
  * SPEAKER:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define SPEAKER_START_BIT_PULSE_TIME             440.0e-6                       // 1340 usec pulse
-#define SPEAKER_START_BIT_PAUSE_TIME            1250.0e-6                       //  340 usec pause
-#define SPEAKER_1_PULSE_TIME                    1250.0e-6                       // 1340 usec pulse
-#define SPEAKER_1_PAUSE_TIME                     440.0e-6                       //  340 usec pause
-#define SPEAKER_0_PULSE_TIME                     440.0e-6                       //  500 usec pulse
-#define SPEAKER_0_PAUSE_TIME                    1250.0e-6                       // 1300 usec pause
-#define SPEAKER_FRAMES                          2                               // Nubert sends 2 frames
+#define SPEAKER_START_BIT_PULSE_TIME             440.0e-6                       //  440 usec pulse
+#define SPEAKER_START_BIT_PAUSE_TIME            1250.0e-6                       // 1250 usec pause
+#define SPEAKER_1_PULSE_TIME                    1250.0e-6                       // 1250 usec pulse
+#define SPEAKER_1_PAUSE_TIME                     440.0e-6                       //  440 usec pause
+#define SPEAKER_0_PULSE_TIME                     440.0e-6                       //  440 usec pulse
+#define SPEAKER_0_PAUSE_TIME                    1250.0e-6                       // 1250 usec pause
+#define SPEAKER_FRAMES                          2                               // SPEAKER sends 2 frames
 #define SPEAKER_AUTO_REPETITION_PAUSE_TIME        35.0e-3                       // auto repetition after 35ms
 #define SPEAKER_FRAME_REPEAT_PAUSE_TIME           35.0e-3                       // frame repeat after 45ms
 #define SPEAKER_ADDRESS_OFFSET                  0                               // skip 0 bits
@@ -686,10 +713,10 @@ typedef uint8_t     PAUSE_LEN;
  * See notes for A1TVBOX
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define MERLIN_START_BIT_PULSE_TIME            210.0e-6                         // 300 usec pulse
-#define MERLIN_START_BIT_PAUSE_TIME            420.0e-6                         // 340 usec pause
-#define MERLIN_BIT_PULSE_TIME                  210.0e-6                         // 250 usec pulse
-#define MERLIN_BIT_PAUSE_TIME                  210.0e-6                         // 150 usec pulse
+#define MERLIN_START_BIT_PULSE_TIME            210.0e-6                         // 210 usec pulse
+#define MERLIN_START_BIT_PAUSE_TIME            420.0e-6                         // 429 usec pause
+#define MERLIN_BIT_PULSE_TIME                  210.0e-6                         // 210 usec pulse
+#define MERLIN_BIT_PAUSE_TIME                  210.0e-6                         // 210 usec pulse
 #define MERLIN_STOP_BIT                        0                                // has no stop bit
 #define MERLIN_LSB                             0                                // MSB...LSB
 #define MERLIN_FLAGS                           (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1 )  // flags

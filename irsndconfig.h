@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.68 2015/05/07 06:51:10 fm Exp $
+ * $Id: irsndconfig.h,v 1.70 2015/05/27 09:35:43 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@
 // exotic protocols, enable here!               Enable  Remarks                 F_INTERRUPTS            Program Space
 #define IRSND_SUPPORT_KATHREIN_PROTOCOL         0       // Kathrein             >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           0       // NUBERT               >= 10000                 ~100 bytes
+#define IRSND_SUPPORT_FAN_PROTOCOL              0       // FAN (ventilator)     >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_SPEAKER_PROTOCOL          0       // SPEAKER              >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL     0       // Bang&Olufsen         >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_RECS80_PROTOCOL           0       // RECS80               >= 15000                 ~100 bytes

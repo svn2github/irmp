@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.87 2015/05/21 06:17:31 fm Exp $
+ * $Id: irsnd.c,v 1.88 2015/05/27 09:33:14 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -293,6 +293,15 @@
 #define NUBERT_0_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * NUBERT_0_PAUSE_TIME + 0.5)
 #define NUBERT_AUTO_REPETITION_PAUSE_LEN        (uint16_t)(F_INTERRUPTS * NUBERT_AUTO_REPETITION_PAUSE_TIME + 0.5)              // use uint16_t!
 #define NUBERT_FRAME_REPEAT_PAUSE_LEN           (uint16_t)(F_INTERRUPTS * NUBERT_FRAME_REPEAT_PAUSE_TIME + 0.5)                 // use uint16_t!
+
+#define FAN_START_BIT_PULSE_LEN                 (uint8_t)(F_INTERRUPTS * FAN_START_BIT_PULSE_TIME + 0.5)
+#define FAN_START_BIT_PAUSE_LEN                 (uint8_t)(F_INTERRUPTS * FAN_START_BIT_PAUSE_TIME + 0.5)
+#define FAN_1_PULSE_LEN                         (uint8_t)(F_INTERRUPTS * FAN_1_PULSE_TIME + 0.5)
+#define FAN_1_PAUSE_LEN                         (uint8_t)(F_INTERRUPTS * FAN_1_PAUSE_TIME + 0.5)
+#define FAN_0_PULSE_LEN                         (uint8_t)(F_INTERRUPTS * FAN_0_PULSE_TIME + 0.5)
+#define FAN_0_PAUSE_LEN                         (uint8_t)(F_INTERRUPTS * FAN_0_PAUSE_TIME + 0.5)
+#define FAN_AUTO_REPETITION_PAUSE_LEN           (uint16_t)(F_INTERRUPTS * FAN_AUTO_REPETITION_PAUSE_TIME + 0.5)              // use uint16_t!
+#define FAN_FRAME_REPEAT_PAUSE_LEN              (uint16_t)(F_INTERRUPTS * FAN_FRAME_REPEAT_PAUSE_TIME + 0.5)                 // use uint16_t!
 
 #define SPEAKER_START_BIT_PULSE_LEN             (uint8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PULSE_TIME + 0.5)
 #define SPEAKER_START_BIT_PAUSE_LEN             (uint8_t)(F_INTERRUPTS * SPEAKER_START_BIT_PAUSE_TIME + 0.5)
@@ -1155,6 +1164,15 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             break;
         }
 #endif
+#if IRSND_SUPPORT_FAN_PROTOCOL == 1
+        case IRMP_FAN_PROTOCOL:
+        {
+            irsnd_buffer[0] = irmp_data_p->command >> 3;                                                        // CCCCCCCC
+            irsnd_buffer[1] = (irmp_data_p->command & 0x0007) << 5;                                             // CCC00000
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
 #if IRSND_SUPPORT_SPEAKER_PROTOCOL == 1
         case IRMP_SPEAKER_PROTOCOL:
         {
@@ -1850,6 +1868,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_FAN_PROTOCOL == 1
+                    case IRMP_FAN_PROTOCOL:
+                    {
+                        startbit_pulse_len          = FAN_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = FAN_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = FAN_1_PULSE_LEN;
+                        pause_1_len                 = FAN_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = FAN_0_PULSE_LEN;
+                        pause_0_len                 = FAN_0_PAUSE_LEN - 1;
+                        has_stop_bit                = FAN_STOP_BIT;
+                        complete_data_len           = FAN_COMPLETE_DATA_LEN;
+                        n_auto_repetitions          = FAN_FRAMES;                                   // only 1 frame
+                        auto_repetition_pause_len   = FAN_AUTO_REPETITION_PAUSE_LEN;                // 35 ms pause
+                        repeat_frame_pause_len      = FAN_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_36_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_SPEAKER_PROTOCOL == 1
                     case IRMP_SPEAKER_PROTOCOL:
                     {
@@ -2172,6 +2208,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_NUBERT_PROTOCOL == 1
                 case IRMP_NUBERT_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_FAN_PROTOCOL == 1
+                case IRMP_FAN_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_SPEAKER_PROTOCOL == 1
                 case IRMP_SPEAKER_PROTOCOL:
 #endif
@@ -2206,9 +2245,10 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_NEC16_PROTOCOL == 1 || IRSND_SUPPORT_NEC42_PROTOCOL == 1 || \
     IRSND_SUPPORT_LGAIR_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
     IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
-    IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 ||   \
-    IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || \
-    IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1 || IRSND_SUPPORT_PENTAX_PROTOCOL == 1
+    IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_FAN_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || \
+    IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 || IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || \
+    IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1 || \
+    IRSND_SUPPORT_PENTAX_PROTOCOL == 1
                 {
 #if IRSND_SUPPORT_DENON_PROTOCOL == 1
                     if (irsnd_protocol == IRMP_DENON_PROTOCOL)
