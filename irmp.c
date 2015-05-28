@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.172 2015/05/27 09:33:14 fm Exp $
+ * $Id: irmp.c,v 1.174 2015/05/28 06:48:19 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -783,6 +783,19 @@ irmp_uart_init (void)
 
     // UART enable
     USART_Cmd(STM32_UART_COM, ENABLE);
+        
+#elif defined (__AVR_XMEGA__)
+
+        PMIC.CTRL |= PMIC_HILVLEN_bm;
+
+        USARTC1.BAUDCTRLB = 0;
+        USARTC1.BAUDCTRLA = F_CPU /153600-1;
+        USARTC1.CTRLA = USART_RXCINTLVL_HI_gc; // High Level (Empfangen)
+        USARTC1.CTRLB = USART_TXEN_bm | USART_RXEN_bm; //Aktiviert Senden und Empfangen
+        USARTC1.CTRLC = USART_CHSIZE_8BIT_gc; //Größe der Zeichen: 8 Bit
+        PORTC.DIR |= (1<<7);  //TXD als Ausgang setzen
+        PORTC.DIR &= ~(1<<6);
+        
 #else
 
 #if (IRMP_EXT_LOGGING == 0)                                                                         // use UART
@@ -831,14 +844,19 @@ irmp_uart_putc (unsigned char ch)
 
 #else
 #if (IRMP_EXT_LOGGING == 0)
-
+        
+        #       if defined (__AVR_XMEGA__)
+        while (!(USARTC1.STATUS & USART_DREIF_bm));
+        USARTC1.DATA = ch;
+        
+        #       else //AVR_MEGA
     while (!(UART0_UCSRA & UART0_UDRE_BIT_VALUE))
     {
         ;
     }
 
     UART0_UDR = ch;
-
+        #endif //__AVR_XMEGA__
 #else
 
     sendextlog(ch);                                                         // use external log
@@ -3349,12 +3367,16 @@ irmp_ISR (void)
                         {                                                                           // yes, break and close this frame
                             if (irmp_pulse_time <= FAN_0_PULSE_LEN_MAX && irmp_pause_time >= FAN_0_PAUSE_LEN_MIN)
                             {
+#ifdef ANALYZE
                                 ANALYZE_PRINTF ("Generating virtual stop bit\n");
+#endif // ANALYZE
                                 got_light = TRUE;                                                   // this is a lie, but helps (generates stop bit)
                             }
                             else if (irmp_pulse_time >= FAN_1_PULSE_LEN_MIN && irmp_pause_time >= FAN_1_PAUSE_LEN_MIN)
                             {
+#ifdef ANALYZE
                                 ANALYZE_PRINTF ("Generating virtual stop bit\n");
+#endif // ANALYZE
                                 got_light = TRUE;                                                   // this is a lie, but helps (generates stop bit)
                             }
                         }

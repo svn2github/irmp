@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.129 2015/05/27 09:35:42 fm Exp $
+ * $Id: irmpconfig.h,v 1.130 2015/05/28 06:46:49 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@
 #define IRMP_SUPPORT_BOSE_PROTOCOL              0       // BOSE                 >= 10000                 ~150 bytes
 #define IRMP_SUPPORT_KATHREIN_PROTOCOL          0       // Kathrein             >= 10000                 ~200 bytes
 #define IRMP_SUPPORT_NUBERT_PROTOCOL            0       // NUBERT               >= 10000                  ~50 bytes
-#define IRMP_SUPPORT_FAN_PROTOCOL               0       // FAN (ventilator)     >= 10000                  ~50 bytes
+#define IRMP_SUPPORT_FAN_PROTOCOL               1       // FAN (ventilator)     >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_SPEAKER_PROTOCOL           0       // SPEAKER (~NUBERT)    >= 10000                  ~50 bytes
 #define IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL      0       // Bang & Olufsen       >= 10000                 ~200 bytes
 #define IRMP_SUPPORT_RECS80_PROTOCOL            0       // RECS80 (SAA3004)     >= 15000                  ~50 bytes

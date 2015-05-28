@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.33 2015/05/27 09:33:14 fm Exp $
+ * $Id: irmpprotocols.h,v 1.34 2015/05/28 06:46:49 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -362,15 +362,15 @@ typedef uint8_t     PAUSE_LEN;
  *   - has NO frame repetition
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define FAN_START_BIT_PULSE_TIME                1340.0e-6                       // 1340 usec pulse
-#define FAN_START_BIT_PAUSE_TIME                 340.0e-6                       //  340 usec pause
-#define FAN_1_PULSE_TIME                        1340.0e-6                       // 1340 usec pulse
-#define FAN_1_PAUSE_TIME                         340.0e-6                       //  340 usec pause
-#define FAN_0_PULSE_TIME                         500.0e-6                       //  500 usec pulse
-#define FAN_0_PAUSE_TIME                        1300.0e-6                       // 1300 usec pause
+#define FAN_START_BIT_PULSE_TIME                1280.0e-6                       // 1280 usec pulse
+#define FAN_START_BIT_PAUSE_TIME                 380.0e-6                       //  380 usec pause
+#define FAN_1_PULSE_TIME                        1280.0e-6                       // 1280 usec pulse
+#define FAN_1_PAUSE_TIME                         380.0e-6                       //  380 usec pause
+#define FAN_0_PULSE_TIME                         380.0e-6                       //  380 usec pulse
+#define FAN_0_PAUSE_TIME                        1280.0e-6                       // 1280 usec pause
 #define FAN_FRAMES                              1                               // FAN sends only 1 frame (NUBERT sends 2)
-#define FAN_AUTO_REPETITION_PAUSE_TIME            35.0e-3                       // auto repetition after 35ms
-#define FAN_FRAME_REPEAT_PAUSE_TIME               35.0e-3                       // frame repeat after 45ms
+#define FAN_AUTO_REPETITION_PAUSE_TIME            6.6e-3                        // auto repetition after 6.6ms
+#define FAN_FRAME_REPEAT_PAUSE_TIME               6.6e-3                        // frame repeat after 6.6ms
 #define FAN_ADDRESS_OFFSET                      0                               // skip 0 bits
 #define FAN_ADDRESS_LEN                         0                               // read 0 address bits
 #define FAN_COMMAND_OFFSET                      0                               // skip 0 bits
