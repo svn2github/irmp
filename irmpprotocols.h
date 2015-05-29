@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.34 2015/05/28 06:46:49 fm Exp $
+ * $Id: irmpprotocols.h,v 1.35 2015/05/29 08:23:56 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,9 +69,10 @@
 #define IRMP_MERLIN_PROTOCOL                    42              // Merlin (Pollin 620 185)
 #define IRMP_PENTAX_PROTOCOL                    43              // Pentax camera
 #define IRMP_FAN_PROTOCOL                       44              // FAN (ventilator), very similar to NUBERT, but last bit is data bit instead of stop bit
-#define IRMP_RADIO1_PROTOCOL                    45              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_S100_PROTOCOL                      45              // very similar to RC5, but 14 instead of 13 data bits
+#define IRMP_RADIO1_PROTOCOL                    46              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        45              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        46              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -274,6 +275,22 @@ typedef uint8_t     PAUSE_LEN;
 #define RC5_STOP_BIT                            0                               // has no stop bit
 #define RC5_LSB                                 0                               // MSB...LSB
 #define RC5_FLAGS                               IRMP_PARAM_FLAG_IS_MANCHESTER   // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * S100: very similar to RC5, but 14 insted of 13 bits
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define S100_BIT_TIME                             889.0e-6                       // 889 usec pulse/pause
+#define S100_FRAME_REPEAT_PAUSE_TIME               88.9e-3                       // frame repeat after 88.9ms
+
+#define S100_ADDRESS_OFFSET                      1                               // skip 1 bit (2nd start)
+#define S100_ADDRESS_LEN                         6                               // read 1 toggle bit (for key repetition detection) + 5 address bits
+#define S100_COMMAND_OFFSET                      7                               // skip 5 bits (2nd start + 1 toggle + 5 address)
+#define S100_COMMAND_LEN                         7                               // read 7 command bits
+#define S100_COMPLETE_DATA_LEN                   14                              // complete length
+#define S100_STOP_BIT                            0                               // has no stop bit
+#define S100_LSB                                 0                               // MSB...LSB
+#define S100_FLAGS                               IRMP_PARAM_FLAG_IS_MANCHESTER   // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * DENON:

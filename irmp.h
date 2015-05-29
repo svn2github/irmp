@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.94 2015/05/07 06:51:10 fm Exp $
+ * $Id: irmp.h,v 1.95 2015/05/29 08:23:56 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,6 +94,20 @@
 #  warning ORTEK protocol disabled
 #  undef IRMP_SUPPORT_ORTEK_PROTOCOL
 #  define IRMP_SUPPORT_ORTEK_PROTOCOL           0
+#endif
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_S100_PROTOCOL == 1
+#  warning RC5 protocol conflicts wih S100, please enable only one of both protocols
+#  warning S100 protocol disabled
+#  undef IRMP_SUPPORT_S100_PROTOCOL
+#  define IRMP_SUPPORT_S100_PROTOCOL            0
+#endif
+
+#if IRMP_SUPPORT_NUBERT_PROTOCOL == 1 && IRMP_SUPPORT_FAN_PROTOCOL == 1
+#  warning NUBERT protocol conflicts wih FAN, please enable only one of both protocols
+#  warning FAN protocol disabled
+#  undef IRMP_SUPPORT_FAN_PROTOCOL
+#  define IRMP_SUPPORT_FAN_PROTOCOL             0
 #endif
 
 #if IRMP_SUPPORT_FDC_PROTOCOL == 1 && IRMP_SUPPORT_ORTEK_PROTOCOL == 1

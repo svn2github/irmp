@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.88 2015/05/27 09:33:14 fm Exp $
+ * $Id: irsnd.c,v 1.89 2015/05/29 08:23:56 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -145,7 +145,7 @@
 #    define IRSND_BIT_NUMBER                        2
 #  endif // IRSND_OCx
 
-#elif defined (__AVR_ATxmega128A1U__)                               // ATxmega128A1U 
+#elif defined (__AVR_XMEGA__)                                       // ATxmega
 #  if IRSND_OCx == IRSND_XMEGA_OC0A   
 #    define IRSND_BIT_NUMBER                        0
 #  elif IRSND_OCx == IRSND_XMEGA_OC0B
@@ -159,7 +159,7 @@
 #  elif IRSND_OCx == IRSND_XMEGA_OC1B
 #    define IRSND_BIT_NUMBER                        5
 #  else
-#    error Wrong value for IRSND_OCx, choose IRSND_OC0, IRSND_OC1A, or IRSND_OC1B in irsndconfig.h
+#    error Wrong value for IRSND_OCx, choose IRSND_XMEGA_OC0A, IRSND_XMEGA_OC0B, IRSND_XMEGA_OC0C, IRSND_XMEGA_OC0D, IRSND_XMEGA_OC1A, or IRSND_XMEGA_OC1B in irsndconfig.h
 #  endif // IRSND_OCx
 
 #elif defined (PIC_C18)    //Microchip C18 compiler

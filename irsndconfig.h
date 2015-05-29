@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.71 2015/05/28 06:46:49 fm Exp $
+ * $Id: irsndconfig.h,v 1.73 2015/05/29 08:24:37 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,6 +82,7 @@
 #define IRSND_SUPPORT_LGAIR_PROTOCOL            0       // LG Air Condition     >= 10000                 ~150 bytes.
 #define IRSND_SUPPORT_SAMSUNG48_PROTOCOL        0       // Samsung48            >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_PENTAX_PROTOCOL           0       // Pentax               >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_S100_PROTOCOL             0       // S100                 >= 10000                 ~150 bytes
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

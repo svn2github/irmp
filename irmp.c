@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.174 2015/05/28 06:48:19 fm Exp $
+ * $Id: irmp.c,v 1.175 2015/05/29 08:23:56 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -37,6 +37,7 @@
 #endif
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||                   \
+    IRMP_SUPPORT_S100_PROTOCOL == 1 ||                  \
     IRMP_SUPPORT_RC6_PROTOCOL == 1 ||                   \
     IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
     IRMP_SUPPORT_SIEMENS_OR_RUWIDO_PROTOCOL == 1 ||     \
@@ -177,6 +178,17 @@
 
 #define RC5_BIT_LEN_MIN                         ((uint_fast8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RC5_BIT_LEN_MAX                         ((uint_fast8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+
+#if IRMP_SUPPORT_BOSE_PROTOCOL == 1 // BOSE conflicts with S100, so keep tolerance for S100 minimal here:
+#define S100_START_BIT_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define S100_START_BIT_LEN_MAX                   ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#else
+#define S100_START_BIT_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define S100_START_BIT_LEN_MAX                   ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#endif
+
+#define S100_BIT_LEN_MIN                         ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define S100_BIT_LEN_MAX                         ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #define DENON_PULSE_LEN_MIN                     ((uint_fast8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define DENON_PULSE_LEN_MAX                     ((uint_fast8_t)(F_INTERRUPTS * DENON_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
@@ -579,6 +591,7 @@ static const char proto_samsung48[]     PROGMEM = "SAMSG48";
 static const char proto_merlin[]        PROGMEM = "MERLIN";
 static const char proto_pentax[]        PROGMEM = "PENTAX";
 static const char proto_fan[]           PROGMEM = "FAN";
+static const char proto_s100[]          PROGMEM = "S100";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -630,6 +643,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_merlin,
     proto_pentax,
     proto_fan,
+    proto_s100,
     proto_radio1
 };
 
@@ -1261,6 +1275,31 @@ static const PROGMEM IRMP_PARAMETER rc5_param =
 
 #endif
 
+#if IRMP_SUPPORT_S100_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER s100_param =
+{
+    IRMP_S100_PROTOCOL,                                                 // protocol:        ir protocol
+    S100_BIT_LEN_MIN,                                                   // pulse_1_len_min: here: minimum length of short pulse
+    S100_BIT_LEN_MAX,                                                   // pulse_1_len_max: here: maximum length of short pulse
+    S100_BIT_LEN_MIN,                                                   // pause_1_len_min: here: minimum length of short pause
+    S100_BIT_LEN_MAX,                                                   // pause_1_len_max: here: maximum length of short pause
+    0,                                                                  // pulse_0_len_min: here: not used
+    0,                                                                  // pulse_0_len_max: here: not used
+    0,                                                                  // pause_0_len_min: here: not used
+    0,                                                                  // pause_0_len_max: here: not used
+    S100_ADDRESS_OFFSET,                                                // address_offset:  address offset
+    S100_ADDRESS_OFFSET + S100_ADDRESS_LEN,                             // address_end:     end of address
+    S100_COMMAND_OFFSET,                                                // command_offset:  command offset
+    S100_COMMAND_OFFSET + S100_COMMAND_LEN,                             // command_end:     end of command
+    S100_COMPLETE_DATA_LEN,                                             // complete_len:    complete length of frame
+    S100_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
+    S100_LSB,                                                           // lsb_first:       flag: LSB first
+    S100_FLAGS                                                          // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
 
 static const PROGMEM IRMP_PARAMETER denon_param =
@@ -1870,11 +1909,11 @@ static const PROGMEM IRMP_PARAMETER radio1_param =
 
 #endif
 
-static uint_fast8_t                              irmp_bit;                   // current bit position
-static IRMP_PARAMETER                       irmp_param;
+static uint_fast8_t                             irmp_bit;                   // current bit position
+static IRMP_PARAMETER                           irmp_param;
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
-static IRMP_PARAMETER                       irmp_param2;
+static IRMP_PARAMETER                           irmp_param2;
 #endif
 
 static volatile uint_fast8_t                     irmp_ir_detected = FALSE;
@@ -2026,6 +2065,12 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
 #endif
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
             case IRMP_RC5_PROTOCOL:
+                irmp_address &= ~0x20;                              // clear toggle bit
+                rtc = TRUE;
+                break;
+#endif
+#if IRMP_SUPPORT_S100_PROTOCOL == 1
+            case IRMP_S100_PROTOCOL:
                 irmp_address &= ~0x20;                              // clear toggle bit
                 rtc = TRUE;
                 break;
@@ -2378,7 +2423,7 @@ irmp_ISR (void)
     static uint_fast16_t    last_irmp_denon_command;                                // save last irmp command to recognize DENON frame repetition
     static uint_fast16_t    denon_repetition_len = 0xFFFF;                          // denon repetition len of 2nd auto generated frame
 #endif
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_S100_PROTOCOL == 1
     static uint_fast8_t     rc5_cmd_bit6;                                           // bit 6 of RC5 command is the inverted 2nd start bit
 #endif
 #if IRMP_SUPPORT_MANCHESTER == 1
@@ -2451,7 +2496,7 @@ irmp_ISR (void)
 #endif
                     irmp_bit                = 0xff;
                     irmp_pause_time         = 1;                                // 1st pause: set to 1, not to 0!
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 || IRMP_SUPPORT_S100_PROTOCOL == 1
                     rc5_cmd_bit6            = 0;                                // fm 2010-03-07: bugfix: reset it after incomplete RC5 frame!
 #endif
                 }
@@ -2746,6 +2791,37 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_RECS80_PROTOCOL == 1
+
+#if IRMP_SUPPORT_S100_PROTOCOL == 1
+                    if (((irmp_pulse_time >= S100_START_BIT_LEN_MIN     && irmp_pulse_time <= S100_START_BIT_LEN_MAX) ||
+                         (irmp_pulse_time >= 2 * S100_START_BIT_LEN_MIN && irmp_pulse_time <= 2 * S100_START_BIT_LEN_MAX)) &&
+                        ((irmp_pause_time >= S100_START_BIT_LEN_MIN     && irmp_pause_time <= S100_START_BIT_LEN_MAX) ||
+                         (irmp_pause_time >= 2 * S100_START_BIT_LEN_MIN && irmp_pause_time <= 2 * S100_START_BIT_LEN_MAX)))
+                    {                                                           // it's S100
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = S100, start bit timings: pulse: %3d - %3d, pause: %3d - %3d or pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        S100_START_BIT_LEN_MIN, S100_START_BIT_LEN_MAX,
+                                        2 * S100_START_BIT_LEN_MIN, 2 * S100_START_BIT_LEN_MAX,
+                                        S100_START_BIT_LEN_MIN, S100_START_BIT_LEN_MAX,
+                                        2 * S100_START_BIT_LEN_MIN, 2 * S100_START_BIT_LEN_MAX);
+#endif // ANALYZE
+
+                        irmp_param_p = (IRMP_PARAMETER *) &s100_param;
+                        last_pause = irmp_pause_time;
+
+                        if ((irmp_pulse_time > S100_START_BIT_LEN_MAX && irmp_pulse_time <= 2 * S100_START_BIT_LEN_MAX) ||
+                            (irmp_pause_time > S100_START_BIT_LEN_MAX && irmp_pause_time <= 2 * S100_START_BIT_LEN_MAX))
+                        {
+                          last_value  = 0;
+                          rc5_cmd_bit6 = 1<<6;
+                        }
+                        else
+                        {
+                          last_value  = 1;
+                        }
+                    }
+                    else
+#endif // IRMP_SUPPORT_S100_PROTOCOL == 1
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
                     if (((irmp_pulse_time >= RC5_START_BIT_LEN_MIN     && irmp_pulse_time <= RC5_START_BIT_LEN_MAX) ||
@@ -4490,6 +4566,12 @@ irmp_ISR (void)
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_RC5_PROTOCOL)
+                        {
+                            irmp_tmp_command |= rc5_cmd_bit6;                       // store bit 6
+                        }
+#endif
+#if IRMP_SUPPORT_S100_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_S100_PROTOCOL)
                         {
                             irmp_tmp_command |= rc5_cmd_bit6;                       // store bit 6
                         }
