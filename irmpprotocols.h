@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.35 2015/05/29 08:23:56 fm Exp $
+ * $Id: irmpprotocols.h,v 1.36 2015/06/15 10:30:10 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,9 +70,10 @@
 #define IRMP_PENTAX_PROTOCOL                    43              // Pentax camera
 #define IRMP_FAN_PROTOCOL                       44              // FAN (ventilator), very similar to NUBERT, but last bit is data bit instead of stop bit
 #define IRMP_S100_PROTOCOL                      45              // very similar to RC5, but 14 instead of 13 data bits
-#define IRMP_RADIO1_PROTOCOL                    46              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_ACP24_PROTOCOL                     46              // Stiebel Eltron ACP24 air conditioner
+#define IRMP_RADIO1_PROTOCOL                    47              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        46              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        47              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -842,6 +843,25 @@ typedef uint8_t     PAUSE_LEN;
 #define PENTAX_STOP_BIT                        1                                // has stop bit
 #define PENTAX_LSB                             0                                // LSB...MSB
 #define PENTAX_FLAGS                           0                                // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * ACP24: Stiebel Eltron ACP24 air conditioner
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define ACP24_START_BIT_PULSE_TIME               390.0e-6                       //  390 usec pulse
+#define ACP24_START_BIT_PAUSE_TIME               950.0e-6                       //  950 usec pause
+#define ACP24_PULSE_TIME                         390.0e-6                       //  390 usec pulse
+#define ACP24_1_PAUSE_TIME                      1300.0e-6                       // 1300 usec pause
+#define ACP24_0_PAUSE_TIME                       950.0e-6                       //  950 usec pause
+#define ACP24_FRAME_REPEAT_PAUSE_TIME             22.0e-3                       // frame repeat after 22ms?
+#define ACP24_ADDRESS_OFFSET                     0                              // skip 0 bits
+#define ACP24_ADDRESS_LEN                        0                              // read 6 address bits
+#define ACP24_COMMAND_OFFSET                     0                              // skip 6 bits
+#define ACP24_COMMAND_LEN                        0                              // read 0 bits (70 bits will be read and compressed by special routine)
+#define ACP24_COMPLETE_DATA_LEN                 70                              // complete length
+#define ACP24_STOP_BIT                          1                               // has stop bit
+#define ACP24_LSB                               0                               // LSB...MSB
+#define ACP24_FLAGS                             0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * RADIO1 - e.g. Tevion

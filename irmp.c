@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.175 2015/05/29 08:23:56 fm Exp $
+ * $Id: irmp.c,v 1.176 2015/06/15 10:30:08 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -496,6 +496,17 @@
 #define PENTAX_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * PENTAX_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define PENTAX_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * PENTAX_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
+#define ACP24_START_BIT_PULSE_LEN_MIN           ((uint_fast8_t)(F_INTERRUPTS * ACP24_START_BIT_PULSE_TIME * MIN_TOLERANCE_15 + 0.5) - 1)
+#define ACP24_START_BIT_PULSE_LEN_MAX           ((uint_fast8_t)(F_INTERRUPTS * ACP24_START_BIT_PULSE_TIME * MAX_TOLERANCE_15 + 0.5) + 1)
+#define ACP24_START_BIT_PAUSE_LEN_MIN           ((uint_fast8_t)(F_INTERRUPTS * ACP24_START_BIT_PAUSE_TIME * MIN_TOLERANCE_15 + 0.5) - 1)
+#define ACP24_START_BIT_PAUSE_LEN_MAX           ((uint_fast8_t)(F_INTERRUPTS * ACP24_START_BIT_PAUSE_TIME * MAX_TOLERANCE_15 + 0.5) + 1)
+#define ACP24_PULSE_LEN_MIN                     ((uint_fast8_t)(F_INTERRUPTS * ACP24_PULSE_TIME * MIN_TOLERANCE_15 + 0.5) - 1)
+#define ACP24_PULSE_LEN_MAX                     ((uint_fast8_t)(F_INTERRUPTS * ACP24_PULSE_TIME * MAX_TOLERANCE_15 + 0.5) + 1)
+#define ACP24_1_PAUSE_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * ACP24_1_PAUSE_TIME * MIN_TOLERANCE_15 + 0.5) - 1)
+#define ACP24_1_PAUSE_LEN_MAX                   ((uint_fast8_t)(F_INTERRUPTS * ACP24_1_PAUSE_TIME * MAX_TOLERANCE_15 + 0.5) + 1)
+#define ACP24_0_PAUSE_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * ACP24_0_PAUSE_TIME * MIN_TOLERANCE_15 + 0.5) - 1)
+#define ACP24_0_PAUSE_LEN_MAX                   ((uint_fast8_t)(F_INTERRUPTS * ACP24_0_PAUSE_TIME * MAX_TOLERANCE_15 + 0.5) + 1)
+
 #define RADIO1_START_BIT_PULSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * RADIO1_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RADIO1_START_BIT_PULSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * RADIO1_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 #define RADIO1_START_BIT_PAUSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * RADIO1_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
@@ -592,6 +603,7 @@ static const char proto_merlin[]        PROGMEM = "MERLIN";
 static const char proto_pentax[]        PROGMEM = "PENTAX";
 static const char proto_fan[]           PROGMEM = "FAN";
 static const char proto_s100[]          PROGMEM = "S100";
+static const char proto_acp24[]         PROGMEM = "ACP24";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -644,6 +656,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_pentax,
     proto_fan,
     proto_s100,
+    proto_acp24,
     proto_radio1
 };
 
@@ -1883,6 +1896,31 @@ static const PROGMEM IRMP_PARAMETER pentax_param =
 
 #endif
 
+#if IRMP_SUPPORT_ACP24_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER acp24_param =
+{
+    IRMP_ACP24_PROTOCOL,                                                // protocol:        ir protocol
+    ACP24_PULSE_LEN_MIN,                                                // pulse_1_len_min: minimum length of pulse with bit value 1
+    ACP24_PULSE_LEN_MAX,                                                // pulse_1_len_max: maximum length of pulse with bit value 1
+    ACP24_1_PAUSE_LEN_MIN,                                              // pause_1_len_min: minimum length of pause with bit value 1
+    ACP24_1_PAUSE_LEN_MAX,                                              // pause_1_len_max: maximum length of pause with bit value 1
+    ACP24_PULSE_LEN_MIN,                                                // pulse_0_len_min: minimum length of pulse with bit value 0
+    ACP24_PULSE_LEN_MAX,                                                // pulse_0_len_max: maximum length of pulse with bit value 0
+    ACP24_0_PAUSE_LEN_MIN,                                              // pause_0_len_min: minimum length of pause with bit value 0
+    ACP24_0_PAUSE_LEN_MAX,                                              // pause_0_len_max: maximum length of pause with bit value 0
+    ACP24_ADDRESS_OFFSET,                                               // address_offset:  address offset
+    ACP24_ADDRESS_OFFSET + ACP24_ADDRESS_LEN,                           // address_end:     end of address
+    ACP24_COMMAND_OFFSET,                                               // command_offset:  command offset
+    ACP24_COMMAND_OFFSET + ACP24_COMMAND_LEN,                           // command_end:     end of command
+    ACP24_COMPLETE_DATA_LEN,                                            // complete_len:    complete length of frame
+    ACP24_STOP_BIT,                                                     // stop_bit:        flag: frame has stop bit
+    ACP24_LSB,                                                          // lsb_first:       flag: LSB first
+    ACP24_FLAGS                                                         // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_RADIO1_PROTOCOL == 1
 
 static const PROGMEM IRMP_PARAMETER radio1_param =
@@ -2224,6 +2262,45 @@ static uint_fast8_t  parity;                                                // n
 static void
 irmp_store_bit (uint_fast8_t value)
 {
+#if IRMP_SUPPORT_ACP24_PROTOCOL == 1
+    if (irmp_param.protocol == IRMP_ACP24_PROTOCOL)                                                 // squeeze 64 bits into 16 bits:
+    {
+        if (value)
+        {
+            // ACP24-Frame:
+            //           1         2         3         4         5         6
+            // 0123456789012345678901234567890123456789012345678901234567890123456789
+            // N VVMMM    ? ???    t vmA x                 y                     TTTT
+            //
+            // irmp_data_p->command:
+            //
+            //         5432109876543210
+            //         NAVVvMMMmtxyTTTT
+
+            switch (irmp_bit)
+            {
+                case  0: irmp_tmp_command |= (1<<15); break;                                        // N
+                case  2: irmp_tmp_command |= (1<<13); break;                                        // V
+                case  3: irmp_tmp_command |= (1<<12); break;                                        // V
+                case  4: irmp_tmp_command |= (1<<10); break;                                        // M
+                case  5: irmp_tmp_command |= (1<< 9); break;                                        // M
+                case  6: irmp_tmp_command |= (1<< 8); break;                                        // M
+                case 20: irmp_tmp_command |= (1<< 6); break;                                        // t
+                case 22: irmp_tmp_command |= (1<<11); break;                                        // v
+                case 23: irmp_tmp_command |= (1<< 7); break;                                        // m
+                case 24: irmp_tmp_command |= (1<<14); break;                                        // A
+                case 26: irmp_tmp_command |= (1<< 5); break;                                        // x
+                case 44: irmp_tmp_command |= (1<< 4); break;                                        // y
+                case 66: irmp_tmp_command |= (1<< 3); break;                                        // T
+                case 67: irmp_tmp_command |= (1<< 2); break;                                        // T
+                case 68: irmp_tmp_command |= (1<< 1); break;                                        // T
+                case 69: irmp_tmp_command |= (1<< 0); break;                                        // T
+            }
+        }
+    }
+    else
+#endif // IRMP_SUPPORT_ACP24_PROTOCOL
+
 #if IRMP_SUPPORT_ORTEK_PROTOCOL == 1
     if (irmp_param.protocol == IRMP_ORTEK_PROTOCOL)
     {
@@ -2260,7 +2337,11 @@ irmp_store_bit (uint_fast8_t value)
             }
         }
     }
+    else
 #endif
+    {
+        ;
+    }
 
 #if IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1
     if (irmp_bit == 0 && irmp_param.protocol == IRMP_GRUNDIG_PROTOCOL)
@@ -2690,6 +2771,20 @@ irmp_ISR (void)
                                         ROOMBA_START_BIT_PAUSE_LEN_MIN, ROOMBA_START_BIT_PAUSE_LEN_MAX);
 #endif // ANALYZE
                         irmp_param_p = (IRMP_PARAMETER *) &roomba_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
+
+#if IRMP_SUPPORT_ACP24_PROTOCOL == 1
+                    if (irmp_pulse_time >= ACP24_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= ACP24_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= ACP24_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= ACP24_START_BIT_PAUSE_LEN_MAX)
+                    {
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = ACP24, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        ACP24_START_BIT_PULSE_LEN_MIN, ACP24_START_BIT_PULSE_LEN_MAX,
+                                        ACP24_START_BIT_PAUSE_LEN_MIN, ACP24_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &acp24_param;
                     }
                     else
 #endif // IRMP_SUPPORT_ROOMBA_PROTOCOL == 1
@@ -4812,7 +4907,7 @@ print_spectrum (char * text, int * buf, int is_pulse)
     double  average = 0;
     double  tolerance;
 
-    puts ("-------------------------------------------------------------------------------");
+    puts ("-----------------------------------------------------------------------------");
     printf ("%s:\n", text);
 
     for (i = 0; i < 256; i++)
@@ -5040,7 +5135,14 @@ next_tick (void)
                 printf ("%8.3fms ", (double) (time_counter * 1000) / F_INTERRUPTS);
             }
 
-            if (irmp_data.protocol == IRMP_FDC_PROTOCOL && (key = get_fdc_key (irmp_data.command)) != 0)
+            if (irmp_data.protocol == IRMP_ACP24_PROTOCOL)
+            {
+                uint16_t    temp = (irmp_data.command & 0x000F) + 15;
+
+                printf ("p=%2d (%s), a=0x%04x, c=0x%04x, f=0x%02x, temp=%d",
+                        irmp_data.protocol, irmp_protocol_names[irmp_data.protocol], irmp_data.address, irmp_data.command, irmp_data.flags, temp);
+            }
+            else if (irmp_data.protocol == IRMP_FDC_PROTOCOL && (key = get_fdc_key (irmp_data.command)) != 0)
             {
                 if ((key >= 0x20 && key < 0x7F) || key >= 0xA0)
                 {
@@ -5288,7 +5390,7 @@ main (int argc, char ** argv)
                 char *          p;
                 int             idx = -1;
 
-                puts ("-------------------------------------------------------------------");
+                puts ("----------------------------------------------------------------------");
                 putchar (ch);
 
 
@@ -5378,7 +5480,7 @@ main (int argc, char ** argv)
         print_spectrum ("START PAUSES", start_pauses, FALSE);
         print_spectrum ("PULSES", pulses, TRUE);
         print_spectrum ("PAUSES", pauses, FALSE);
-        puts ("-------------------------------------------------------------------------------");
+        puts ("-----------------------------------------------------------------------------");
     }
     return 0;
 }

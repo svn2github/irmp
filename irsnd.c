@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.89 2015/05/29 08:23:56 fm Exp $
+ * $Id: irsnd.c,v 1.90 2015/06/15 10:30:11 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -438,9 +438,17 @@
 #define PENTAX_0_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * PENTAX_0_PAUSE_TIME + 0.5)
 #define PENTAX_FRAME_REPEAT_PAUSE_LEN           (uint16_t)(F_INTERRUPTS * PENTAX_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
 
+#define ACP24_START_BIT_PULSE_LEN               (uint8_t)(F_INTERRUPTS * ACP24_START_BIT_PULSE_TIME + 0.5)
+#define ACP24_START_BIT_PAUSE_LEN               (uint8_t)(F_INTERRUPTS * ACP24_START_BIT_PAUSE_TIME + 0.5)
+#define ACP24_REPEAT_START_BIT_PAUSE_LEN        (uint8_t)(F_INTERRUPTS * ACP24_REPEAT_START_BIT_PAUSE_TIME + 0.5)
+#define ACP24_PULSE_LEN                         (uint8_t)(F_INTERRUPTS * ACP24_PULSE_TIME + 0.5)
+#define ACP24_1_PAUSE_LEN                       (uint8_t)(F_INTERRUPTS * ACP24_1_PAUSE_TIME + 0.5)
+#define ACP24_0_PAUSE_LEN                       (uint8_t)(F_INTERRUPTS * ACP24_0_PAUSE_TIME + 0.5)
+#define ACP24_FRAME_REPEAT_PAUSE_LEN            (uint16_t)(F_INTERRUPTS * ACP24_FRAME_REPEAT_PAUSE_TIME + 0.5)                // use uint16_t!
+
 static volatile uint8_t                         irsnd_busy = 0;
 static volatile uint8_t                         irsnd_protocol = 0;
-static volatile uint8_t                         irsnd_buffer[6] = {0};
+static volatile uint8_t                         irsnd_buffer[9] = {0};
 static volatile uint8_t                         irsnd_repeat = 0;
 static volatile uint8_t                         irsnd_is_on = FALSE;
 
@@ -1357,6 +1365,59 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             break;
         }
 #endif
+#if IRSND_SUPPORT_ACP24_PROTOCOL == 1
+#       define ACP_SET_BIT(acp24_bitno, c, irmp_bitno)                                          \
+        do                                                                                      \
+        {                                                                                       \
+            if ((c) & (1<<(irmp_bitno)))                                                        \
+            {                                                                                   \
+                irsnd_buffer[((acp24_bitno)>>3)] |= 1 << (((7 - (acp24_bitno)) & 0x07));        \
+            }                                                                                   \
+        } while (0)
+
+        case IRMP_ACP24_PROTOCOL:
+        {
+            uint16_t    cmd = irmp_data_p->command;
+            uint8_t     i;
+
+            address = bitsrevervse (irmp_data_p->address, ACP24_ADDRESS_LEN);
+
+            for (i = 0; i < 8; i++)
+            {
+                irsnd_buffer[i] = 0x00;                                                                         // CCCCCCCC
+            }
+
+            // ACP24-Frame:
+            //           1         2         3         4         5         6
+            // 0123456789012345678901234567890123456789012345678901234567890123456789
+            // N VVMMM    ? ???    t vmA x                 y                     TTTT
+            // 
+            // irmp_data_p->command:
+            // 
+            //         5432109876543210
+            //         NAVVvMMMmtxyTTTT
+
+            ACP_SET_BIT( 0, cmd, 15);
+            ACP_SET_BIT(24, cmd, 14);
+            ACP_SET_BIT( 2, cmd, 13);
+            ACP_SET_BIT( 3, cmd, 12);
+            ACP_SET_BIT(22, cmd, 11);
+            ACP_SET_BIT( 4, cmd, 10);
+            ACP_SET_BIT( 5, cmd,  9);
+            ACP_SET_BIT( 6, cmd,  8);
+            ACP_SET_BIT(23, cmd,  7);
+            ACP_SET_BIT(20, cmd,  6);
+            ACP_SET_BIT(26, cmd,  5);
+            ACP_SET_BIT(44, cmd,  4);
+            ACP_SET_BIT(66, cmd,  3);
+            ACP_SET_BIT(67, cmd,  2);
+            ACP_SET_BIT(68, cmd,  1);
+            ACP_SET_BIT(69, cmd,  0);
+
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
 
         default:
         {
@@ -2150,6 +2211,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_ACP24_PROTOCOL == 1
+                    case IRMP_ACP24_PROTOCOL:
+                    {
+                        startbit_pulse_len          = ACP24_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = ACP24_START_BIT_PAUSE_LEN - 1;
+                        complete_data_len           = ACP24_COMPLETE_DATA_LEN;
+                        pulse_1_len                 = ACP24_PULSE_LEN;
+                        pause_1_len                 = ACP24_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = ACP24_PULSE_LEN;
+                        pause_0_len                 = ACP24_0_PAUSE_LEN - 1;
+                        has_stop_bit                = ACP24_STOP_BIT;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = ACP24_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
                     default:
                     {
                         irsnd_busy = FALSE;
@@ -2241,6 +2320,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_PENTAX_PROTOCOL == 1
                 case IRMP_PENTAX_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_ACP24_PROTOCOL == 1
+                case IRMP_ACP24_PROTOCOL:
+#endif
 
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_NEC16_PROTOCOL == 1 || IRSND_SUPPORT_NEC42_PROTOCOL == 1 || \
     IRSND_SUPPORT_LGAIR_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
@@ -2248,7 +2330,7 @@ irsnd_ISR (void)
     IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_FAN_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || \
     IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 || IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || \
     IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1 || \
-    IRSND_SUPPORT_PENTAX_PROTOCOL == 1
+    IRSND_SUPPORT_PENTAX_PROTOCOL == 1 || IRSND_SUPPORT_ACP24_PROTOCOL == 1
                 {
 #if IRSND_SUPPORT_DENON_PROTOCOL == 1
                     if (irsnd_protocol == IRMP_DENON_PROTOCOL)
