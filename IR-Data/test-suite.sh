@@ -72,16 +72,16 @@ do
     echo -n "testing $j ... "
     if tmpsrc/irmp-10kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-10kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-10kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     else
-        if tmpsrc/irmp-10kHz -v < $j | grep -q checked
-        then
-            echo "checked!"
-        else
-            echo "successful"
-        fi
+	if tmpsrc/irmp-10kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
@@ -99,29 +99,32 @@ for j in                                \
     kathrein-15kHz.txt                  \
     lg-air-15kHz.txt                    \
     merlin-15kHz.txt                    \
+    pentax-15kHz.txt			\
     recs80-15kHz.txt                    \
     saa3004-15kHz.txt                   \
     samsung32-15kHz.txt                 \
     samsung48-15kHz.txt                 \
     sharp_15khz.txt                     \
+    technics-15kHz.txt			\
     thomson-mb100-15kHz.txt             \
     tp400vt-15kHz.txt                   \
     universal-15kHz.txt                 \
+    vincent-flash-15kHz.txt		\
     xbox360-15kHz.txt
 do
     echo -n "testing $j ... "
     if tmpsrc/irmp-15kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-15kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-15kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     else
-        if tmpsrc/irmp-15kHz -v < $j | grep -q checked
-        then
-            echo "checked!"
-        else
-            echo "successful"
-        fi
+	if tmpsrc/irmp-15kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 
@@ -138,16 +141,16 @@ do
     echo -n "testing $j ... "
     if tmpsrc/irmp-20kHz -v < $j | grep -q error
     then
-        tmpsrc/irmp-20kHz -v < $j | grep error
-        echo "test failed"
-        exit 1
+	tmpsrc/irmp-20kHz -v < $j | grep error
+	echo "test failed"
+	exit 1
     else
-        if tmpsrc/irmp-20kHz -v < $j | grep -q checked
-        then
-            echo "checked!"
-        else
-            echo "successful"
-        fi
+	if tmpsrc/irmp-20kHz -v < $j | grep -q checked
+	then
+	    echo "checked!"
+	else
+	    echo "successful"
+	fi
     fi
 done
 

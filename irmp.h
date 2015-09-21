@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.96 2015/06/15 10:30:09 fm Exp $
+ * $Id: irmp.h,v 1.97 2015/09/19 15:28:31 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,6 +75,11 @@
 
 #endif
 
+#if IRMP_SUPPORT_TECHNICS_PROTOCOL == 1
+#  undef IRMP_SUPPORT_MATSUSHITA_PROTOCOL
+#  define IRMP_SUPPORT_MATSUSHITA_PROTOCOL      1
+#endif
+
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1 && IRMP_SUPPORT_RUWIDO_PROTOCOL == 1
 #  warning DENON protocol conflicts wih RUWIDO, please enable only one of both protocols
 #  warning RUWIDO protocol disabled
@@ -86,7 +91,7 @@
 #  warning DENON protocol conflicts wih ACP24, please enable only one of both protocols
 #  warning ACP24 protocol disabled
 #  undef IRMP_SUPPORT_ACP24_PROTOCOL
-#  define IRMP_SUPPORT_ACP24_PROTOCOL          0
+#  define IRMP_SUPPORT_ACP24_PROTOCOL           0
 #endif
 
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1 && IRMP_SUPPORT_ROOMBA_PROTOCOL == 1

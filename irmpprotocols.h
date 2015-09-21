@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.36 2015/06/15 10:30:10 fm Exp $
+ * $Id: irmpprotocols.h,v 1.38 2015/09/20 10:51:37 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,9 +71,10 @@
 #define IRMP_FAN_PROTOCOL                       44              // FAN (ventilator), very similar to NUBERT, but last bit is data bit instead of stop bit
 #define IRMP_S100_PROTOCOL                      45              // very similar to RC5, but 14 instead of 13 data bits
 #define IRMP_ACP24_PROTOCOL                     46              // Stiebel Eltron ACP24 air conditioner
-#define IRMP_RADIO1_PROTOCOL                    47              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_TECHNICS_PROTOCOL                  47              // Technics, similar to Matsushita, but 22 instead of 24 bits
+#define IRMP_RADIO1_PROTOCOL                    48              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        47              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        48              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -220,6 +221,14 @@ typedef uint8_t     PAUSE_LEN;
 #define MATSUSHITA_STOP_BIT                     1                               // has stop bit
 #define MATSUSHITA_LSB                          1                               // LSB...MSB?
 #define MATSUSHITA_FLAGS                        0                               // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * TECHNICS: same timings as MATSUSHITA
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define TECHNICS_ADDRESS_LEN                    0                               // read 0 address bits
+#define TECHNICS_COMMAND_LEN                    11                              // read 11 bits
+#define TECHNICS_COMPLETE_DATA_LEN              22                              // complete length
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * KASEIKYO:

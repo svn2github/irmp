@@ -13,7 +13,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.90 2015/06/15 10:30:11 fm Exp $
+ * $Id: irsnd.c,v 1.91 2015/09/20 10:51:37 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1054,6 +1054,18 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             break;
         }
 #endif
+#if IRSND_SUPPORT_TECHNICS_PROTOCOL == 1
+        case IRMP_TECHNICS_PROTOCOL:
+        {
+            command = bitsrevervse (irmp_data_p->command, TECHNICS_COMMAND_LEN);
+
+            irsnd_buffer[0] = (command & 0x07FC) >> 3;                                                          // CCCCCCCC
+            irsnd_buffer[1] = ((command & 0x0007) << 5) | ((~command & 0x07C0) >> 6);                           // CCCccccc
+            irsnd_buffer[2] = (~command & 0x003F) << 2;                                                         // cccccc
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
 #if IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1
         case IRMP_KASEIKYO_PROTOCOL:
         {
@@ -1755,6 +1767,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_TECHNICS_PROTOCOL == 1
+                    case IRMP_TECHNICS_PROTOCOL:
+                    {
+                        startbit_pulse_len          = MATSUSHITA_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = MATSUSHITA_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = MATSUSHITA_PULSE_LEN;
+                        pause_1_len                 = MATSUSHITA_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = MATSUSHITA_PULSE_LEN;
+                        pause_0_len                 = MATSUSHITA_0_PAUSE_LEN - 1;
+                        has_stop_bit                = MATSUSHITA_STOP_BIT;
+                        complete_data_len           = TECHNICS_COMPLETE_DATA_LEN;                   // here TECHNICS
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = MATSUSHITA_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_36_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1
                     case IRMP_KASEIKYO_PROTOCOL:
                     {
@@ -2269,6 +2299,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1
                 case IRMP_MATSUSHITA_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1
+                case IRMP_TECHNICS_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1
                 case IRMP_KASEIKYO_PROTOCOL:
 #endif
@@ -2325,7 +2358,7 @@ irsnd_ISR (void)
 #endif
 
 #if IRSND_SUPPORT_SIRCS_PROTOCOL == 1  || IRSND_SUPPORT_NEC_PROTOCOL == 1 || IRSND_SUPPORT_NEC16_PROTOCOL == 1 || IRSND_SUPPORT_NEC42_PROTOCOL == 1 || \
-    IRSND_SUPPORT_LGAIR_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 ||   \
+    IRSND_SUPPORT_LGAIR_PROTOCOL == 1 || IRSND_SUPPORT_SAMSUNG_PROTOCOL == 1 || IRSND_SUPPORT_MATSUSHITA_PROTOCOL == 1 || IRSND_SUPPORT_TECHNICS_PROTOCOL == 1 || \
     IRSND_SUPPORT_KASEIKYO_PROTOCOL == 1 || IRSND_SUPPORT_RECS80_PROTOCOL == 1 || IRSND_SUPPORT_RECS80EXT_PROTOCOL == 1 || IRSND_SUPPORT_DENON_PROTOCOL == 1 || \
     IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_FAN_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || \
     IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 || IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || \

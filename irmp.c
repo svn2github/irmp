@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.176 2015/06/15 10:30:08 fm Exp $
+ * $Id: irmp.c,v 1.177 2015/09/19 15:28:31 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -604,6 +604,7 @@ static const char proto_pentax[]        PROGMEM = "PENTAX";
 static const char proto_fan[]           PROGMEM = "FAN";
 static const char proto_s100[]          PROGMEM = "S100";
 static const char proto_acp24[]         PROGMEM = "ACP24";
+static const char proto_technics[]      PROGMEM = "TECHNICS";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -657,6 +658,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_fan,
     proto_s100,
     proto_acp24,
+    proto_technics,
     proto_radio1
 };
 
@@ -3789,6 +3791,47 @@ irmp_ISR (void)
                                 irmp_param.complete_len = irmp_bit;                                 // patch length
                             }
 #endif // IRMP_SUPPORT_RCMM_PROTOCOL == 1
+
+#if IRMP_SUPPORT_TECHNICS_PROTOCOL == 1
+                            else if (irmp_param.protocol == IRMP_MATSUSHITA_PROTOCOL && irmp_bit == 22)  // it was a TECHNICS stop bit
+                            {
+#ifdef ANALYZE
+                                ANALYZE_PRINTF ("Switching to TECHNICS protocol, irmp_bit = %d\n", irmp_bit);
+#endif // ANALYZE
+                                // Situation:
+                                // The first 12 bits have been stored in irmp_tmp_command (LSB first)
+                                // The following 10 bits have been stored in irmp_tmp_address (LSB first)
+                                // The code of TECHNICS is:
+                                //   cccccccccccCCCCCCCCCCC (11 times c and 11 times C)
+                                //   ccccccccccccaaaaaaaaaa
+                                // where C is inverted value of c
+
+                                irmp_tmp_address <<= 1;
+                                if (irmp_tmp_command & (1<<11))
+                                {
+                                    irmp_tmp_address |= 1;
+                                    irmp_tmp_command &= ~(1<<11);
+                                }
+
+                                if (irmp_tmp_command == ((~irmp_tmp_address) & 0x07FF))
+                                {
+                                    irmp_tmp_address = 0;
+
+                                    irmp_param.protocol     = IRMP_TECHNICS_PROTOCOL;                   // switch protocol
+                                    irmp_param.complete_len = irmp_bit;                                 // patch length
+                                }
+                                else
+                                {
+#ifdef ANALYZE
+                                    ANALYZE_PRINTF ("error 8: TECHNICS frame error\n");
+                                    ANALYZE_ONLY_NORMAL_PUTCHAR ('\n');
+#endif // ANALYZE
+                                    irmp_start_bit_detected = 0;                    // wait for another start bit...
+                                    irmp_pulse_time         = 0;
+                                    irmp_pause_time         = 0;
+                                }
+                            }
+#endif // IRMP_SUPPORT_TECHNICS_PROTOCOL == 1
                             else
                             {
 #ifdef ANALYZE

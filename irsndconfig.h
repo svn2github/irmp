@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.75 2015/06/15 11:40:55 fm Exp $
+ * $Id: irsndconfig.h,v 1.77 2015/09/21 12:44:16 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,6 +84,7 @@
 #define IRSND_SUPPORT_PENTAX_PROTOCOL           0       // Pentax               >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_S100_PROTOCOL             0       // S100                 >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_ACP24_PROTOCOL            0       // ACP24                >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_TECHNICS_PROTOCOL         0       // TECHNICS             >= 10000                 ~150 bytes
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
