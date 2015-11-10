@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.97 2015/09/19 15:28:31 fm Exp $
+ * $Id: irmp.h,v 1.98 2015/11/10 08:39:27 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,13 @@
 #  define IRMP_PIN                              IRMP_PORT_PIN
 #  define input(x)                              ((uint8_t)(ROM_GPIOPinRead(IRMP_PORT_BASE, IRMP_PORT_PIN)))
 #  define sei()                                 IntMasterEnable()
+
+#elif defined(__SDCC_stm8)
+#  define _CONCAT(a,b)                          a##b
+#  define CONCAT(a,b)                           _CONCAT(a,b)
+#  define IRMP_GPIO_STRUCT                      CONCAT(GPIO, IRMP_PORT_LETTER)
+#  define IRMP_BIT                              IRMP_BIT_NUMBER
+#  define input(x)                              ((x) & (1 << IRMP_BIT))
 
 #endif
 

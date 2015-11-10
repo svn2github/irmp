@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.18 2015/05/18 10:51:07 fm Exp $
+ * $Id: irmpsystem.h,v 1.19 2015/11/10 08:39:28 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,8 @@
 #  include <stm32f4xx.h>
 #  define ARM_STM32
 #  define ARM_STM32F4XX
+#elif defined(__SDCC_stm8)                                                          // STM8
+#  define SDCC_STM8
 #elif defined(TARGET_IS_BLIZZARD_RA2)                                               // TI Stellaris (tested on Stellaris Launchpad with Code Composer Studio)
 #  define STELLARIS_ARM_CORTEX_M4
 #  define F_CPU (SysCtlClockGet())
@@ -115,6 +117,15 @@ typedef unsigned short                  uint16_t;
 #  include "misc.h"
 #  define PROGMEM
 #  define memcpy_P                      memcpy
+
+#elif defined(SDCC_STM8)
+
+#  include "stm8s.h"
+#  define PROGMEM
+#  define memcpy_P                      memcpy
+#  define __attribute__(x)
+#  define uint_fast8_t                  uint8_t
+#  define uint_fast16_t                 uint16_t
 
 #else
 

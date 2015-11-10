@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.177 2015/09/19 15:28:31 fm Exp $
+ * $Id: irmp.c,v 1.178 2015/11/10 08:39:27 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -2013,6 +2013,9 @@ irmp_init (void)
      ROM_GPIOPadConfigSet(IRMP_PORT_BASE, IRMP_PORT_PIN,
                           GPIO_STRENGTH_2MA,
                           GPIO_PIN_TYPE_STD_WPU);
+#elif defined(__SDCC_stm8)                                              // STM8
+    IRMP_GPIO_STRUCT->CR1 |= (1<<IRMP_BIT);                             // activate pullup
+    IRMP_GPIO_STRUCT->DDR &= ~(1<<IRMP_BIT);                            // pin is input
 #else                                                                   // AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup
     IRMP_DDR &= ~(1<<IRMP_BIT);                                         // set pin to input
@@ -2521,7 +2524,11 @@ irmp_ISR (void)
     time_counter++;
 #endif // ANALYZE
 
+#if defined(__SDCC_stm8)
+    irmp_input = input(IRMP_GPIO_STRUCT->IDR)
+#else
     irmp_input = input(IRMP_PIN);
+#endif
 
 #if IRMP_USE_CALLBACK == 1
     if (irmp_callback_ptr)
@@ -3594,7 +3601,7 @@ irmp_ISR (void)
                             else if (irmp_bit >= GRUNDIG_COMPLETE_DATA_LEN)
                             {
 #ifdef ANALYZE
-                                ANALYZE_PRINTF ("Switching to NOKIA protocol\n");
+                                ANALYZE_PRINTF ("Switching to NOKIA protocol, irmp_bit = %d\n", irmp_bit);
 #endif // ANALYZE
                                 irmp_param.protocol         = IRMP_NOKIA_PROTOCOL;      // change protocol
                                 irmp_param.address_offset   = NOKIA_ADDRESS_OFFSET;
