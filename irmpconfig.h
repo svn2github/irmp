@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.138 2015/11/10 08:47:56 fm Exp $
+ * $Id: irmpconfig.h,v 1.144 2015/11/17 13:54:09 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,6 +96,7 @@
 #define IRMP_SUPPORT_S100_PROTOCOL              0       // S100                 >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_ACP24_PROTOCOL             0       // ACP24                >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_TECHNICS_PROTOCOL          0       // TECHNICS             >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_PANASONIC_PROTOCOL         0       // PANASONIC Beamer     >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_RADIO1_PROTOCOL            0       // RADIO, e.g. TEVION   >= 10000                 ~250 bytes (experimental)
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -147,6 +148,20 @@
 #elif defined (SDCC_STM8)                                               // use PA1 as IR input on STM8
 #  define IRMP_PORT_LETTER                      A
 #  define IRMP_BIT_NUMBER                       1
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Change hardware pin here for ESP8266
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (__xtensa__) 
+#  define IRMP_BIT_NUMBER			12			// use GPIO12 (Pin 7 UEXT) on ESP8266-EVB evaluation board
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Change hardware pin here for Teensy 3.x with teensyduino gcc compiler
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (TEENSY_ARM_CORTEX_M4)
+#  define IRMP_PIN                              1                       // use Digital pin 1 as IR input on Teensy
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Handling of unknown target system: DON'T CHANGE

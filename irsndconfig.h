@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.78 2015/11/10 08:47:56 fm Exp $
+ * $Id: irsndconfig.h,v 1.85 2015/11/17 13:54:09 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,7 @@
 #define IRSND_SUPPORT_NOKIA_PROTOCOL            0       // Nokia                >= 10000                 ~400 bytes
 
 // exotic protocols, enable here!               Enable  Remarks                 F_INTERRUPTS            Program Space
+#define IRSND_SUPPORT_BOSE_PROTOCOL             1       // BOSE                 >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_KATHREIN_PROTOCOL         0       // Kathrein             >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_NUBERT_PROTOCOL           0       // NUBERT               >= 10000                 ~100 bytes
 #define IRSND_SUPPORT_FAN_PROTOCOL              0       // FAN (ventilator)     >= 10000                 ~100 bytes
@@ -84,7 +85,8 @@
 #define IRSND_SUPPORT_PENTAX_PROTOCOL           0       // Pentax               >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_S100_PROTOCOL             0       // S100                 >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_ACP24_PROTOCOL            0       // ACP24                >= 10000                 ~150 bytes
-#define IRSND_SUPPORT_TECHNICS_PROTOCOL         0       // TECHNICS             >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_TECHNICS_PROTOCOL         0       // TECHNICS             >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
+#define IRSND_SUPPORT_PANASONIC_PROTOCOL        0       // PANASONIC Beamer     >= 10000                 ~150 bytes
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -132,7 +134,7 @@
 
 #  else                                                                 // C18 compiler
 #    define IRSND_OCx                           IRSND_PIC_CCP2          // Use PWMx for PIC
-                                                                        // change other PIC C18 specific settings:
+									// change other PIC C18 specific settings:
 #    define F_CPU                               48000000UL              // PIC frequency: set your freq here
 #    define Pre_Scaler                          4                       // define prescaler for timer2 e.g. 1,4,16
 #    define PIC_Scaler                          2                       // PIC needs /2 extra in IRSND_FREQ_32_KHZ calculation for right value
@@ -147,6 +149,13 @@
 #  define IRSND_BIT_NUMBER                      6
 #  define IRSND_TIMER_NUMBER                    4
 #  define IRSND_TIMER_CHANNEL_NUMBER            1                       // only channel 1 can be used at the moment, others won't work
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Teensy 3.x with teensyduino gcc compiler
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (TEENSY_ARM_CORTEX_M4)
+#  define IRSND_PIN                             5                       // choose an arduino pin with PWM function!
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Other target systems

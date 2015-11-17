@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.98 2015/11/10 08:39:27 fm Exp $
+ * $Id: irmp.h,v 1.100 2015/11/17 13:51:45 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,6 +80,12 @@
 #  define IRMP_BIT                              IRMP_BIT_NUMBER
 #  define input(x)                              ((x) & (1 << IRMP_BIT))
 
+#elif defined (TEENSY_ARM_CORTEX_M4)
+#  define input(x)                              ((uint8_t)(digitalReadFast(x)))
+
+#elif defined(__xtensa__)
+#  define IRMP_BIT				IRMP_BIT_NUMBER
+#  define input(x)				GPIO_INPUT_GET(IRMP_BIT_NUMBER)
 #endif
 
 #if IRMP_SUPPORT_TECHNICS_PROTOCOL == 1
@@ -92,6 +98,13 @@
 #  warning RUWIDO protocol disabled
 #  undef IRMP_SUPPORT_RUWIDO_PROTOCOL
 #  define IRMP_SUPPORT_RUWIDO_PROTOCOL          0
+#endif
+
+#if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1 && IRMP_SUPPORT_PANASONIC_PROTOCOL == 1
+#  warning KASEIKYO protocol conflicts wih PANASONIC, please enable only one of both protocols
+#  warning PANASONIC protocol disabled
+#  undef IRMP_SUPPORT_PANASONIC_PROTOCOL
+#  define IRMP_SUPPORT_PANASONIC_PROTOCOL       0
 #endif
 
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1 && IRMP_SUPPORT_ACP24_PROTOCOL == 1
@@ -217,6 +230,11 @@
 
 #define IRMP_FLAG_REPETITION            0x01
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 extern void                             irmp_init (void);
 extern uint_fast8_t                     irmp_get_data (IRMP_DATA *);
 extern uint_fast8_t                     irmp_ISR (void);
@@ -228,5 +246,9 @@ extern const char * const               irmp_protocol_names[IRMP_N_PROTOCOLS + 1
 #if IRMP_USE_CALLBACK == 1
 extern void                             irmp_set_callback_ptr (void (*cb)(uint_fast8_t));
 #endif // IRMP_USE_CALLBACK == 1
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _IRMP_H_ */

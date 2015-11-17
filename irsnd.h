@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.21 2015/01/26 13:09:28 fm Exp $
+ * $Id: irsnd.h,v 1.22 2015/11/17 13:51:45 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,19 +52,19 @@
 # if defined(__12F1840)
     // Do not change lines below unless you have a different HW. This example is for 12F1840
     // setup macro for PWM used PWM module
-         
+	 
     //~ #    define PWMon()                         TMR2=0,IRSND_PIN=1
     //~ #    define PWMoff()                        CCP1CON &=(~0b1100)
     //~ #    define PWMon()                         TMR2ON=1
     //~ #    define PWMoff()                        TMR2ON=0
     #if defined(IRSND_DEBUG) 
-        #define PWMon()                             LATA0=1
-        #define PWMoff()                            LATA0=0
-        #define IRSND_PIN                           LATA0
+	#define PWMon()                             LATA0=1
+	#define PWMoff()                            LATA0=0
+	#define IRSND_PIN                           LATA0
     #else
-        #    define PWMon()                         TMR2=0,CCP1CON |=0b1100
-        #    define PWMoff()                        CCP1CON &=(~0b1100)
-        #    define IRSND_PIN                       RA2
+	#    define PWMon()                         TMR2=0,CCP1CON |=0b1100
+	#    define PWMoff()                        CCP1CON &=(~0b1100)
+	#    define IRSND_PIN                       RA2
     #endif
 
 #else
@@ -126,6 +126,11 @@
 #define IRSND_ENDLESS_REPETITION                15      // endless repetions
 #define IRSND_REPETITION_MASK                   0x0F    // lower nibble of flags
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 extern void                                     irsnd_init (void);
 extern uint8_t                                  irsnd_is_busy (void);
 extern uint8_t                                  irsnd_send_data (IRMP_DATA *, uint8_t);
@@ -135,5 +140,9 @@ extern uint8_t                                  irsnd_ISR (void);
 #if IRSND_USE_CALLBACK == 1
 extern void                                     irsnd_set_callback_ptr (void (*cb)(uint8_t));
 #endif // IRSND_USE_CALLBACK == 1
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _IRSND_H_ */

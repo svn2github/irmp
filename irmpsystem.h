@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.19 2015/11/10 08:39:28 fm Exp $
+ * $Id: irmpsystem.h,v 1.20 2015/11/17 13:51:45 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,17 @@
 #elif defined(TARGET_IS_BLIZZARD_RA2)                                               // TI Stellaris (tested on Stellaris Launchpad with Code Composer Studio)
 #  define STELLARIS_ARM_CORTEX_M4
 #  define F_CPU (SysCtlClockGet())
+#elif defined(__xtensa__)
+#  include "ets_sys.h"
+#  include "osapi.h"
+#  include "gpio.h"
+#  include "os_type.h"
+#  include "c_types.h" 
+#  define uint_fast8_t uint8_t
+#  define uint_fast16_t uint16_t
+#elif defined(TEENSYDUINO) && (defined(__MK20DX256__) || defined(__MK20DX128__))    // Teensy 3.x (tested on Teensy 3.1 in Arduino 1.6.5 / Teensyduino 1.2.5)
+#  include <core_pins.h>
+#  define TEENSY_ARM_CORTEX_M4
 #elif defined(unix) || defined(WIN32) || defined(__APPLE__)                         // Unix/Linux or Windows or Apple
 #  define UNIX_OR_WINDOWS
 #else
@@ -127,8 +138,11 @@ typedef unsigned short                  uint16_t;
 #  define uint_fast8_t                  uint8_t
 #  define uint_fast16_t                 uint16_t
 
-#else
+#elif defined(TEENSY_ARM_CORTEX_M4)
+#  define PROGMEM
+#  define memcpy_P                      memcpy
 
+#else
 #  define PROGMEM
 #  define memcpy_P                      memcpy
 
@@ -156,10 +170,10 @@ typedef unsigned short                  uint16_t;
 
 typedef struct __attribute__ ((__packed__))
 {
-  uint8_t                               protocol;                                   // protocol, e.g. NEC_PROTOCOL
-  uint16_t                              address;                                    // address
-  uint16_t                              command;                                    // command
-  uint8_t                               flags;                                      // flags, e.g. repetition
+    uint8_t                           	protocol;                                   // protocol, e.g. NEC_PROTOCOL
+    uint16_t                            address;                                    // address
+    uint16_t                            command;                                    // command
+    uint8_t                             flags;                                      // flags, e.g. repetition
 } IRMP_DATA;
 
 #endif // _IRMPSYSTEM_H_
