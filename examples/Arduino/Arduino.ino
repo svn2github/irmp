@@ -43,7 +43,7 @@ void loop()
     IRMP_DATA* data = &irmp_data[act_data];
     if (irmp_get_data(data))
     {
-	led(HIGH);
+        led(HIGH);
 #if IRMP_PROTOCOL_NAMES == 1
         Serial.print(irmp_protocol_names[data->protocol]);
         Serial.print(" ");
@@ -63,16 +63,16 @@ void loop()
         data->flags = 0;    // reset flags!
         int result = irsnd_send_data(data, TRUE);
         if (result != 1)
-	{
-	    Serial.println("loop : irsnd_send_data ERROR");
-	}
-	else
-	{
-	    if (++act_data >= 3)
-	    {
-		act_data = 0;
-	    } 
-	}
+        {
+            Serial.println("loop : irsnd_send_data ERROR");
+        }
+        else
+        {
+            if (++act_data >= 3)
+            {
+                act_data = 0;
+            } 
+        }
     }
 
     if (Serial.available() == 18 && readAndCheck('P') && readAndCheck(':'))
@@ -81,53 +81,51 @@ void loop()
         data->protocol = readHex() * 16 + readHex();
 
         if (readAndCheck(' ') && readAndCheck('A') && readAndCheck(':'))
-	{
-	    // read the address
-	    data->address = ((readHex() * 16 + readHex()) * 16 + readHex()) * 16 + readHex();
+        {
+            // read the address
+            data->address = ((readHex() * 16 + readHex()) * 16 + readHex()) * 16 + readHex();
 
-	    if (readAndCheck(' ') && readAndCheck('C') && readAndCheck(':'))
-	    {
-		// read the address
-		data->command = ((readHex() * 16 + readHex()) * 16 + readHex()) * 16 + readHex();
+            if (readAndCheck(' ') && readAndCheck('C') && readAndCheck(':'))
+            {
+                // read the address
+                data->command = ((readHex() * 16 + readHex()) * 16 + readHex()) * 16 + readHex();
 
-		// send ir data
-		data->flags = 0;
-		int result = irsnd_send_data(data, TRUE);
-		if (result)
-		{
-		    Serial.print("Send IR data: ");
-		    Serial.print("P:");
-		    Serial.print(data->protocol, HEX);
-		    Serial.print(" A:");
-		    Serial.print(data->address, HEX);
-		    Serial.print(" C:");
-		    Serial.print(data->command, HEX);
-		    Serial.println("");
+                // send ir data
+                data->flags = 0;
+                int result = irsnd_send_data(data, TRUE);
+                if (result)
+                {
+                    Serial.print("Send IR data: ");
+                    Serial.print("P:");
+                    Serial.print(data->protocol, HEX);
+                    Serial.print(" A:");
+                    Serial.print(data->address, HEX);
+                    Serial.print(" C:");
+                    Serial.print(data->command, HEX);
+                    Serial.println("");
 
-		    if (++act_data >= 3)
-		    {
-			act_data = 0;
-		    } 
-		}
-	    }
-	}
+                    if (++act_data >= 3)
+                    {
+                        act_data = 0;
+                    } 
+                }
+            }
+        }
     }
 }
 
 /* helper function: attachInterrupt wants void(), but irmp_ISR is uint8_t() */
 void timerinterrupt()
 {
-    // only when tsop dont see the ir_led flashing
-    irsnd_ISR();			// call irsnd ISR
-    irmp_ISR();               		// call irmp ISR
-
-/*
-    // do not receive when sending (tsop see the ir_led)
-    if (! irsnd_ISR())          	// call irsnd ISR
-    {                           	// if not busy...
-	irmp_ISR();               	// call irmp ISR
+#if 1   // if TSOP receiver can't detect my own IR LED, call both functions:
+    irsnd_ISR();                        // call irsnd ISR
+    irmp_ISR();                         // call irmp ISR
+#else   // if TSOP receiver also detects my own IR LED, don't receive while sending:
+    if (! irsnd_ISR())                  // call irsnd ISR
+    {                                   // if not busy...
+        irmp_ISR();                     // call irmp ISR
     }
-*/
+#endif
 }
 
 static inline void led(int state)
@@ -147,14 +145,14 @@ static inline int readHex()
     int c = Serial.read();
     if (c >= '0' && c <= '9')
     {
-	return c - '0';
+        return c - '0';
     }
 
     c |= 0x20; // lowercase
 
     if (c >= 'a' && c <= 'f')
     {
-	return c + 10 - 'a';
+        return c + 10 - 'a';
     }
 
     return -1;
