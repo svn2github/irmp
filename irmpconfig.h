@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.144 2015/11/17 13:54:09 fm Exp $
+ * $Id: irmpconfig.h,v 1.145 2015/11/18 08:27:50 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif defined (__xtensa__) 
-#  define IRMP_BIT_NUMBER			12			// use GPIO12 (Pin 7 UEXT) on ESP8266-EVB evaluation board
+#  define IRMP_BIT_NUMBER                       12                      // use GPIO12 (Pin 7 UEXT) on ESP8266-EVB evaluation board
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here for Teensy 3.x with teensyduino gcc compiler

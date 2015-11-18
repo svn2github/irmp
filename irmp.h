@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.100 2015/11/17 13:51:45 fm Exp $
+ * $Id: irmp.h,v 1.101 2015/11/18 08:27:50 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,8 +84,8 @@
 #  define input(x)                              ((uint8_t)(digitalReadFast(x)))
 
 #elif defined(__xtensa__)
-#  define IRMP_BIT				IRMP_BIT_NUMBER
-#  define input(x)				GPIO_INPUT_GET(IRMP_BIT_NUMBER)
+#  define IRMP_BIT                              IRMP_BIT_NUMBER
+#  define input(x)                              GPIO_INPUT_GET(IRMP_BIT_NUMBER)
 #endif
 
 #if IRMP_SUPPORT_TECHNICS_PROTOCOL == 1

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.20 2015/11/17 13:51:45 fm Exp $
+ * $Id: irmpsystem.h,v 1.21 2015/11/18 08:27:50 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,7 +170,7 @@ typedef unsigned short                  uint16_t;
 
 typedef struct __attribute__ ((__packed__))
 {
-    uint8_t                           	protocol;                                   // protocol, e.g. NEC_PROTOCOL
+    uint8_t                             protocol;                                   // protocol, e.g. NEC_PROTOCOL
     uint16_t                            address;                                    // address
     uint16_t                            command;                                    // command
     uint8_t                             flags;                                      // flags, e.g. repetition

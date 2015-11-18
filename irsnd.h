@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.22 2015/11/17 13:51:45 fm Exp $
+ * $Id: irsnd.h,v 1.23 2015/11/18 08:27:50 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,19 +52,19 @@
 # if defined(__12F1840)
     // Do not change lines below unless you have a different HW. This example is for 12F1840
     // setup macro for PWM used PWM module
-	 
+         
     //~ #    define PWMon()                         TMR2=0,IRSND_PIN=1
     //~ #    define PWMoff()                        CCP1CON &=(~0b1100)
     //~ #    define PWMon()                         TMR2ON=1
     //~ #    define PWMoff()                        TMR2ON=0
     #if defined(IRSND_DEBUG) 
-	#define PWMon()                             LATA0=1
-	#define PWMoff()                            LATA0=0
-	#define IRSND_PIN                           LATA0
+        #define PWMon()                             LATA0=1
+        #define PWMoff()                            LATA0=0
+        #define IRSND_PIN                           LATA0
     #else
-	#    define PWMon()                         TMR2=0,CCP1CON |=0b1100
-	#    define PWMoff()                        CCP1CON &=(~0b1100)
-	#    define IRSND_PIN                       RA2
+        #    define PWMon()                         TMR2=0,CCP1CON |=0b1100
+        #    define PWMoff()                        CCP1CON &=(~0b1100)
+        #    define IRSND_PIN                       RA2
     #endif
 
 #else

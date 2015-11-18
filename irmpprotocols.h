@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.42 2015/11/13 15:13:23 fm Exp $
+ * $Id: irmpprotocols.h,v 1.43 2015/11/18 08:27:50 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@
 #define IRMP_S100_PROTOCOL                      45              // very similar to RC5, but 14 instead of 13 data bits
 #define IRMP_ACP24_PROTOCOL                     46              // Stiebel Eltron ACP24 air conditioner
 #define IRMP_TECHNICS_PROTOCOL                  47              // Technics, similar to Matsushita, but 22 instead of 24 bits
-#define IRMP_PANASONIC_PROTOCOL			48		// Panasonic (Beamer), start bits similar to KASEIKYO
+#define IRMP_PANASONIC_PROTOCOL                 48              // Panasonic (Beamer), start bits similar to KASEIKYO
 
 #define IRMP_RADIO1_PROTOCOL                    49              // Radio protocol (experimental status), do not use it yet!
 
