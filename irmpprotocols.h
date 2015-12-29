@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.43 2015/11/18 08:27:50 fm Exp $
+ * $Id: irmpprotocols.h,v 1.44 2015/11/30 09:31:54 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,7 +194,7 @@ typedef uint8_t     PAUSE_LEN;
 #define SAMSUNG32_COMMAND_OFFSET                16                              // skip 16 bits
 #define SAMSUNG32_COMMAND_LEN                   16                              // read 16 command bits
 #define SAMSUNG32_COMPLETE_DATA_LEN             32                              // complete length
-#define SAMSUNG32_FRAMES                        2                               // SAMSUNG32 sends each frame 2 times // fm: correct?
+#define SAMSUNG32_FRAMES                        1                               // SAMSUNG32 sends one frame
 #define SAMSUNG32_AUTO_REPETITION_PAUSE_TIME    47.0e-3                         // repetition after 47 ms
 #define SAMSUNG32_FRAME_REPEAT_PAUSE_TIME       47.0e-3                         // frame repeat after 47ms
 
@@ -250,7 +250,7 @@ typedef uint8_t     PAUSE_LEN;
 #define KASEIKYO_COMPLETE_DATA_LEN              48                              // complete length
 #define KASEIKYO_STOP_BIT                       1                               // has stop bit
 #define KASEIKYO_LSB                            1                               // LSB...MSB?
-#define KASEIKYO_FRAMES                         2                               // KASEIKYO sends 1st frame 2 times
+#define KASEIKYO_FRAMES                         1                               // KASEIKYO sends 1 frame
 #define KASEIKYO_FLAGS                          0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

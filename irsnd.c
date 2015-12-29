@@ -8,12 +8,13 @@
  * ATtiny87,  ATtiny167
  * ATtiny45,  ATtiny85
  * ATtiny44   ATtiny84
+ * ATtiny2313 ATtiny4313
  * ATmega8,   ATmega16,  ATmega32
  * ATmega162
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.97 2015/11/18 08:27:50 fm Exp $
+ * $Id: irsnd.c,v 1.99 2015/12/16 14:12:17 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +56,17 @@
 #    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
 #  endif // IRSND_OCx
 
+#elif defined (__AVR_ATtiny2313__) || defined (__AVR_ATtiny4313__)  // ATtiny2313/4313 uses OC0A = PB2 or OC0B = PD5
+#  if IRSND_OCx == IRSND_OC0A                                       // OC0A
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        2
+#  elif IRSND_OCx == IRSND_OC0B                                     // OC0B
+#    define IRSND_PORT_LETTER                       D
+#    define IRSND_BIT_NUMBER                        5
+#  else
+#    error Wrong value for IRSND_OCx, choose IRSND_OC0A or IRSND_OC0B in irsndconfig.h
+#  endif // IRSND_OCx
+
 #elif defined (__AVR_ATtiny87__) || defined (__AVR_ATtiny167__)     // ATtiny87/167 uses OC0A = PA2
 #  if IRSND_OCx == IRSND_OC0A                                       // OC0A
 #    define IRSND_PORT_LETTER                       A
@@ -64,18 +76,21 @@
 #  endif // IRSND_OCx
 
 #elif defined (__AVR_ATmega8__)                                     // ATmega8 uses only OC2 = PB3
-#  if IRSND_OCx == IRSND_OC2                                        // OC0A
+#  if IRSND_OCx == IRSND_OC2                                        // OC2
 #    define IRSND_PORT_LETTER                       B
 #    define IRSND_BIT_NUMBER                        3
 #  else
 #    error Wrong value for IRSND_OCx, choose IRSND_OC2 in irsndconfig.h
 #  endif // IRSND_OCx
-#elif defined (__AVR_ATmega16__) || defined (__AVR_ATmega32__)      // ATmega16|32 uses OC2 = PD7
+#elif defined (__AVR_ATmega16__) || defined (__AVR_ATmega32__)      // ATmega16|32 uses OC0 = PB3 or OC2 = PD7
 #  if IRSND_OCx == IRSND_OC2                                        // OC2
 #    define IRSND_PORT_LETTER                       D
 #    define IRSND_BIT_NUMBER                        7
+#  elif IRSND_OCx == IRSND_OC0                                      // OC0
+#    define IRSND_PORT_LETTER                       B
+#    define IRSND_BIT_NUMBER                        3
 #  else
-#    error Wrong value for IRSND_OCx, choose IRSND_OC2 in irsndconfig.h
+#    error Wrong value for IRSND_OCx, choose IRSND_OC2 or IRSND_OC0 in irsndconfig.h
 #  endif // IRSND_OCx
 
 #elif defined (__AVR_ATmega162__)                                   // ATmega162 uses OC2 = PB1 or OC0 = PB0

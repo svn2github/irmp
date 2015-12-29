@@ -99,9 +99,14 @@ for j in                                \
     kathrein-15kHz.txt                  \
     lg-air-15kHz.txt                    \
     merlin-15kHz.txt                    \
+    panasonic-vcr-15kHz.txt		\
     pentax-15kHz.txt			\
+    rc5-philipps-15kHz.txt		\
+    rc6a-siemens-15kHz.txt		\
     recs80-15kHz.txt                    \
     saa3004-15kHz.txt                   \
+    samsung-br-15kHz.txt		\
+    samsung32-tv-15kHz.txt		\
     samsung32-15kHz.txt                 \
     samsung48-15kHz.txt                 \
     sharp_15khz.txt                     \

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.182 2015/11/18 08:27:50 fm Exp $
+ * $Id: irmp.c,v 1.183 2015/12/03 18:13:45 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -4558,7 +4558,7 @@ irmp_ISR (void)
                 else
 #endif
 
-#if IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1
+#if 0 && IRMP_SUPPORT_KASEIKYO_PROTOCOL == 1    // fm 2015-12-02: don't ignore every 2nd frame
                 // if KASEIKYO protocol and the code will be repeated within 50 ms, we will ignore 2nd repetition frame
                 if (irmp_param.protocol == IRMP_KASEIKYO_PROTOCOL && repetition_frame_number == 1)
                 {
@@ -4571,7 +4571,7 @@ irmp_ISR (void)
                 else
 #endif
 
-#if IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
+#if 0 && IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1     // fm 2015-12-02: don't ignore every 2nd frame
                 // if SAMSUNG32 or SAMSUNG48 protocol and the code will be repeated within 50 ms, we will ignore every 2nd frame
                 if ((irmp_param.protocol == IRMP_SAMSUNG32_PROTOCOL || irmp_param.protocol == IRMP_SAMSUNG48_PROTOCOL) && (repetition_frame_number & 0x01))
                 {
