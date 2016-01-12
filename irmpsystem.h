@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.21 2015/11/18 08:27:50 fm Exp $
+ * $Id: irmpsystem.h,v 1.22 2016/01/12 11:53:34 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,9 @@
 #  define TEENSY_ARM_CORTEX_M4
 #elif defined(unix) || defined(WIN32) || defined(__APPLE__)                         // Unix/Linux or Windows or Apple
 #  define UNIX_OR_WINDOWS
+#elif defined(__MBED__)                                                             // mbed platform
+// #include "mbed.h"                                                                // if mbed.h is used, source must be compiled as cpp
+#include "gpio_api.h"
 #else
 #  define ATMEL_AVR                                                                 // ATMEL AVR
 #endif
@@ -139,6 +142,10 @@ typedef unsigned short                  uint16_t;
 #  define uint_fast16_t                 uint16_t
 
 #elif defined(TEENSY_ARM_CORTEX_M4)
+#  define PROGMEM
+#  define memcpy_P                      memcpy
+
+#elif defined(__MBED__)
 #  define PROGMEM
 #  define memcpy_P                      memcpy
 

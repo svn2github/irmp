@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.183 2015/12/03 18:13:45 fm Exp $
+ * $Id: irmp.c,v 1.184 2016/01/12 11:53:34 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -793,7 +793,7 @@ irmp_uart_init (void)
     // Oversampling
     USART_OverSampling8Cmd(STM32_UART_COM, ENABLE);
 
-    // init mit Baudrate, 8Databits, 1Stopbit, keine Parität, kein RTS+CTS
+    // init baud rate, 8 data bits, 1 stop bit, no parity, no RTS+CTS
     USART_InitStructure.USART_BaudRate = STM32_UART_BAUD;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -826,7 +826,7 @@ irmp_uart_init (void)
     // Oversampling
     USART_OverSampling8Cmd(STM32_UART_COM, ENABLE);
 
-    // init mit Baudrate, 8Databits, 1Stopbit, keine Parität, kein RTS+CTS
+    // init baud rate, 8 data bits, 1 stop bit, no parity, no RTS+CTS
     USART_InitStructure.USART_BaudRate = 115200;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -848,10 +848,10 @@ irmp_uart_init (void)
 
     USARTC1.BAUDCTRLB = 0;
     USARTC1.BAUDCTRLA = F_CPU / 153600 - 1;
-    USARTC1.CTRLA = USART_RXCINTLVL_HI_gc; // High Level (Empfangen)
-    USARTC1.CTRLB = USART_TXEN_bm | USART_RXEN_bm; //Aktiviert Senden und Empfangen
-    USARTC1.CTRLC = USART_CHSIZE_8BIT_gc; //Größe der Zeichen: 8 Bit
-    PORTC.DIR |= (1<<7);  //TXD als Ausgang setzen
+    USARTC1.CTRLA = USART_RXCINTLVL_HI_gc;                                                          // high INT level (receive)
+    USARTC1.CTRLB = USART_TXEN_bm | USART_RXEN_bm;                                                  // activated RX and TX
+    USARTC1.CTRLC = USART_CHSIZE_8BIT_gc;                                                           // 8 Bit
+    PORTC.DIR |= (1<<7);                                                                            // TXD is output
     PORTC.DIR &= ~(1<<6);
 
 #else
@@ -2014,18 +2014,24 @@ static IRMP_PARAMETER                           irmp_param;
 static IRMP_PARAMETER                           irmp_param2;
 #endif
 
-static volatile uint_fast8_t                     irmp_ir_detected = FALSE;
-static volatile uint_fast8_t                     irmp_protocol;
-static volatile uint_fast16_t                    irmp_address;
-static volatile uint_fast16_t                    irmp_command;
-static volatile uint_fast16_t                    irmp_id;                    // only used for SAMSUNG protocol
-static volatile uint_fast8_t                     irmp_flags;
-// static volatile uint_fast8_t                  irmp_busy_flag;
+static volatile uint_fast8_t                    irmp_ir_detected = FALSE;
+static volatile uint_fast8_t                    irmp_protocol;
+static volatile uint_fast16_t                   irmp_address;
+static volatile uint_fast16_t                   irmp_command;
+static volatile uint_fast16_t                   irmp_id;                // only used for SAMSUNG protocol
+static volatile uint_fast8_t                    irmp_flags;
+// static volatile uint_fast8_t                 irmp_busy_flag;
+
+#if defined(__MBED__)
+// DigitalIn inputPin(IRMP_PIN, PullUp);                                // this requires mbed.h and source to be compiled as cpp
+gpio_t                                          gpioIRin;               // use low level c function instead
+#endif
+
 
 #ifdef ANALYZE
-#define input(x)                            (x)
-static uint_fast8_t                              IRMP_PIN;
-static uint_fast8_t                              radio;
+#define input(x)                                (x)
+static uint_fast8_t                             IRMP_PIN;
+static uint_fast8_t                             radio;
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2077,6 +2083,21 @@ irmp_init (void)
 
 #elif defined (TEENSY_ARM_CORTEX_M4)                                    // TEENSY
     pinMode(IRMP_PIN, INPUT);
+
+#elif defined(__xtensa__)                                               // ESP8266
+                                                                        // select pin function
+#  if (IRMP_BIT_NUMBER == 12)
+    PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12);
+//  doesn't work for me:
+//  # elif (IRMP_BIT_NUMBER == 13)
+//  PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTCK_U , FUNC_GPIO13);
+#  else
+#   warning Please add PIN_FUNC_SELECT when necessary.
+#  endif
+    GPIO_DIS_OUTPUT(IRMP_BIT_NUMBER);
+
+#elif defined(__MBED__)
+    gpio_init_in_ex(&gpioIRin, IRMP_PIN, IRMP_PINMODE);                 // initialize input for IR diode
 
 #else                                                                   // AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup
@@ -2588,6 +2609,9 @@ irmp_ISR (void)
 
 #if defined(__SDCC_stm8)
     irmp_input = input(IRMP_GPIO_STRUCT->IDR)
+#elif defined(__MBED__)
+    //irmp_input = inputPin;
+    irmp_input = gpio_read (&gpioIRin);
 #else
     irmp_input = input(IRMP_PIN);
 #endif
@@ -4989,16 +5013,16 @@ get_fdc_key (uint_fast16_t cmd)
 {
     static uint8_t key_table[128] =
     {
-     // 0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
-        0,  '^', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß', '´',  0,  '\b',
-       '\t','q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', 'ü', '+',  0,   0,  'a',
-       's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä', '#',  '\r', 0,  '<', 'y', 'x',
-       'c', 'v', 'b', 'n', 'm', ',', '.', '-',  0,   0,   0,   0,   0,  ' ',  0,   0,
+     // 0       1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
+         0,     '^',    '1',    '2',    '3',    '4',    '5',    '6',    '7',    '8',    '9',    '0',    0xDF,   '´',    0,      '\b',
+        '\t',   'q',    'w',    'e',    'r',    't',    'z',    'u',    'i',    'o',    'p',    0xFC,   '+',    0,      0,      'a',
+        's',    'd',    'f',    'g',    'h',    'j',    'k',    'l',    0xF6,   0xE4,   '#',    '\r',   0,      '<',    'y',    'x',
+        'c',    'v',    'b',    'n',    'm',    ',',    '.',    '-',    0,      0,      0,      0,      0,      ' ',    0,      0,
 
-        0,  '°', '!', '"', '§', '$', '%', '&', '/', '(', ')', '=', '?', '`',  0,  '\b',
-       '\t','Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü', '*',  0,   0,  'A',
-       'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä', '\'','\r', 0,  '>', 'Y', 'X',
-       'C', 'V', 'B', 'N', 'M', ';', ':', '_',  0,   0,   0,   0,   0,  ' ',  0,   0
+         0,     '°',    '!',    '"',    '§',    '$',    '%',    '&',    '/',    '(',    ')',    '=',    '?',    '`',    0,      '\b',
+        '\t',   'Q',    'W',    'E',    'R',    'T',    'Z',    'U',    'I',    'O',    'P',    0xDC,   '*',    0,      0,      'A',
+        'S',    'D',    'F',    'G',    'H',    'J',    'K',    'L',    0xD6,   0xC4,   '\'',   '\r',   0,      '>',    'Y',    'X',
+        'C',    'V',    'B',    'N',    'M',    ';',    ':',    '_',    0,      0,      0,      0,      0,      ' ',    0,      0
     };
     static uint_fast8_t state;
 

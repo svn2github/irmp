@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.145 2015/11/18 08:27:50 fm Exp $
+ * $Id: irmpconfig.h,v 1.146 2016/01/12 11:53:34 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -162,6 +162,14 @@
  */
 #elif defined (TEENSY_ARM_CORTEX_M4)
 #  define IRMP_PIN                              1                       // use Digital pin 1 as IR input on Teensy
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Change hardware pin here for MBED
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined(__MBED__)
+#  define IRMP_PIN                              P0_22                   // use P1_27 on LPC1347
+#  define IRMP_PINMODE                          PullUp                  // hardware dependent
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Handling of unknown target system: DON'T CHANGE
