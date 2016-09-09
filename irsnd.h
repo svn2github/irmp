@@ -1,9 +1,9 @@
  /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irsnd.h
  *
- * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.23 2015/11/18 08:27:50 fm Exp $
+ * $Id: irsnd.h,v 1.24 2016/01/12 21:15:16 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

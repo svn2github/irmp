@@ -2,6 +2,8 @@
 
 Test program IRMP for ESP8266                2015-11-16 Wolfgang Strobl, Bonn
 
+$Id: irmp-main-esp8266.c,v 1.2 2016/01/12 21:15:16 fm Exp $
+
 IRMP ported to ESP8266, testet with MOD-WIFI-ESP8266-DEV on
 ESP8266-EVB evaluation board. https://www.olimex.com/Products/IoT/ESP8266-EVB/
 

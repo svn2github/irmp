@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * main.c - demo main module to test IRMP decoder on PIC18F4520 with XC8 compiler
+ * irmp-main-pic-xc8.c - demo main module to test IRMP decoder on PIC18F4520 with XC8 compiler
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp-main-pic-xc8.c,v 1.1 2016/01/12 11:55:05 fm Exp $
+ * $Id: irmp-main-pic-xc8.c,v 1.2 2016/09/09 08:01:11 fm Exp $
  *
  * This demo module is runnable on PIC18F4520 with XC8 compiler
  *

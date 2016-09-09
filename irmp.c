@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.c - infrared multi-protocol decoder, supports several remote control protocols
  *
- * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.184 2016/01/12 11:53:34 fm Exp $
+ * $Id: irmp.c,v 1.187 2016/09/09 07:53:29 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -161,6 +161,17 @@
 #define KASEIKYO_1_PAUSE_LEN_MAX                ((uint_fast8_t)(F_INTERRUPTS * KASEIKYO_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define KASEIKYO_0_PAUSE_LEN_MIN                ((uint_fast8_t)(F_INTERRUPTS * KASEIKYO_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define KASEIKYO_0_PAUSE_LEN_MAX                ((uint_fast8_t)(F_INTERRUPTS * KASEIKYO_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
+#define MITSU_HEAVY_START_BIT_PULSE_LEN_MIN     ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define MITSU_HEAVY_START_BIT_PULSE_LEN_MAX     ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define MITSU_HEAVY_START_BIT_PAUSE_LEN_MIN     ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define MITSU_HEAVY_START_BIT_PAUSE_LEN_MAX     ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define MITSU_HEAVY_PULSE_LEN_MIN               ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define MITSU_HEAVY_PULSE_LEN_MAX               ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define MITSU_HEAVY_1_PAUSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define MITSU_HEAVY_1_PAUSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define MITSU_HEAVY_0_PAUSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define MITSU_HEAVY_0_PAUSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
 #define PANASONIC_START_BIT_PULSE_LEN_MIN       ((uint_fast8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define PANASONIC_START_BIT_PULSE_LEN_MAX       ((uint_fast8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -623,6 +634,7 @@ static const char proto_s100[]          PROGMEM = "S100";
 static const char proto_acp24[]         PROGMEM = "ACP24";
 static const char proto_technics[]      PROGMEM = "TECHNICS";
 static const char proto_panasonic[]     PROGMEM = "PANASONIC";
+static const char proto_mitsu_heavy[]   PROGMEM = "MITSU_HEAVY";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -678,6 +690,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_acp24,
     proto_technics,
     proto_panasonic,
+    proto_mitsu_heavy,
     proto_radio1
 };
 
@@ -1294,6 +1307,31 @@ static const PROGMEM IRMP_PARAMETER panasonic_param =
     PANASONIC_STOP_BIT,                                                 // stop_bit:        flag: frame has stop bit
     PANASONIC_LSB,                                                      // lsb_first:       flag: LSB first
     PANASONIC_FLAGS                                                     // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER mitsu_heavy_param =
+{
+    IRMP_MITSU_HEAVY_PROTOCOL,                                          // protocol:        ir protocol
+    MITSU_HEAVY_PULSE_LEN_MIN,                                          // pulse_1_len_min: minimum length of pulse with bit value 1
+    MITSU_HEAVY_PULSE_LEN_MAX,                                          // pulse_1_len_max: maximum length of pulse with bit value 1
+    MITSU_HEAVY_1_PAUSE_LEN_MIN,                                        // pause_1_len_min: minimum length of pause with bit value 1
+    MITSU_HEAVY_1_PAUSE_LEN_MAX,                                        // pause_1_len_max: maximum length of pause with bit value 1
+    MITSU_HEAVY_PULSE_LEN_MIN,                                          // pulse_0_len_min: minimum length of pulse with bit value 0
+    MITSU_HEAVY_PULSE_LEN_MAX,                                          // pulse_0_len_max: maximum length of pulse with bit value 0
+    MITSU_HEAVY_0_PAUSE_LEN_MIN,                                        // pause_0_len_min: minimum length of pause with bit value 0
+    MITSU_HEAVY_0_PAUSE_LEN_MAX,                                        // pause_0_len_max: maximum length of pause with bit value 0
+    MITSU_HEAVY_ADDRESS_OFFSET,                                         // address_offset:  address offset
+    MITSU_HEAVY_ADDRESS_OFFSET + MITSU_HEAVY_ADDRESS_LEN,               // address_end:     end of address
+    MITSU_HEAVY_COMMAND_OFFSET,                                         // command_offset:  command offset
+    MITSU_HEAVY_COMMAND_OFFSET + MITSU_HEAVY_COMMAND_LEN,               // command_end:     end of command
+    MITSU_HEAVY_COMPLETE_DATA_LEN,                                      // complete_len:    complete length of frame
+    MITSU_HEAVY_STOP_BIT,                                               // stop_bit:        flag: frame has stop bit
+    MITSU_HEAVY_LSB,                                                    // lsb_first:       flag: LSB first
+    MITSU_HEAVY_FLAGS                                                   // flags:           some flags
 };
 
 #endif
@@ -2338,6 +2376,11 @@ static uint_fast8_t genre2;                                                 // s
 static uint_fast8_t  parity;                                                // number of '1' of the first 14 bits, check if even.
 #endif
 
+#if IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+static uint_fast8_t  check;                                                 // number of '1' of the first 14 bits, check if even.
+static uint_fast8_t  mitsu_parity;                                          // number of '1' of the first 14 bits, check if even.
+#endif
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  store bit
  *  @details  store bit in temp address or temp command
@@ -2511,11 +2554,11 @@ irmp_store_bit (uint_fast8_t value)
     {
         if (irmp_bit >= 20 && irmp_bit < 24)
         {
-            irmp_tmp_command |= (((uint_fast16_t) (value)) << (irmp_bit - 8));       // store 4 system bits (genre 1) in upper nibble with LSB first
+            irmp_tmp_command |= (((uint_fast16_t) (value)) << (irmp_bit - 8));      // store 4 system bits (genre 1) in upper nibble with LSB first
         }
         else if (irmp_bit >= 24 && irmp_bit < 28)
         {
-            genre2 |= (((uint_fast8_t) (value)) << (irmp_bit - 20));                 // store 4 system bits (genre 2) in upper nibble with LSB first
+            genre2 |= (((uint_fast8_t) (value)) << (irmp_bit - 20));                // store 4 system bits (genre 2) in upper nibble with LSB first
         }
 
         if (irmp_bit < KASEIKYO_COMPLETE_DATA_LEN)
@@ -2532,6 +2575,47 @@ irmp_store_bit (uint_fast8_t value)
     }
     else
 #endif
+
+#if IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+    if (irmp_param.protocol == IRMP_MITSU_HEAVY_PROTOCOL)                           // squeeze 64 bits into 16 bits:
+    {
+        if (irmp_bit == 72 )
+        {                                                                           // irmp_tmp_address, irmp_tmp_command received: check parity & compress
+            mitsu_parity = PARITY_CHECK_OK;
+
+            check = irmp_tmp_address >> 8;                                          // inverted upper byte == lower byte?
+            check = ~ check;
+
+            if (check == (irmp_tmp_address & 0xFF))
+            {                                                                       // ok:
+                irmp_tmp_address <<= 8;                                             // throw away upper byte
+            }
+            else
+            {
+                mitsu_parity = PARITY_CHECK_FAILED;
+            }
+
+            check = irmp_tmp_command >> 8;                                          // inverted upper byte == lower byte?
+            check = ~ check;
+            if (check == (irmp_tmp_command & 0xFF))
+            {                                                                       // ok:  pack together
+                irmp_tmp_address |= irmp_tmp_command & 0xFF;                        // byte 1, byte2 in irmp_tmp_address, irmp_tmp_command can be used for byte 3
+            }
+            else
+            {
+                mitsu_parity = PARITY_CHECK_FAILED;
+            }
+            irmp_tmp_command = 0;
+        }
+
+        if (irmp_bit >= 72 )
+        {                                                                           // receive 3. word in irmp_tmp_command
+            irmp_tmp_command <<= 1;
+            irmp_tmp_command |= value;
+        }
+    }
+    else
+#endif // IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL
     {
         ;
     }
@@ -2967,6 +3051,20 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_PANASONIC_PROTOCOL == 1
+
+#if IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+                    if (irmp_pulse_time >= MITSU_HEAVY_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MITSU_HEAVY_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= MITSU_HEAVY_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= MITSU_HEAVY_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's MITSU_HEAVY
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = MITSU_HEAVY, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        MITSU_HEAVY_START_BIT_PULSE_LEN_MIN, MITSU_HEAVY_START_BIT_PULSE_LEN_MAX,
+                                        MITSU_HEAVY_START_BIT_PAUSE_LEN_MIN, MITSU_HEAVY_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &mitsu_heavy_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
 
 #if IRMP_SUPPORT_RADIO1_PROTOCOL == 1
                     if (irmp_pulse_time >= RADIO1_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RADIO1_START_BIT_PULSE_LEN_MAX &&
@@ -4774,6 +4872,25 @@ irmp_ISR (void)
                         }
 #endif // IRMP_SUPPORT_ORTEK_PROTOCOL == 1
 
+#if IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+                        if (irmp_param.protocol == IRMP_MITSU_HEAVY_PROTOCOL)
+                        {
+                            check = irmp_tmp_command >> 8;                    // inverted upper byte == lower byte?
+                            check = ~ check;
+                            if (check == (irmp_tmp_command & 0xFF)) {         //ok:
+                              irmp_tmp_command &= 0xFF;
+                            }
+                            else  mitsu_parity = PARITY_CHECK_FAILED;
+                            if (mitsu_parity == PARITY_CHECK_FAILED)
+                            {
+#ifdef ANALYZE
+                                ANALYZE_PRINTF ("error 7: parity check failed\n");
+#endif // ANALYZE
+                                irmp_ir_detected = FALSE;
+                            }
+                        }
+#endif // IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL
+
 #if IRMP_SUPPORT_RC6_PROTOCOL == 1
                         if (irmp_param.protocol == IRMP_RC6_PROTOCOL && irmp_param.complete_len == RC6_COMPLETE_DATA_LEN_LONG)     // RC6 mode = 6?
                         {
@@ -5013,16 +5130,16 @@ get_fdc_key (uint_fast16_t cmd)
 {
     static uint8_t key_table[128] =
     {
-     // 0       1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
-         0,     '^',    '1',    '2',    '3',    '4',    '5',    '6',    '7',    '8',    '9',    '0',    0xDF,   '´',    0,      '\b',
-        '\t',   'q',    'w',    'e',    'r',    't',    'z',    'u',    'i',    'o',    'p',    0xFC,   '+',    0,      0,      'a',
-        's',    'd',    'f',    'g',    'h',    'j',    'k',    'l',    0xF6,   0xE4,   '#',    '\r',   0,      '<',    'y',    'x',
-        'c',    'v',    'b',    'n',    'm',    ',',    '.',    '-',    0,      0,      0,      0,      0,      ' ',    0,      0,
+     // 0     1    2    3    4    5    6    7    8     9     A     B     C     D    E    F
+         0,   '^', '1', '2', '3', '4', '5', '6', '7',  '8',  '9',  '0',  0xDF, '´', 0,   '\b',
+        '\t', 'q', 'w', 'e', 'r', 't', 'z', 'u', 'i',  'o',  'p',  0xFC, '+',   0,   0,   'a',
+        's',  'd', 'f', 'g', 'h', 'j', 'k', 'l', 0xF6, 0xE4, '#',  '\r', 0,    '<', 'y', 'x',
+        'c',  'v', 'b', 'n', 'm', ',', '.', '-', 0,    0,    0,    0,    0,    ' ', 0,   0,
 
-         0,     '°',    '!',    '"',    '§',    '$',    '%',    '&',    '/',    '(',    ')',    '=',    '?',    '`',    0,      '\b',
-        '\t',   'Q',    'W',    'E',    'R',    'T',    'Z',    'U',    'I',    'O',    'P',    0xDC,   '*',    0,      0,      'A',
-        'S',    'D',    'F',    'G',    'H',    'J',    'K',    'L',    0xD6,   0xC4,   '\'',   '\r',   0,      '>',    'Y',    'X',
-        'C',    'V',    'B',    'N',    'M',    ';',    ':',    '_',    0,      0,      0,      0,      0,      ' ',    0,      0
+         0,   '°', '!', '"', '§', '$', '%', '&', '/',  '(',  ')',  '=',  '?',  '`', 0,   '\b',
+        '\t', 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I',  'O',  'P',  0xDC, '*',  0,   0,   'A',
+        'S',  'D', 'F', 'G', 'H', 'J', 'K', 'L', 0xD6, 0xC4, '\'', '\r', 0,    '>', 'Y', 'X',
+        'C',  'V', 'B', 'N', 'M', ';', ':', '_', 0,    0,    0,    0,    0,    ' ', 0,   0
     };
     static uint_fast8_t state;
 
@@ -5069,7 +5186,7 @@ get_fdc_key (uint_fast16_t cmd)
                     {
                         switch (cmd)
                         {
-                            case 0x0003: key = '²';     break;
+                            case 0x0003: key = 0xB2;    break; // upper 2
                             case 0x0008: key = '{';     break;
                             case 0x0009: key = '[';     break;
                             case 0x000A: key = ']';     break;

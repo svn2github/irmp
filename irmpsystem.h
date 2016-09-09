@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmpsystem.h - system specific includes and defines
  *
- * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.22 2016/01/12 11:53:34 fm Exp $
+ * $Id: irmpsystem.h,v 1.24 2016/09/09 07:53:29 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -158,6 +158,8 @@ typedef unsigned short                  uint16_t;
 #if defined(PIC_CCS) || defined(PIC_C18) || defined(ARM_STM32) || defined(STELLARIS_ARM_CORTEX_M4)
 typedef unsigned char                   uint8_t;
 typedef unsigned short                  uint16_t;
+typedef unsigned char                   uint_fast8_t;
+typedef unsigned short                  uint_fast16_t;
 #endif
 
 #if defined (PIC_C18)                                                               // PIC C18 or XC8 compiler
@@ -175,7 +177,13 @@ typedef unsigned short                  uint16_t;
 #  define FALSE                         0
 #endif
 
-typedef struct __attribute__ ((__packed__))
+#if defined(PIC_C18)
+#define IRMP_PACKED_STRUCT
+#else
+#define IRMP_PACKED_STRUCT              __attribute__ ((__packed__))
+#endif
+
+typedef struct IRMP_PACKED_STRUCT
 {
     uint8_t                             protocol;                                   // protocol, e.g. NEC_PROTOCOL
     uint16_t                            address;                                    // address

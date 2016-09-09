@@ -3,9 +3,9 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRSND.H!
  *
- * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.86 2015/11/18 08:27:50 fm Exp $
+ * $Id: irsndconfig.h,v 1.88 2016/09/09 07:53:29 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,6 +87,7 @@
 #define IRSND_SUPPORT_ACP24_PROTOCOL            0       // ACP24                >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_TECHNICS_PROTOCOL         0       // TECHNICS             >= 10000                 DON'T CHANGE, NOT SUPPORTED YET!
 #define IRSND_SUPPORT_PANASONIC_PROTOCOL        0       // PANASONIC Beamer     >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL      0       // Mitsubishi-Heavy Aircondition, similar Timing to Panasonic beamer
 
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

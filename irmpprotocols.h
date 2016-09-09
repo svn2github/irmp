@@ -3,9 +3,9 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H or IRSND.H!
  *
- * Copyright (c) 2013-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2013-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.44 2015/11/30 09:31:54 fm Exp $
+ * $Id: irmpprotocols.h,v 1.46 2016/09/09 07:53:29 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,10 +73,11 @@
 #define IRMP_ACP24_PROTOCOL                     46              // Stiebel Eltron ACP24 air conditioner
 #define IRMP_TECHNICS_PROTOCOL                  47              // Technics, similar to Matsushita, but 22 instead of 24 bits
 #define IRMP_PANASONIC_PROTOCOL                 48              // Panasonic (Beamer), start bits similar to KASEIKYO
+#define IRMP_MITSU_HEAVY_PROTOCOL               49              // Mitsubishi-Heavy Aircondition, similar timing as Panasonic beamer
 
-#define IRMP_RADIO1_PROTOCOL                    49              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_RADIO1_PROTOCOL                    50              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        50              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        51              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -257,22 +258,42 @@ typedef uint8_t     PAUSE_LEN;
  * PANASONIC (Beamer), start bit timings similar to KASEIKYO
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
-#define PANASONIC_START_BIT_PULSE_TIME           3600.0e-6                       // 3600 usec pulse
-#define PANASONIC_START_BIT_PAUSE_TIME           1600.0e-6                       // 1690 usec pause
-#define PANASONIC_PULSE_TIME                      565.0e-6                       //  565 usec pulse
-#define PANASONIC_1_PAUSE_TIME                   1140.0e-6                       // 1140 usec pause
-#define PANASONIC_0_PAUSE_TIME                    316.0e-6                       //  316 usec pause
-#define PANASONIC_AUTO_REPETITION_PAUSE_TIME       40.0e-3                       // repetition after 40 ms?
-#define PANASONIC_FRAME_REPEAT_PAUSE_TIME          40.0e-3                       // frame repeat after 40 ms
-#define PANASONIC_ADDRESS_OFFSET                 24                              // skip 24 bits: 010000000000010000000001
-#define PANASONIC_ADDRESS_LEN                    16                              // read 16 address bits
-#define PANASONIC_COMMAND_OFFSET                 40                              // skip 40 bits
-#define PANASONIC_COMMAND_LEN                    16                              // read 16 command bits
-#define PANASONIC_COMPLETE_DATA_LEN              56                              // complete length
-#define PANASONIC_STOP_BIT                       1                               // has stop bit
-#define PANASONIC_LSB                            1                               // LSB...MSB?
-#define PANASONIC_FRAMES                         1                               // PANASONIC sends 1 frame
-#define PANASONIC_FLAGS                          0                               // flags
+#define PANASONIC_START_BIT_PULSE_TIME           3600.0e-6                      // 3600 usec pulse
+#define PANASONIC_START_BIT_PAUSE_TIME           1600.0e-6                      // 1690 usec pause
+#define PANASONIC_PULSE_TIME                      565.0e-6                      //  565 usec pulse
+#define PANASONIC_1_PAUSE_TIME                   1140.0e-6                      // 1140 usec pause
+#define PANASONIC_0_PAUSE_TIME                    316.0e-6                      //  316 usec pause
+#define PANASONIC_AUTO_REPETITION_PAUSE_TIME       40.0e-3                      // repetition after 40 ms?
+#define PANASONIC_FRAME_REPEAT_PAUSE_TIME          40.0e-3                      // frame repeat after 40 ms
+#define PANASONIC_ADDRESS_OFFSET                 24                             // skip 24 bits: 010000000000010000000001
+#define PANASONIC_ADDRESS_LEN                    16                             // read 16 address bits
+#define PANASONIC_COMMAND_OFFSET                 40                             // skip 40 bits
+#define PANASONIC_COMMAND_LEN                    16                             // read 16 command bits
+#define PANASONIC_COMPLETE_DATA_LEN              56                             // complete length
+#define PANASONIC_STOP_BIT                       1                              // has stop bit
+#define PANASONIC_LSB                            1                              // LSB...MSB?
+#define PANASONIC_FRAMES                         1                              // PANASONIC sends 1 frame
+#define PANASONIC_FLAGS                          0                              // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * MITSUBISHI-Heavy Aircondition, timings similar to PANASONIC beamer
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define MITSU_HEAVY_START_BIT_PULSE_TIME          3200.0e-6                     // 3600 usec pulse
+#define MITSU_HEAVY_START_BIT_PAUSE_TIME          1560.0e-6                     // 1690 usec pause
+#define MITSU_HEAVY_PULSE_TIME                     400.0e-6                     //  565 usec pulse
+#define MITSU_HEAVY_1_PAUSE_TIME                  1200.0e-6                     // 1140 usec pause
+#define MITSU_HEAVY_0_PAUSE_TIME                   430.0e-6                     //  316 usec pause
+#define MITSU_HEAVY_FRAME_REPEAT_PAUSE_TIME         40.0e-3                     // frame repeat after 40 ms
+#define MITSU_HEAVY_ADDRESS_OFFSET                 40                           // skip 24 bits: 010000000000010000000001
+#define MITSU_HEAVY_ADDRESS_LEN                    16                           // read 16 address bits
+#define MITSU_HEAVY_COMMAND_OFFSET                 56                           // skip 40 bits
+#define MITSU_HEAVY_COMMAND_LEN                    16                           // read 16 command bits
+#define MITSU_HEAVY_COMPLETE_DATA_LEN              88                           // complete length
+#define MITSU_HEAVY_STOP_BIT                       1                            // has stop bit
+#define MITSU_HEAVY_LSB                            0                            // LSB...MSB?
+#define MITSU_HEAVY_FRAMES                         1                            // PANASONIC sends 1 frame
+#define MITSU_HEAVY_FLAGS                          0                            // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * RECS80:

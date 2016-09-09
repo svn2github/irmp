@@ -1,9 +1,11 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * main_pic12f1840.c - example main module for PIC 12f1840
+ * irmp-main-pic-12F1840.c - example main module for PIC 12f1840
  * 
  * IR decoder using IRMP
  *
  * (c) 2014 Wolfgang Strobl (news4 at mystrobl.de) 2014-03-12:2014-07-20
+ *
+ * $Id: irmp-main-pic-12F1840.c,v 1.4 2016/09/09 08:01:11 fm Exp $
  *
  * This demo module is runnable on a Microchip PIC 12F1840
  *

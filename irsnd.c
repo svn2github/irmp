@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * @file irsnd.c
  *
- * Copyright (c) 2010-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
  *
  * Supported AVR mikrocontrollers:
  *
@@ -14,7 +14,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.99 2015/12/16 14:12:17 fm Exp $
+ * $Id: irsnd.c,v 1.101 2016/09/09 07:53:29 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -181,10 +181,15 @@
     //Nothing here to do here -> See irsndconfig.h
 #elif defined (ARM_STM32)  //STM32
     //Nothing here to do here -> See irsndconfig.h
-#elif defined (TEENSY_ARM_CORTEX_M4)                                // Teensy3
-#  if !digitalPinHasPWM(IRSND_PIN)
-#    error need pin with PWM output.
-#  endif
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Macro digitalPinHasPWM bothers PIC_C18 compiler, but why?
+ *
+ * #elif defined (TEENSY_ARM_CORTEX_M4)                                // Teensy3
+ * #  if !digitalPinHasPWM(IRSND_PIN)
+ * #    error need pin with PWM output.
+ * #  endif
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
 #else
 #  if !defined (unix) && !defined (WIN32)
 #    error mikrocontroller not defined, please fill in definitions here.
@@ -260,13 +265,20 @@
 #define KASEIKYO_AUTO_REPETITION_PAUSE_LEN      (uint16_t)(F_INTERRUPTS * KASEIKYO_AUTO_REPETITION_PAUSE_TIME + 0.5)            // use uint16_t!
 #define KASEIKYO_FRAME_REPEAT_PAUSE_LEN         (uint16_t)(F_INTERRUPTS * KASEIKYO_FRAME_REPEAT_PAUSE_TIME + 0.5)               // use uint16_t!
 
-#define PANASONIC_START_BIT_PULSE_LEN            (uint8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PULSE_TIME + 0.5)
-#define PANASONIC_START_BIT_PAUSE_LEN            (uint8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PAUSE_TIME + 0.5)
-#define PANASONIC_PULSE_LEN                      (uint8_t)(F_INTERRUPTS * PANASONIC_PULSE_TIME + 0.5)
-#define PANASONIC_1_PAUSE_LEN                    (uint8_t)(F_INTERRUPTS * PANASONIC_1_PAUSE_TIME + 0.5)
-#define PANASONIC_0_PAUSE_LEN                    (uint8_t)(F_INTERRUPTS * PANASONIC_0_PAUSE_TIME + 0.5)
-#define PANASONIC_AUTO_REPETITION_PAUSE_LEN      (uint16_t)(F_INTERRUPTS * PANASONIC_AUTO_REPETITION_PAUSE_TIME + 0.5)            // use uint16_t!
-#define PANASONIC_FRAME_REPEAT_PAUSE_LEN         (uint16_t)(F_INTERRUPTS * PANASONIC_FRAME_REPEAT_PAUSE_TIME + 0.5)               // use uint16_t!
+#define PANASONIC_START_BIT_PULSE_LEN           (uint8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PULSE_TIME + 0.5)
+#define PANASONIC_START_BIT_PAUSE_LEN           (uint8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PAUSE_TIME + 0.5)
+#define PANASONIC_PULSE_LEN                     (uint8_t)(F_INTERRUPTS * PANASONIC_PULSE_TIME + 0.5)
+#define PANASONIC_1_PAUSE_LEN                   (uint8_t)(F_INTERRUPTS * PANASONIC_1_PAUSE_TIME + 0.5)
+#define PANASONIC_0_PAUSE_LEN                   (uint8_t)(F_INTERRUPTS * PANASONIC_0_PAUSE_TIME + 0.5)
+#define PANASONIC_AUTO_REPETITION_PAUSE_LEN     (uint16_t)(F_INTERRUPTS * PANASONIC_AUTO_REPETITION_PAUSE_TIME + 0.5)           // use uint16_t!
+#define PANASONIC_FRAME_REPEAT_PAUSE_LEN        (uint16_t)(F_INTERRUPTS * PANASONIC_FRAME_REPEAT_PAUSE_TIME + 0.5)              // use uint16_t!
+
+#define MITSU_HEAVY_START_BIT_PULSE_LEN         (uint8_t)(F_INTERRUPTS * MITSU_HEAVY_START_BIT_PULSE_TIME + 0.5)
+#define MITSU_HEAVY_START_BIT_PAUSE_LEN         (uint8_t)(F_INTERRUPTS * MITSU_HEAVY_START_BIT_PAUSE_TIME + 0.5)
+#define MITSU_HEAVY_PULSE_LEN                   (uint8_t)(F_INTERRUPTS * MITSU_HEAVY_PULSE_TIME + 0.5)
+#define MITSU_HEAVY_1_PAUSE_LEN                 (uint8_t)(F_INTERRUPTS * MITSU_HEAVY_1_PAUSE_TIME + 0.5)
+#define MITSU_HEAVY_0_PAUSE_LEN                 (uint8_t)(F_INTERRUPTS * MITSU_HEAVY_0_PAUSE_TIME + 0.5)
+#define MITSU_HEAVY_FRAME_REPEAT_PAUSE_LEN      (uint16_t)(F_INTERRUPTS * MITSU_HEAVY_FRAME_REPEAT_PAUSE_TIME + 0.5)             // use uint16_t!
 
 #define RECS80_START_BIT_PULSE_LEN              (uint8_t)(F_INTERRUPTS * RECS80_START_BIT_PULSE_TIME + 0.5)
 #define RECS80_START_BIT_PAUSE_LEN              (uint8_t)(F_INTERRUPTS * RECS80_START_BIT_PAUSE_TIME + 0.5)
@@ -493,7 +505,7 @@
 
 static volatile uint8_t                         irsnd_busy = 0;
 static volatile uint8_t                         irsnd_protocol = 0;
-static volatile uint8_t                         irsnd_buffer[9] = {0};
+static volatile uint8_t                         irsnd_buffer[11] = {0};
 static volatile uint8_t                         irsnd_repeat = 0;
 static volatile uint8_t                         irsnd_is_on = FALSE;
 
@@ -1166,6 +1178,28 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             irsnd_buffer[4] = (address & 0x00FF);                                                               // AAAAAAAA
             irsnd_buffer[5] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
             irsnd_buffer[6] = (command & 0x00FF);                                                               // CCCCCCCC
+
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
+#if IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+        case IRMP_MITSU_HEAVY_PROTOCOL:
+        {
+            address = irmp_data_p->address;
+            command = irmp_data_p->command;
+
+            irsnd_buffer[0] = 0x4A;
+            irsnd_buffer[1] = 0x75;
+            irsnd_buffer[2] = 0xC3;
+            irsnd_buffer[3] = 0x64;
+            irsnd_buffer[4] = 0x9B;
+            irsnd_buffer[5] = ~(address & 0xFF00) >> 8;
+            irsnd_buffer[6] = (address & 0xFF00) >> 8;
+            irsnd_buffer[7] = ~(address & 0x00FF);
+            irsnd_buffer[8] = (address & 0x00FF);
+            irsnd_buffer[9] = ~(command & 0x00FF);
+            irsnd_buffer[10] = (command & 0x00FF);
 
             irsnd_busy      = TRUE;
             break;
@@ -1905,6 +1939,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+                    case IRMP_MITSU_HEAVY_PROTOCOL:
+                    {
+                        startbit_pulse_len          = MITSU_HEAVY_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = MITSU_HEAVY_START_BIT_PAUSE_LEN - 1;
+                        pulse_1_len                 = MITSU_HEAVY_PULSE_LEN;
+                        pause_1_len                 = MITSU_HEAVY_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = MITSU_HEAVY_PULSE_LEN;
+                        pause_0_len                 = MITSU_HEAVY_0_PAUSE_LEN - 1;
+                        has_stop_bit                = MITSU_HEAVY_STOP_BIT;
+                        complete_data_len           = MITSU_HEAVY_COMPLETE_DATA_LEN;
+                        n_auto_repetitions          = MITSU_HEAVY_FRAMES;                             // 1 frame
+                        auto_repetition_pause_len   = 0;;
+                        repeat_frame_pause_len      = MITSU_HEAVY_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_40_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_RECS80_PROTOCOL == 1
                     case IRMP_RECS80_PROTOCOL:
                     {
@@ -2428,6 +2480,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_PANASONIC_PROTOCOL == 1
                 case IRMP_PANASONIC_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+                case IRMP_MITSU_HEAVY_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_RECS80_PROTOCOL == 1
                 case IRMP_RECS80_PROTOCOL:
 #endif
@@ -2489,7 +2544,8 @@ irsnd_ISR (void)
     IRSND_SUPPORT_NUBERT_PROTOCOL == 1 || IRSND_SUPPORT_FAN_PROTOCOL == 1 || IRSND_SUPPORT_SPEAKER_PROTOCOL == 1 || IRSND_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1 || \
     IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 || IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || \
     IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1 || \
-    IRSND_SUPPORT_PENTAX_PROTOCOL == 1 || IRSND_SUPPORT_ACP24_PROTOCOL == 1 || IRSND_SUPPORT_PANASONIC_PROTOCOL == 1 || IRSND_SUPPORT_BOSE_PROTOCOL == 1
+    IRSND_SUPPORT_PENTAX_PROTOCOL == 1 || IRSND_SUPPORT_ACP24_PROTOCOL == 1 || IRSND_SUPPORT_PANASONIC_PROTOCOL == 1 || IRSND_SUPPORT_BOSE_PROTOCOL == 1 || \
+    IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
                 {
                     if (pulse_counter == 0)
                     {

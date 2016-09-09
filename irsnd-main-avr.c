@@ -1,7 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
- * irsndmain.c - demo main module to test IRSND encoder on AVRs
+ * irsnd-main-avr.c - demo main module to test IRSND encoder on AVRs
  *
  * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
+ *
+ * $Id: irsnd-main-avr.c,v 1.3 2016/09/09 08:01:11 fm Exp $
  *
  * ATMEGA88 @ 8 MHz internal RC      Osc with BODLEVEL 4.3V: lfuse: 0xE2 hfuse: 0xDC efuse: 0xF9
  * ATMEGA88 @ 8 MHz external Crystal Osc with BODLEVEL 4.3V: lfuse: 0xFF hfuse: 0xDC efuse: 0xF9

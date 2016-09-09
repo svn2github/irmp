@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.h
  *
- * Copyright (c) 2009-2015 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.h,v 1.101 2015/11/18 08:27:50 fm Exp $
+ * $Id: irmp.h,v 1.103 2016/09/09 07:53:29 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,6 +119,13 @@
 #  warning ROOMBA protocol disabled
 #  undef IRMP_SUPPORT_ROOMBA_PROTOCOL
 #  define IRMP_SUPPORT_ROOMBA_PROTOCOL          0
+#endif
+
+#if IRMP_SUPPORT_PANASONIC_PROTOCOL == 1 && IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+#  warning PANASONIC protocol conflicts wih MITSU_HEAVY, please enable only one of both protocols
+#  warning MITSU_HEAVY protocol disabled
+#  undef IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL
+#  define IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL      0
 #endif
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_ORTEK_PROTOCOL == 1
