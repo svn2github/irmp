@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.46 2016/09/09 07:53:29 fm Exp $
+ * $Id: irmpprotocols.h,v 1.47 2016/09/14 06:31:48 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,10 +74,11 @@
 #define IRMP_TECHNICS_PROTOCOL                  47              // Technics, similar to Matsushita, but 22 instead of 24 bits
 #define IRMP_PANASONIC_PROTOCOL                 48              // Panasonic (Beamer), start bits similar to KASEIKYO
 #define IRMP_MITSU_HEAVY_PROTOCOL               49              // Mitsubishi-Heavy Aircondition, similar timing as Panasonic beamer
+#define IRMP_VINCENT_PROTOCOL                   50              // Vincent
 
-#define IRMP_RADIO1_PROTOCOL                    50              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_RADIO1_PROTOCOL                    51              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        51              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        52              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -294,6 +295,26 @@ typedef uint8_t     PAUSE_LEN;
 #define MITSU_HEAVY_LSB                            0                            // LSB...MSB?
 #define MITSU_HEAVY_FRAMES                         1                            // PANASONIC sends 1 frame
 #define MITSU_HEAVY_FLAGS                          0                            // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * VINCENT
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define VINCENT_START_BIT_PULSE_TIME            2500.0e-6                       // 2500 usec pulse
+#define VINCENT_START_BIT_PAUSE_TIME            4600.0e-6                       // 4600 usec pause
+#define VINCENT_PULSE_TIME                       550.0e-6                       //  550 usec pulse
+#define VINCENT_1_PAUSE_TIME                    1540.0e-6                       // 1540 usec pause
+#define VINCENT_0_PAUSE_TIME                     550.0e-6                       //  550 usec pause
+#define VINCENT_FRAME_REPEAT_PAUSE_TIME           40.0e-3                       // frame repeat after 40 ms ?
+#define VINCENT_ADDRESS_OFFSET                     0                            // skip 0 bits
+#define VINCENT_ADDRESS_LEN                       16                            // read 16 address bits
+#define VINCENT_COMMAND_OFFSET                    16                            // skip 16 bits
+#define VINCENT_COMMAND_LEN                       16                            // read 16 command bits
+#define VINCENT_COMPLETE_DATA_LEN                 32                            // complete length
+#define VINCENT_STOP_BIT                           1                            // has stop bit
+#define VINCENT_LSB                                0                            // LSB...MSB?
+#define VINCENT_FRAMES                             1                            // VINCENT sends 1 frame
+#define VINCENT_FLAGS                              0                            // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * RECS80:

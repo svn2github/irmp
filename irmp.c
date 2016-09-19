@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.187 2016/09/09 07:53:29 fm Exp $
+ * $Id: irmp.c,v 1.188 2016/09/14 06:31:48 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -172,6 +172,17 @@
 #define MITSU_HEAVY_1_PAUSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 #define MITSU_HEAVY_0_PAUSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define MITSU_HEAVY_0_PAUSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * MITSU_HEAVY_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
+#define VINCENT_START_BIT_PULSE_LEN_MIN         ((uint_fast8_t)(F_INTERRUPTS * VINCENT_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define VINCENT_START_BIT_PULSE_LEN_MAX         ((uint_fast8_t)(F_INTERRUPTS * VINCENT_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define VINCENT_START_BIT_PAUSE_LEN_MIN         ((uint_fast8_t)(F_INTERRUPTS * VINCENT_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define VINCENT_START_BIT_PAUSE_LEN_MAX         ((uint_fast8_t)(F_INTERRUPTS * VINCENT_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define VINCENT_PULSE_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * VINCENT_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define VINCENT_PULSE_LEN_MAX                   ((uint_fast8_t)(F_INTERRUPTS * VINCENT_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define VINCENT_1_PAUSE_LEN_MIN                 ((uint_fast8_t)(F_INTERRUPTS * VINCENT_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define VINCENT_1_PAUSE_LEN_MAX                 ((uint_fast8_t)(F_INTERRUPTS * VINCENT_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define VINCENT_0_PAUSE_LEN_MIN                 ((uint_fast8_t)(F_INTERRUPTS * VINCENT_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define VINCENT_0_PAUSE_LEN_MAX                 ((uint_fast8_t)(F_INTERRUPTS * VINCENT_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
 #define PANASONIC_START_BIT_PULSE_LEN_MIN       ((uint_fast8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define PANASONIC_START_BIT_PULSE_LEN_MAX       ((uint_fast8_t)(F_INTERRUPTS * PANASONIC_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
@@ -635,6 +646,7 @@ static const char proto_acp24[]         PROGMEM = "ACP24";
 static const char proto_technics[]      PROGMEM = "TECHNICS";
 static const char proto_panasonic[]     PROGMEM = "PANASONIC";
 static const char proto_mitsu_heavy[]   PROGMEM = "MITSU_HEAVY";
+static const char proto_vincent[]       PROGMEM = "VINCENT";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -691,6 +703,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_technics,
     proto_panasonic,
     proto_mitsu_heavy,
+    proto_vincent,
     proto_radio1
 };
 
@@ -1332,6 +1345,31 @@ static const PROGMEM IRMP_PARAMETER mitsu_heavy_param =
     MITSU_HEAVY_STOP_BIT,                                               // stop_bit:        flag: frame has stop bit
     MITSU_HEAVY_LSB,                                                    // lsb_first:       flag: LSB first
     MITSU_HEAVY_FLAGS                                                   // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_VINCENT_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER vincent_param =
+{
+    IRMP_VINCENT_PROTOCOL,                                              // protocol:        ir protocol
+    VINCENT_PULSE_LEN_MIN,                                              // pulse_1_len_min: minimum length of pulse with bit value 1
+    VINCENT_PULSE_LEN_MAX,                                              // pulse_1_len_max: maximum length of pulse with bit value 1
+    VINCENT_1_PAUSE_LEN_MIN,                                            // pause_1_len_min: minimum length of pause with bit value 1
+    VINCENT_1_PAUSE_LEN_MAX,                                            // pause_1_len_max: maximum length of pause with bit value 1
+    VINCENT_PULSE_LEN_MIN,                                              // pulse_0_len_min: minimum length of pulse with bit value 0
+    VINCENT_PULSE_LEN_MAX,                                              // pulse_0_len_max: maximum length of pulse with bit value 0
+    VINCENT_0_PAUSE_LEN_MIN,                                            // pause_0_len_min: minimum length of pause with bit value 0
+    VINCENT_0_PAUSE_LEN_MAX,                                            // pause_0_len_max: maximum length of pause with bit value 0
+    VINCENT_ADDRESS_OFFSET,                                             // address_offset:  address offset
+    VINCENT_ADDRESS_OFFSET + VINCENT_ADDRESS_LEN,                       // address_end:     end of address
+    VINCENT_COMMAND_OFFSET,                                             // command_offset:  command offset
+    VINCENT_COMMAND_OFFSET + VINCENT_COMMAND_LEN,                       // command_end:     end of command
+    VINCENT_COMPLETE_DATA_LEN,                                          // complete_len:    complete length of frame
+    VINCENT_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
+    VINCENT_LSB,                                                        // lsb_first:       flag: LSB first
+    VINCENT_FLAGS                                                       // flags:           some flags
 };
 
 #endif
@@ -2200,6 +2238,18 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 break;
 #endif
+
+
+#if IRMP_SUPPORT_NEC_PROTOCOL == 1
+            case IRMP_VINCENT_PROTOCOL:
+                if ((irmp_command >> 8) == (irmp_command & 0x00FF))
+                {
+                    irmp_command &= 0xff;
+                    rtc = TRUE;
+                }
+                break;
+#endif
+
 #if IRMP_SUPPORT_BOSE_PROTOCOL == 1
             case IRMP_BOSE_PROTOCOL:
                 if ((irmp_command >> 8) == (~irmp_command & 0x00FF))
@@ -3065,6 +3115,20 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+
+#if IRMP_SUPPORT_VINCENT_PROTOCOL == 1
+                    if (irmp_pulse_time >= VINCENT_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= VINCENT_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= VINCENT_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= VINCENT_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's VINCENT
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = VINCENT, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        VINCENT_START_BIT_PULSE_LEN_MIN, VINCENT_START_BIT_PULSE_LEN_MAX,
+                                        VINCENT_START_BIT_PAUSE_LEN_MIN, VINCENT_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &vincent_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_VINCENT_PROTOCOL == 1
 
 #if IRMP_SUPPORT_RADIO1_PROTOCOL == 1
                     if (irmp_pulse_time >= RADIO1_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RADIO1_START_BIT_PULSE_LEN_MAX &&
