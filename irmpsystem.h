@@ -73,7 +73,10 @@
 #ifdef UNIX_OR_WINDOWS                                                              // Analyze on Unix/Linux or Windows
 #  include <stdio.h>
 #  include <stdlib.h>
+#ifndef F_CPU
+#  warning "F_CPU was not defined."
 #  define F_CPU 8000000L
+#endif
 #  define ANALYZE
 #  ifdef unix
 #    include <stdint.h>
@@ -88,7 +91,7 @@ typedef unsigned short                  uint16_t;
 #  include <stdint.h>
 #  include <stdio.h>
 #  include <avr/io.h>
-#  include <util/delay.h>
+//#  include <util/delay.h>
 #  include <avr/pgmspace.h>
 #  include <avr/interrupt.h>
 #  define IRSND_OC2                     0       // OC2
