@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp-main-avr-uart.c,v 1.2 2016/09/09 08:01:11 fm Exp $
+ * $Id: irmp-main-avr-uart.c,v 1.4 2016/11/18 11:48:47 fm Exp $
  *
  * This demo module is runnable on AVRs with UART
  *
@@ -170,7 +170,7 @@ int
 main (void)
 {
     IRMP_DATA   irmp_data;
-    char        buf[3];
+    char        buf[5];
 
     irmp_init();                                                            // initialize irmp
     timer1_init();                                                          // initialize timer1
