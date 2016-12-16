@@ -55,6 +55,7 @@ for j in                            \
     nec-repetition.txt              \
     nec-skymaster-dt500.txt         \
     nec.txt                         \
+    nec-non-std-rep.txt             \
     nikon.txt                       \
     nubert-subwoofer.txt            \
     orion_vcr_07660BM070.txt        \

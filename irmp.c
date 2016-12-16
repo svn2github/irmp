@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.188 2016/09/14 06:31:48 fm Exp $
+ * $Id: irmp.c,v 1.190 2016/12/16 09:18:11 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -3944,6 +3944,32 @@ irmp_ISR (void)
                             {
                                 irmp_bit++;
                             }
+#if IRMP_SUPPORT_NEC_PROTOCOL == 1
+                            else if ((irmp_param.protocol == IRMP_NEC_PROTOCOL || irmp_param.protocol == IRMP_NEC42_PROTOCOL) && irmp_bit == 0)
+                            {                                                               // it was a non-standard repetition frame
+#ifdef ANALYZE                                                                              // with 4500µs pause instead of 2250µs
+                                ANALYZE_PRINTF ("Detected non-standard repetition frame, switching to NEC repetition\n");
+#endif // ANALYZE
+                                if (key_repetition_len < NEC_FRAME_REPEAT_PAUSE_LEN_MAX)
+                                {
+                                    irmp_param.stop_bit     = TRUE;                         // set flag
+                                    irmp_param.protocol     = IRMP_NEC_PROTOCOL;            // switch protocol
+                                    irmp_param.complete_len = irmp_bit;                     // patch length: 16 or 17
+                                    irmp_tmp_address = last_irmp_address;                   // address is last address
+                                    irmp_tmp_command = last_irmp_command;                   // command is last command
+                                    irmp_flags |= IRMP_FLAG_REPETITION;
+                                    key_repetition_len = 0;
+                                }
+                                else
+                                {
+#ifdef ANALYZE
+                                    ANALYZE_PRINTF ("ignoring NEC repetition frame: timeout occured, key_repetition_len = %d > %d\n",
+                                                    key_repetition_len, NEC_FRAME_REPEAT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                                    irmp_ir_detected = FALSE;
+                                }
+                            }
+#endif // IRMP_SUPPORT_NEC_PROTOCOL == 1
 #if IRMP_SUPPORT_JVC_PROTOCOL == 1
                             else if (irmp_param.protocol == IRMP_NEC_PROTOCOL && (irmp_bit == 16 || irmp_bit == 17))      // it was a JVC stop bit
                             {
