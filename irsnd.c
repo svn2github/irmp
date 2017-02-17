@@ -14,7 +14,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.101 2016/09/09 07:53:29 fm Exp $
+ * $Id: irsnd.c,v 1.103 2017/02/17 09:13:06 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,19 +149,19 @@
 #  endif // IRSND_OCx
 
 #elif defined (__AVR_ATmega8515__)                                  // ATmega8515 uses OC0 = PB0 or OC1A = PD5 or OC1B = PE2
-#  if IRSND_OCx == IRSND_OC0   
+#  if IRSND_OCx == IRSND_OC0
 #    define IRSND_PORT_LETTER                       B
 #    define IRSND_BIT_NUMBER                        0
-#  elif IRSND_OCx == IRSND_OC1A 
+#  elif IRSND_OCx == IRSND_OC1A
 #    define IRSND_PORT_LETTER                       D
 #    define IRSND_BIT_NUMBER                        5
-#  elif IRSND_OCx == IRSND_OC1B 
+#  elif IRSND_OCx == IRSND_OC1B
 #    define IRSND_PORT_LETTER                       E
 #    define IRSND_BIT_NUMBER                        2
 #  endif // IRSND_OCx
 
 #elif defined (__AVR_XMEGA__)                                       // ATxmega
-#  if IRSND_OCx == IRSND_XMEGA_OC0A   
+#  if IRSND_OCx == IRSND_XMEGA_OC0A
 #    define IRSND_BIT_NUMBER                        0
 #  elif IRSND_OCx == IRSND_XMEGA_OC0B
 #    define IRSND_BIT_NUMBER                        1
@@ -177,10 +177,13 @@
 #    error Wrong value for IRSND_OCx, choose IRSND_XMEGA_OC0A, IRSND_XMEGA_OC0B, IRSND_XMEGA_OC0C, IRSND_XMEGA_OC0D, IRSND_XMEGA_OC1A, or IRSND_XMEGA_OC1B in irsndconfig.h
 #  endif // IRSND_OCx
 
-#elif defined (PIC_C18)    //Microchip C18 compiler
+#elif defined (PIC_C18)                                                 // Microchip C18 compiler
     //Nothing here to do here -> See irsndconfig.h
-#elif defined (ARM_STM32)  //STM32
+#elif defined (ARM_STM32)                                               // STM32
     //Nothing here to do here -> See irsndconfig.h
+#elif defined (__xtensa__)                                              // ESP8266
+    //Nothing here to do here -> See irsndconfig.h
+
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Macro digitalPinHasPWM bothers PIC_C18 compiler, but why?
  *
@@ -418,6 +421,15 @@
 #  define IRSND_FREQ_40_KHZ                     (IRSND_FREQ_TYPE) (40000)
 #  define IRSND_FREQ_56_KHZ                     (IRSND_FREQ_TYPE) (56000)
 #  define IRSND_FREQ_455_KHZ                    (IRSND_FREQ_TYPE) (455000)
+#elif defined (__xtensa__)                      // ESP8266
+#  define IRSND_FREQ_TYPE                       float
+#  define IRSND_FREQ_30_KHZ                     (IRSND_FREQ_TYPE) (30000)
+#  define IRSND_FREQ_32_KHZ                     (IRSND_FREQ_TYPE) (32000)
+#  define IRSND_FREQ_36_KHZ                     (IRSND_FREQ_TYPE) (36000)
+#  define IRSND_FREQ_38_KHZ                     (IRSND_FREQ_TYPE) (38000)
+#  define IRSND_FREQ_40_KHZ                     (IRSND_FREQ_TYPE) (40000)
+#  define IRSND_FREQ_56_KHZ                     (IRSND_FREQ_TYPE) (56000)
+#  define IRSND_FREQ_455_KHZ                    (IRSND_FREQ_TYPE) (455000)
 #else                                           // AVR
 #  if F_CPU >= 16000000L
 #    define AVR_PRESCALER                       8
@@ -535,11 +547,14 @@ irsnd_on (void)
 #  elif defined (TEENSY_ARM_CORTEX_M4)                  // TEENSY
         analogWrite(IRSND_PIN, 33 * 255 / 100);         // pwm 33%
 
-#  elif defined (__AVR_XMEGA__) 
+#  elif defined (__xtensa__)                            // ESP8266 (Arduino)
+        analogWrite(IRSND_PIN, 33 * 1023 / 100);        // pwm 33%
+
+#  elif defined (__AVR_XMEGA__)
 #    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                 // use OC0A
-                XMEGA_Timer.CTRLB |= (1<<TC0_CCAEN_bp);                 // Compare A 
+                XMEGA_Timer.CTRLB |= (1<<TC0_CCAEN_bp);                 // Compare A
 #    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                               // use OC0B
-                XMEGA_Timer.CTRLB |= (1<<TC0_CCBEN_bp);                 // Compare B 
+                XMEGA_Timer.CTRLB |= (1<<TC0_CCBEN_bp);                 // Compare B
 #    elif IRSND_OCx == IRSND_XMEGA_OC0C                                 // use OC0C
                 XMEGA_Timer.CTRLB |= (1<<TC0_CCCEN_bp);                 // Compare C
 #    elif IRSND_OCx == IRSND_XMEGA_OC0D                                 // use OC0D
@@ -593,33 +608,36 @@ irsnd_off (void)
     if (irsnd_is_on)
     {
 #ifndef ANALYZE
-    
-#  if defined(PIC_C18)                                  // PIC C18
+
+#  if defined(PIC_C18)                                                                  // PIC C18
         PWMoff();
         // IRSND_PIN = 1; //input mode -> disbale PWM output pin (0=PWM on, 1=PWM off)
 
-#  elif defined (ARM_STM32)                             // STM32
-        TIM_Cmd(IRSND_TIMER, DISABLE);                  // disable counter
-        TIM_SelectOCxM(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_ForcedAction_InActive);   // force output inactive
-        TIM_CCxCmd(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_CCx_Enable);      // enable OC-output (is being disabled in TIM_SelectOCxM())
-        TIM_SetCounter(IRSND_TIMER, 0);                 // reset counter value
+#  elif defined (ARM_STM32)                                                             // STM32
+        TIM_Cmd(IRSND_TIMER, DISABLE);                                                  // disable counter
+        TIM_SelectOCxM(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_ForcedAction_InActive);    // force output inactive
+        TIM_CCxCmd(IRSND_TIMER, IRSND_TIMER_CHANNEL, TIM_CCx_Enable);                   // enable OC-output (is being disabled in TIM_SelectOCxM())
+        TIM_SetCounter(IRSND_TIMER, 0);                                                 // reset counter value
 
-#  elif defined (TEENSY_ARM_CORTEX_M4)                  // TEENSY
-        analogWrite(IRSND_PIN, 0); // pwm off, LOW level
+#  elif defined (TEENSY_ARM_CORTEX_M4)                                                  // TEENSY
+        analogWrite(IRSND_PIN, 0);                                                      // pwm off, LOW level
+
+#  elif defined (__xtensa__)                                                            // ESP8266
+        analogWrite(IRSND_PIN, 0);                                                      // pwm off, LOW level
 
 #  elif defined (__AVR_XMEGA__)
-#    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                                                                                 // use OC0A 
+#    if (IRSND_OCx == IRSND_XMEGA_OC0A)                                                 // use OC0A
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCAEN_bp);                                        // Compare A disconnected
-#    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                                                                                               // use OC0B 
+#    elif (IRSND_OCx == IRSND_XMEGA_OC0B)                                               // use OC0B
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCBEN_bp);                                        // Compare B disconnected
 #    elif IRSND_OCx == IRSND_XMEGA_OC0C                                                 // use OC0C
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCCEN_bp);                                        // Compare C disconnected
 #    elif IRSND_OCx == IRSND_XMEGA_OC0D                                                 // use OC0D
         XMEGA_Timer.CTRLB &= ~(1<<TC0_CCDEN_bp);                                        // Compare D disconnected
 #    elif IRSND_OCx == IRSND_XMEGA_OC1A                                                 // use OC1A
-                XMEGA_Timer.CTRLB &= ~(1<<TC1_CCAEN_bp);                                        // Compare A disconnected
+                XMEGA_Timer.CTRLB &= ~(1<<TC1_CCAEN_bp);                                // Compare A disconnected
 #    elif IRSND_OCx == IRSND_XMEGA_OC1B                                                 // use OC1B
-                XMEGA_Timer.CTRLB &= ~(1<<TC1_CCBEN_bp);                                        // Compare B disconnected
+                XMEGA_Timer.CTRLB &= ~(1<<TC1_CCBEN_bp);                                // Compare B disconnected
 #    else
 #       error wrong value of IRSND_OCx
 #    endif // IRSND_OCx
@@ -672,7 +690,7 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
 #ifndef ANALYZE
 #  if defined(PIC_C18)                                                                      // PIC C18 or XC8
 #    if defined(__12F1840)                                                                  // XC8
-        TRISA2=0; 
+        TRISA2=0;
         PR2=freq;
         CCP1M0=1;
         CCP1M1=1;
@@ -685,7 +703,7 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
         TMR2ON=1;
         CCP1CON &=(~0b0011); // p 197 "active high"
 #    else                                                                                   // PIC C18
-        OpenPWM(freq); 
+        OpenPWM(freq);
         SetDCPWM( (uint16_t) (freq * 2) + 1); // freq*2 = Duty cycles 50%
 #    endif
         PWMoff();
@@ -726,9 +744,14 @@ irsnd_set_freq (IRSND_FREQ_TYPE freq)
         TIM_SetCompare1(IRSND_TIMER, (freq + 1) / 2);
 
 #  elif defined (TEENSY_ARM_CORTEX_M4)
-        analogWriteResolution(8);  // 8 bit
+        analogWriteResolution(8);                                                           // 8 bit
         analogWriteFrequency(IRSND_PIN, freq);
-        analogWrite(IRSND_PIN, 0); // pwm off, LOW level
+        analogWrite(IRSND_PIN, 0);                                                          // pwm off, LOW level
+
+#elif defined (__xtensa__)
+        // analogWriteRange(255);
+        analogWriteFreq(freq);
+        analogWrite(IRSND_PIN, 0);                                                          // pwm off, LOW level
 
 #  elif defined (__AVR_XMEGA__)
         XMEGA_Timer.CCA = freq;
@@ -834,6 +857,10 @@ irsnd_init (void)
             return;
         }
 
+#  elif defined (__xtensa__)
+        pinMode(IRSND_PIN, OUTPUT);
+        irsnd_set_freq (IRSND_FREQ_36_KHZ);
+
 #  elif defined (__AVR_XMEGA__)
         IRSND_PORT &= ~(1<<IRSND_BIT);                                              // set IRSND_BIT to low
         IRSND_DDR |= (1<<IRSND_BIT);                                                // set IRSND_BIT to output
@@ -846,7 +873,7 @@ irsnd_init (void)
 #    else
         XMEGA_Timer.CTRLA |= TC_CLKSEL_DIV1_gc;                                     // start Timer  prescaler = 1
 #    endif
-                
+
 # else                                                                              // AVR
         IRSND_PORT &= ~(1<<IRSND_BIT);                                              // set IRSND_BIT to low
         IRSND_DDR |= (1<<IRSND_BIT);                                                // set IRSND_BIT to output
@@ -1208,11 +1235,11 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 #if IRSND_SUPPORT_RECS80_PROTOCOL == 1
         case IRMP_RECS80_PROTOCOL:
         {
-            toggle_bit_recs80 = toggle_bit_recs80 ? 0x00 : 0x40;
+            toggle_bit_recs80 = toggle_bit_recs80 ? 0x00 : 0x80;
 
-            irsnd_buffer[0] = 0x80 | toggle_bit_recs80 | ((irmp_data_p->address & 0x0007) << 3) |
-                              ((irmp_data_p->command & 0x0038) >> 3);                                           // STAAACCC
-            irsnd_buffer[1] = (irmp_data_p->command & 0x07) << 5;                                               // CCC00000
+            irsnd_buffer[0] = toggle_bit_recs80 | ((irmp_data_p->address & 0x000F) << 4) |
+                              ((irmp_data_p->command & 0x003C) >> 2);                                           // TAAACCCC
+            irsnd_buffer[1] = (irmp_data_p->command & 0x03) << 6;                                               // CC000000
             irsnd_busy      = TRUE;
             break;
         }
@@ -1438,7 +1465,7 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
 
             irsnd_buffer[0] = ((command & 0x06) << 5) | ((address & 0x0003) << 4) | ((command & 0x0780) >> 7);  //          C0 C1 A0 A1 D0 D1 D2 D3
             irsnd_buffer[1] = ((command & 0x78) << 1) | ((command & 0x0001) << 3);                              //          D4 D5 D6 D7 V  0  0  0
-                                                                                                                
+
             irsnd_busy      = TRUE;
             break;
         }
@@ -1528,9 +1555,9 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             //           1         2         3         4         5         6
             // 0123456789012345678901234567890123456789012345678901234567890123456789
             // N VVMMM    ? ???    t vmA x                 y                     TTTT
-            // 
+            //
             // irmp_data_p->command:
-            // 
+            //
             //         5432109876543210
             //         NAVVvMMMmtxyTTTT
 
@@ -1700,7 +1727,7 @@ irsnd_ISR (void)
                     send_trailer = FALSE;
                     return irsnd_busy;
                 }
-                
+
                 n_repeat_frames             = irsnd_repeat;
 
                 if (n_repeat_frames == IRSND_ENDLESS_REPETITION)

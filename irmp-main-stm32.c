@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp-main-stm32.c,v 1.2 2016/01/12 21:15:16 fm Exp $
+ * $Id: irmp-main-stm32.c,v 1.4 2017/02/17 09:13:06 fm Exp $
  *
  * This demo module is runnable on STM32
  *
@@ -64,7 +64,7 @@ int
 main (void)
 {
     IRMP_DATA irmp_data;
-        
+
     irmp_init();                                                            // initialize irmp
     timer2_init();                                                          // initialize timer2
 

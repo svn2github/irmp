@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.24 2016/09/09 07:53:29 fm Exp $
+ * $Id: irmpsystem.h,v 1.25 2016/12/19 09:01:41 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,12 +48,13 @@
 #elif defined(TARGET_IS_BLIZZARD_RA2)                                               // TI Stellaris (tested on Stellaris Launchpad with Code Composer Studio)
 #  define STELLARIS_ARM_CORTEX_M4
 #  define F_CPU (SysCtlClockGet())
-#elif defined(__xtensa__)
+#elif defined(__xtensa__)                                                           // ESP8266 (Arduino)
+#  include "Arduino.h"
 #  include "ets_sys.h"
 #  include "osapi.h"
 #  include "gpio.h"
 #  include "os_type.h"
-#  include "c_types.h" 
+#  include "c_types.h"
 #  define uint_fast8_t uint8_t
 #  define uint_fast16_t uint16_t
 #elif defined(TEENSYDUINO) && (defined(__MK20DX256__) || defined(__MK20DX128__))    // Teensy 3.x (tested on Teensy 3.1 in Arduino 1.6.5 / Teensyduino 1.2.5)
@@ -142,6 +143,10 @@ typedef unsigned short                  uint16_t;
 #  define uint_fast16_t                 uint16_t
 
 #elif defined(TEENSY_ARM_CORTEX_M4)
+#  define PROGMEM
+#  define memcpy_P                      memcpy
+
+#elif defined(__xtensa__)
 #  define PROGMEM
 #  define memcpy_P                      memcpy
 

@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.47 2016/09/14 06:31:48 fm Exp $
+ * $Id: irmpprotocols.h,v 1.48 2017/02/17 09:13:06 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,10 +75,11 @@
 #define IRMP_PANASONIC_PROTOCOL                 48              // Panasonic (Beamer), start bits similar to KASEIKYO
 #define IRMP_MITSU_HEAVY_PROTOCOL               49              // Mitsubishi-Heavy Aircondition, similar timing as Panasonic beamer
 #define IRMP_VINCENT_PROTOCOL                   50              // Vincent
+#define IRMP_SAMSUNGAH_PROTOCOL                 51              // Vincent
 
-#define IRMP_RADIO1_PROTOCOL                    51              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_RADIO1_PROTOCOL                    52              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        52              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        53              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -206,6 +207,25 @@ typedef uint8_t     PAUSE_LEN;
 #define SAMSUNG48_FRAMES                        2                               // SAMSUNG48 sends each frame 2 times
 #define SAMSUNG48_AUTO_REPETITION_PAUSE_TIME    5.0e-3                          // repetition after 5 ms
 #define SAMSUNG48_FRAME_REPEAT_PAUSE_TIME       47.0e-3                         // frame repeat after 47ms
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * SAMSUNGAH:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define SAMSUNGAH_START_BIT_PULSE_TIME          2500.0e-6                       // 2500 usec pulse
+#define SAMSUNGAH_START_BIT_PAUSE_TIME          1900.0e-6                       // 1900 usec pause
+#define SAMSUNGAH_PULSE_TIME                     450.0e-6                       //  450 usec pulse
+#define SAMSUNGAH_1_PAUSE_TIME                  1100.0e-6                       // 1100 usec pause
+#define SAMSUNGAH_0_PAUSE_TIME                   450.0e-6                       //  450 usec pause
+#define SAMSUNGAH_FRAME_REPEAT_PAUSE_TIME         40.0e-3                       // frame repeat after 40ms
+#define SAMSUNGAH_ADDRESS_OFFSET                 0                              // skip 0 bits
+#define SAMSUNGAH_ADDRESS_LEN                   16                              // read 16 address bits, ignore 17..31
+#define SAMSUNGAH_COMMAND_OFFSET                32                              // skip 32 bits
+#define SAMSUNGAH_COMMAND_LEN                   16                              // read 32 bits
+#define SAMSUNGAH_COMPLETE_DATA_LEN             48                              // complete length
+#define SAMSUNGAH_STOP_BIT                      1                               // has stop bit
+#define SAMSUNGAH_LSB                           1                               // LSB...MSB?
+#define SAMSUNGAH_FLAGS                         0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * MATSUSHITA:

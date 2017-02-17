@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsnd.h,v 1.24 2016/01/12 21:15:16 fm Exp $
+ * $Id: irsnd.h,v 1.26 2017/02/17 09:13:07 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,12 +52,12 @@
 # if defined(__12F1840)
     // Do not change lines below unless you have a different HW. This example is for 12F1840
     // setup macro for PWM used PWM module
-         
+
     //~ #    define PWMon()                         TMR2=0,IRSND_PIN=1
     //~ #    define PWMoff()                        CCP1CON &=(~0b1100)
     //~ #    define PWMon()                         TMR2ON=1
     //~ #    define PWMoff()                        TMR2ON=0
-    #if defined(IRSND_DEBUG) 
+    #if defined(IRSND_DEBUG)
         #define PWMon()                             LATA0=1
         #define PWMoff()                            LATA0=0
         #define IRSND_PIN                           LATA0
@@ -70,22 +70,22 @@
 #else
     // Do not change lines below until you have a different HW. Example is for 18F2550/18F4550
     // setup macro for PWM used PWM module
-    #  if IRSND_OCx == IRSND_PIC_CCP2        
+    #  if IRSND_OCx == IRSND_PIC_CCP2
     #    define PWMon()                             TMR2=0,CCP2CON |=0b1100
     #    define PWMoff()                            CCP2CON &=(~0b1100)
     #    define IRSND_PIN                           TRISCbits.TRISC1        // RC1 = PWM2
-    #    define SetDCPWM(x)                         SetDCPWM2(x)                    
+    #    define SetDCPWM(x)                         SetDCPWM2(x)
     #    define ClosePWM                            ClosePWM2
-    #    define OpenPWM(x)                          OpenPWM2(x) 
+    #    define OpenPWM(x)                          OpenPWM2(x)
     #  endif
-    #  if IRSND_OCx == IRSND_PIC_CCP1        
+    #  if IRSND_OCx == IRSND_PIC_CCP1
     #    define PWMon()                             TMR2=0,CCP1CON |=0b1100
     #    define PWMoff()                            CCP1CON &=(~0b1100)
     #    define IRSND_PIN                           TRISCbits.TRISC2        // RC2 = PWM1
     #    define SetDCPWM(x)                         SetDCPWM1(x)
     #    define ClosePWM                            ClosePWM1
     #    define OpenPWM(x)                          OpenPWM1(x)
-    # endif 
+    # endif
 # endif
 #  endif // PIC_C18
 

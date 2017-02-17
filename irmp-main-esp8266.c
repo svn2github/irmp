@@ -2,7 +2,7 @@
 
 Test program IRMP for ESP8266                2015-11-16 Wolfgang Strobl, Bonn
 
-$Id: irmp-main-esp8266.c,v 1.2 2016/01/12 21:15:16 fm Exp $
+$Id: irmp-main-esp8266.c,v 1.4 2017/02/17 09:13:06 fm Exp $
 
 IRMP ported to ESP8266, testet with MOD-WIFI-ESP8266-DEV on
 ESP8266-EVB evaluation board. https://www.olimex.com/Products/IoT/ESP8266-EVB/
@@ -10,7 +10,7 @@ ESP8266-EVB evaluation board. https://www.olimex.com/Products/IoT/ESP8266-EVB/
 Connections
 -----------
 
-Input TSOP via 1k resistor at GPIO12 (Pin 7 UEXT), 
+Input TSOP via 1k resistor at GPIO12 (Pin 7 UEXT),
 Output via UART (Pin 3/4 UEXT)
 
 example output
@@ -106,7 +106,7 @@ static void user_procTask(os_event_t *events);
 // unbuffered Uart-rx, based on a comment in
 // https://github.com/SuperHouse/esp-open-rtos/issues/18
 
-int my_rx_one_char(void)  // char or -1 
+int my_rx_one_char(void)  // char or -1
 {
     int c = READ_PERI_REG(UART_STATUS(0)) & 0xff;
     if (c) return READ_PERI_REG(UART_FIFO(0));
@@ -118,11 +118,11 @@ IRMP_DATA irmp_data;
 
 //------------------ User Task ---------------------
 
-static void 
+static void
 user_procTask(os_event_t *events)
 {
-    int rc = irmp_get_data (&irmp_data);   
-      
+    int rc = irmp_get_data (&irmp_data);
+
     if (rc)
     {
         os_printf("\nIRMP %10s(%2d): addr=0x%04x cmd=0x%04x, f=%d ",
@@ -133,13 +133,13 @@ user_procTask(os_event_t *events)
             irmp_data.flags
         );
     }
-    
+
     // https://github.com/SuperHouse/esp-open-rtos/issues/18
     // uart_rx_one_char ist offenbar eine ROM-Funktion.
-    
+
     int c = my_rx_one_char();
-    
-    if(c != -1) 
+
+    if(c != -1)
     {
         uart_tx_one_char(0,c);
         os_printf("(0x%02x, %d) ",c,c);
@@ -151,43 +151,42 @@ user_procTask(os_event_t *events)
                 os_printf("gpio=%08x ",gpio_input_get());
                 break;
         }
-    }    
+    }
     os_delay_us(100);
-    system_os_post(user_procTaskPrio, 0, 0 );    
+    system_os_post(user_procTaskPrio, 0, 0 );
 }
 
-// Init function 
+// Init function
 
 void ICACHE_FLASH_ATTR
 user_init()
 {
     void* p;
     uint32 now,diff;
-    
+
     //~ system_timer_reinit(); //US_TIMER
-    
-    uart_init(BIT_RATE_115200, BIT_RATE_115200);    
+
+    uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_printf("\n\nESP8266 IRMP Test v0.3 W.Strobl 20151120\n");
 
     os_printf("F_INTERRUPTS==%d\n",F_INTERRUPTS);
-    
+
     sysinfo();
-    
+
     hw_timer_init(NMI_SOURCE,1);
     hw_timer_set_func(irmp_timer);
     hw_timer_arm (1000000/F_INTERRUPTS);
-    
+
     // Initialize the GPIO subsystem.
     gpio_init();
-    
-    
+
+
     irmp_init ();
-    
+
     //Start os task
-    
+
     system_os_task(user_procTask, user_procTaskPrio,user_procTaskQueue, user_procTaskQueueLen);
     system_os_post(user_procTaskPrio, 0, 0 );
-    
+
     os_printf("IRMP listening ...\n");
-        
 }

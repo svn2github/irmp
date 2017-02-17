@@ -1,11 +1,11 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp-main-pic-12F1840.c - example main module for PIC 12f1840
- * 
+ *
  * IR decoder using IRMP
  *
  * (c) 2014 Wolfgang Strobl (news4 at mystrobl.de) 2014-03-12:2014-07-20
  *
- * $Id: irmp-main-pic-12F1840.c,v 1.4 2016/09/09 08:01:11 fm Exp $
+ * $Id: irmp-main-pic-12F1840.c,v 1.6 2017/02/17 09:13:06 fm Exp $
  *
  * This demo module is runnable on a Microchip PIC 12F1840
  *
@@ -18,11 +18,11 @@
  * (at your option) any later version.
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
- 
- 
-/* 
 
-Hauptprogramm fuer den nachfolgenden Testaufbau, bestehend aus zwei mal 
+
+/*
+
+Hauptprogramm fuer den nachfolgenden Testaufbau, bestehend aus zwei mal
 
 
              TSOP1736+        PIC12F1840
@@ -32,12 +32,12 @@ Hauptprogramm fuer den nachfolgenden Testaufbau, bestehend aus zwei mal
 RS232 out  -|___|-------GP4--o|  |o--GP1 / ICSPCLK  ___    LED
 RS232 in   -|___|---Vpp/GP3--o|__|o--GP2-----------|___|- ->|---Vss
              10k
-             
+
 auf einem Steckbrett. (Genauer gesagt, dies ist die aktuelle Beschaltung
 fuer V1.8,  V1.0 ist aber bzgl. IRMP-Empfang funktional identisch. Nicht eingezeichnet
 ist ein Abblockkondensator von 100nF ueber Vss und Vdd.
 
-Uebersetzt mit Microchip MPLAB XC8 C Compiler (Free Mode) V1.31 
+Uebersetzt mit Microchip MPLAB XC8 C Compiler (Free Mode) V1.31
 im stark gecrippelten "Free Mode".
 
 Memory Summary: (V 1.8)
@@ -49,13 +49,13 @@ Memory Summary: (V 1.8)
     ID Location space    used     0h (     0) of     4h bytes   (  0.0%)
 
 
-Testaufbau: 
+Testaufbau:
 
 Zwei Steckbretter,
-urspruengliche Version des Programms als Empfaenger, 
+urspruengliche Version des Programms als Empfaenger,
 aktuelle Version als Sender, Aufzeichnung mit putty,
 angeschlossen jeweils per USB2RS232-Kabel von Conrad
-(972543, basierend auf Prolific PL2303). Soft-UART 
+(972543, basierend auf Prolific PL2303). Soft-UART
 fuer Input, da 12F1820 keine Kontrolle ueber Input-
 Polaritaet erlaubt und ich fuer Testaufbauten eine
 Minimalbeschaltung bevorzuge.
@@ -64,8 +64,8 @@ Kurze Distanz
 (~30 cm) zwischen Sender und Empfaenger), keine genaue Ausrichtung.
 Stromversorgung wahlwweise mit 5V via PICkit 2 oder 3x1.2V NiMH-AA.
 
-Zunaechst 
-CD TAPE TUNER AUX OFF mit Philips FB, 
+Zunaechst
+CD TAPE TUNER AUX OFF mit Philips FB,
 OFF mit VAOVA TV-2900HDD FB
 dann Eingabe . und n beim Sender.
 
@@ -125,7 +125,7 @@ void InitApp(void)
     IRCF1=1;
     IRCF2=1;
     IRCF3=1;
-    SPLLEN=1; // p  46 and 54 
+    SPLLEN=1; // p  46 and 54
 }
 
 /******************************************************************************/
@@ -155,8 +155,8 @@ void InitApp(void)
 // UART
 /******************************************************************************/
 
-#define GPIO3 RA3 
-#define GPIO4 RA4 
+#define GPIO3 RA3
+#define GPIO4 RA4
 
 #define SOFTUART_RXPIN  GPIO3
 #define SOFTUART_STDIO 1
@@ -170,12 +170,12 @@ void InitApp(void)
 #define kbhit softuartkbhit
 
 
-void 
+void
 RS232init(void)
  {
      // Transmit
      TXCKSEL = 1;                 //  put TX on pin 4 - not 0 -, p 102
-     SPBRGL = (_XTAL_FREQ/BAUD/64-1);  
+     SPBRGL = (_XTAL_FREQ/BAUD/64-1);
      SPBRGH = 0;
      BRGH = 0;
      BRG16 = 0;
@@ -187,24 +187,24 @@ RS232init(void)
  }
 
  // EUSART transmit
- void 
+ void
  putch(char c)
  {
     while (!TRMT) _delay(1);
     TXREG=c;
  }
- 
+
 /******************************************************************************/
 // Timer and ISR
 /******************************************************************************/
- 
-void 
+
+void
 timer1_init(void)
 {
     // p 154
     TMR1=0xFC00; // p. 155 wait 1024 cycles for stabilization.
     TMR1CS1=0; // Clock source == System Clock
-    TMR1CS0=1; 
+    TMR1CS0=1;
     TMR1IE=1; // enable TMR1 interrupts
     PEIE=1;   // enable Pheripheral Interrupts
     TMR1IF=0;
@@ -218,9 +218,9 @@ timer1_init(void)
 
 void interrupt isr(void)
 {
-    TMR1=0xffff-_XTAL_FREQ/F_INTERRUPTS; 
+    TMR1=0xffff-_XTAL_FREQ/F_INTERRUPTS;
     TMR1IF=0; // clear timer 1 interrupt
- 
+
     if (!irsnd_ISR())
     {
         irmp_ISR();
@@ -232,20 +232,20 @@ IRMP_DATA irmp_data;
 
 void RC5(uint16_t addr,uint16_t  cmd, uint8_t repetitions)
 {
-    irmp_data.protocol = IRMP_RC5_PROTOCOL;                       
+    irmp_data.protocol = IRMP_RC5_PROTOCOL;
     irmp_data.address  = addr;
     irmp_data.command  = cmd;
     irmp_data.flags    = repetitions;
-    irsnd_send_data (&irmp_data, FALSE); 
+    irsnd_send_data (&irmp_data, FALSE);
 }
 
 void NEC(int addr,int cmd)
 {
-    irmp_data.protocol = IRMP_NEC_PROTOCOL;                       
+    irmp_data.protocol = IRMP_NEC_PROTOCOL;
     irmp_data.address  = addr;
     irmp_data.command  = cmd;
     irmp_data.flags    = 0;
-    irsnd_send_data (&irmp_data, FALSE); 
+    irsnd_send_data (&irmp_data, FALSE);
 }
 
 
@@ -258,18 +258,18 @@ main (void)
 {
     IRMP_DATA irmp_data;
     char c;
-    InitApp(); 
+    InitApp();
 
     PWMoff();
     RS232init();
-    
+
     __delay_ms(200);
     printf("IRMP PIC 12F1840 1.8 ws\r\n");
     irmp_init();              // initialize irmp
     timer1_init();            // initialize timer1
     ei();                     // enable interrupts
     TMR1ON=1; // start timer
-  
+
     for (;;)
     {
         if (kbhit())
@@ -285,7 +285,7 @@ main (void)
             else if (c=='n')
             {
                 printf("NEC ");
-                NEC(0x55,0xaa); 
+                NEC(0x55,0xaa);
             }
             else
             {
@@ -299,11 +299,11 @@ main (void)
         if (irmp_get_data (&irmp_data))
         {
             printf("P ");
-            printf("%d a=0x%04x c=0x%04x f=0x%02x (",irmp_data.protocol, irmp_data.address,irmp_data.command,irmp_data.flags); 
-            
+            printf("%d a=0x%04x c=0x%04x f=0x%02x (",irmp_data.protocol, irmp_data.address,irmp_data.command,irmp_data.flags);
+
 #if IRMP_PROTOCOL_NAMES
             printf(irmp_protocol_names[irmp_data.protocol]);
-#else            
+#else
             switch(irmp_data.protocol)
             {
                 case 1:

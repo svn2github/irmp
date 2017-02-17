@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.190 2016/12/16 09:18:11 fm Exp $
+ * $Id: irmp.c,v 1.192 2017/02/17 09:13:06 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -139,6 +139,17 @@
 #define SAMSUNG_1_PAUSE_LEN_MAX                 ((uint_fast8_t)(F_INTERRUPTS * SAMSUNG_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define SAMSUNG_0_PAUSE_LEN_MIN                 ((uint_fast8_t)(F_INTERRUPTS * SAMSUNG_0_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define SAMSUNG_0_PAUSE_LEN_MAX                 ((uint_fast8_t)(F_INTERRUPTS * SAMSUNG_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+
+#define SAMSUNGAH_START_BIT_PULSE_LEN_MIN       ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_START_BIT_PULSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SAMSUNGAH_START_BIT_PULSE_LEN_MAX       ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_START_BIT_PULSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SAMSUNGAH_START_BIT_PAUSE_LEN_MIN       ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_START_BIT_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define SAMSUNGAH_START_BIT_PAUSE_LEN_MAX       ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_START_BIT_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+#define SAMSUNGAH_PULSE_LEN_MIN                 ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define SAMSUNGAH_PULSE_LEN_MAX                 ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define SAMSUNGAH_1_PAUSE_LEN_MIN               ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_1_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define SAMSUNGAH_1_PAUSE_LEN_MAX               ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_1_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
+#define SAMSUNGAH_0_PAUSE_LEN_MIN               ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_0_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
+#define SAMSUNGAH_0_PAUSE_LEN_MAX               ((uint_fast8_t)(F_INTERRUPTS * SAMSUNGAH_0_PAUSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 
 #define MATSUSHITA_START_BIT_PULSE_LEN_MIN      ((uint_fast8_t)(F_INTERRUPTS * MATSUSHITA_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define MATSUSHITA_START_BIT_PULSE_LEN_MAX      ((uint_fast8_t)(F_INTERRUPTS * MATSUSHITA_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
@@ -647,6 +658,7 @@ static const char proto_technics[]      PROGMEM = "TECHNICS";
 static const char proto_panasonic[]     PROGMEM = "PANASONIC";
 static const char proto_mitsu_heavy[]   PROGMEM = "MITSU_HEAVY";
 static const char proto_vincent[]       PROGMEM = "VINCENT";
+static const char proto_samsungah[]     PROGMEM = "SAMSUNGAH";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -704,6 +716,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_panasonic,
     proto_mitsu_heavy,
     proto_vincent,
+    proto_samsungah,
     proto_radio1
 };
 
@@ -863,7 +876,7 @@ irmp_uart_init (void)
 
     // UART enable
     USART_Cmd(STM32_UART_COM, ENABLE);
-        
+
 #elif defined(ARDUINO)
     // we use the Arduino Serial Imlementation
     // you have to call Serial.begin(SER_BAUD); in Arduino setup() function
@@ -932,25 +945,31 @@ irmp_uart_putc (unsigned char ch)
 
 #else
 #if (IRMP_EXT_LOGGING == 0)
-        
-        #       if defined (__AVR_XMEGA__)
-        while (!(USARTC1.STATUS & USART_DREIF_bm));
-        USARTC1.DATA = ch;
-        
-        #       else //AVR_MEGA
+
+#  if defined (__AVR_XMEGA__)
+    while (!(USARTC1.STATUS & USART_DREIF_bm))
+    {
+        ;
+    }
+
+    USARTC1.DATA = ch;
+
+#  else // AVR_MEGA
     while (!(UART0_UCSRA & UART0_UDRE_BIT_VALUE))
     {
         ;
     }
 
     UART0_UDR = ch;
-        #endif //__AVR_XMEGA__
+
+#  endif // __AVR_XMEGA__
+
 #else
 
     sendextlog(ch);                                                         // use external log
 
-#endif //IRMP_EXT_LOGGING
-#endif //ARM_STM32F4XX
+#endif // IRMP_EXT_LOGGING
+#endif // ARM_STM32F4XX
 #else
     fputc (ch, stderr);
 #endif // UNIX_OR_WINDOWS
@@ -1220,6 +1239,31 @@ static const PROGMEM IRMP_PARAMETER samsung_param =
     SAMSUNG_STOP_BIT,                                                   // stop_bit:        flag: frame has stop bit
     SAMSUNG_LSB,                                                        // lsb_first:       flag: LSB first
     SAMSUNG_FLAGS                                                       // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_SAMSUNGAH_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER samsungah_param =
+{
+    IRMP_SAMSUNGAH_PROTOCOL,                                            // protocol:        ir protocol
+    SAMSUNGAH_PULSE_LEN_MIN,                                            // pulse_1_len_min: minimum length of pulse with bit value 1
+    SAMSUNGAH_PULSE_LEN_MAX,                                            // pulse_1_len_max: maximum length of pulse with bit value 1
+    SAMSUNGAH_1_PAUSE_LEN_MIN,                                          // pause_1_len_min: minimum length of pause with bit value 1
+    SAMSUNGAH_1_PAUSE_LEN_MAX,                                          // pause_1_len_max: maximum length of pause with bit value 1
+    SAMSUNGAH_PULSE_LEN_MIN,                                            // pulse_0_len_min: minimum length of pulse with bit value 0
+    SAMSUNGAH_PULSE_LEN_MAX,                                            // pulse_0_len_max: maximum length of pulse with bit value 0
+    SAMSUNGAH_0_PAUSE_LEN_MIN,                                          // pause_0_len_min: minimum length of pause with bit value 0
+    SAMSUNGAH_0_PAUSE_LEN_MAX,                                          // pause_0_len_max: maximum length of pause with bit value 0
+    SAMSUNGAH_ADDRESS_OFFSET,                                           // address_offset:  address offset
+    SAMSUNGAH_ADDRESS_OFFSET + SAMSUNGAH_ADDRESS_LEN,                   // address_end:     end of address
+    SAMSUNGAH_COMMAND_OFFSET,                                           // command_offset:  command offset
+    SAMSUNGAH_COMMAND_OFFSET + SAMSUNGAH_COMMAND_LEN,                   // command_end:     end of command
+    SAMSUNGAH_COMPLETE_DATA_LEN,                                        // complete_len:    complete length of frame
+    SAMSUNGAH_STOP_BIT,                                                 // stop_bit:        flag: frame has stop bit
+    SAMSUNGAH_LSB,                                                      // lsb_first:       flag: LSB first
+    SAMSUNGAH_FLAGS                                                     // flags:           some flags
 };
 
 #endif
@@ -2161,6 +2205,7 @@ irmp_init (void)
     pinMode(IRMP_PIN, INPUT);
 
 #elif defined(__xtensa__)                                               // ESP8266
+    pinMode(IRMP_BIT_NUMBER, INPUT);
                                                                         // select pin function
 #  if (IRMP_BIT_NUMBER == 12)
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12);
@@ -3059,6 +3104,20 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_SAMSUNG_PROTOCOL == 1
+
+#if IRMP_SUPPORT_SAMSUNGAH_PROTOCOL == 1
+                    if (irmp_pulse_time >= SAMSUNGAH_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= SAMSUNGAH_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= SAMSUNGAH_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= SAMSUNGAH_START_BIT_PAUSE_LEN_MAX)
+                    {                                                           // it's SAMSUNGAH
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = SAMSUNGAH, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        SAMSUNGAH_START_BIT_PULSE_LEN_MIN, SAMSUNGAH_START_BIT_PULSE_LEN_MAX,
+                                        SAMSUNGAH_START_BIT_PAUSE_LEN_MIN, SAMSUNGAH_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &samsungah_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_SAMSUNGAH_PROTOCOL == 1
 
 #if IRMP_SUPPORT_MATSUSHITA_PROTOCOL == 1
                     if (irmp_pulse_time >= MATSUSHITA_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= MATSUSHITA_START_BIT_PULSE_LEN_MAX &&

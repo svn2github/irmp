@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irsndconfig.h,v 1.88 2016/09/09 07:53:29 fm Exp $
+ * $Id: irsndconfig.h,v 1.89 2016/12/19 09:01:41 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #  error please include only irsnd.h, not irsndconfig.h
 #endif
 
-//~ #define IRSND_DEBUG 1                                   // activate debugging
+// #define IRSND_DEBUG 1                                // activate debugging
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * F_INTERRUPTS: number of interrupts per second, should be in the range from 10000 to 20000, typically 15000
@@ -48,7 +48,7 @@
 
 // more protocols, enable here!                 Enable  Remarks                 F_INTERRUPTS            Program Space
 #define IRSND_SUPPORT_DENON_PROTOCOL            0       // DENON, Sharp         >= 10000                 ~200 bytes
-#define IRSND_SUPPORT_RC5_PROTOCOL              0       // RC5                  >= 10000                 ~150 bytes
+#define IRSND_SUPPORT_RC5_PROTOCOL              1       // RC5                  >= 10000                 ~150 bytes
 #define IRSND_SUPPORT_RC6_PROTOCOL              0       // RC6                  >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_RC6A_PROTOCOL             0       // RC6A                 >= 10000                 ~250 bytes
 #define IRSND_SUPPORT_JVC_PROTOCOL              0       // JVC                  >= 10000                 ~150 bytes
@@ -102,7 +102,7 @@
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if defined(__AVR_XMEGA__)                                              // XMEGA
-#  define IRSND_PORT_PRE                        PORTD                   
+#  define IRSND_PORT_PRE                        PORTD
 #  define XMEGA_Timer                           TCD0
 #  define IRSND_OCx                             IRSND_XMEGA_OC0B        // use OC0B
 
@@ -165,6 +165,13 @@
 #elif !defined (UNIX_OR_WINDOWS)
 #  error target system not defined.
 #endif
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * ESP8266 (Arduino, see IRSEND.ino)
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (__xtensa__)
+#  define IRSND_PIN                             0                       // choose an arduino pin with PWM function!
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Use Callbacks to indicate output signal or something else
