@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
  *
- * $Id: irmpconfig.h,v 1.152 2017/02/17 09:13:06 fm Exp $
+ * $Id: irmpconfig.h,v 1.153 2017/08/25 12:24:18 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,9 @@
 #define IRMP_SUPPORT_PANASONIC_PROTOCOL         0       // PANASONIC Beamer     >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_MITSU_HEAVY_PROTOCOL       0       // Mitsubishi Aircond   >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_VINCENT_PROTOCOL           0       // VINCENT              >= 10000                 ~250 bytes
-#define IRMP_SUPPORT_SAMSUNGAH_PROTOCOL         1       // SAMSUNG AH           >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_SAMSUNGAH_PROTOCOL         0       // SAMSUNG AH           >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_IRMP16_PROTOCOL            1       // IRMP specific        >= 15000                 ~250 bytes
+
 #define IRMP_SUPPORT_RADIO1_PROTOCOL            0       // RADIO, e.g. TEVION   >= 10000                 ~250 bytes (experimental)
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

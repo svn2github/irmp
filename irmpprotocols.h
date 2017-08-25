@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.48 2017/02/17 09:13:06 fm Exp $
+ * $Id: irmpprotocols.h,v 1.49 2017/08/25 12:24:18 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,9 +75,10 @@
 #define IRMP_PANASONIC_PROTOCOL                 48              // Panasonic (Beamer), start bits similar to KASEIKYO
 #define IRMP_MITSU_HEAVY_PROTOCOL               49              // Mitsubishi-Heavy Aircondition, similar timing as Panasonic beamer
 #define IRMP_VINCENT_PROTOCOL                   50              // Vincent
-#define IRMP_SAMSUNGAH_PROTOCOL                 51              // Vincent
+#define IRMP_SAMSUNGAH_PROTOCOL                 51              // SAMSUNG AH
+#define IRMP_IRMP16_PROTOCOL                    52              // IRMP specific protocol for data transfer, e.g. between two microcontrollers via IR
 
-#define IRMP_RADIO1_PROTOCOL                    52              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_RADIO1_PROTOCOL                    53              // Radio protocol (experimental status), do not use it yet!
 
 #define IRMP_N_PROTOCOLS                        53              // number of supported protocols
 
@@ -960,6 +961,25 @@ typedef uint8_t     PAUSE_LEN;
 #define ACP24_STOP_BIT                          1                               // has stop bit
 #define ACP24_LSB                               0                               // LSB...MSB
 #define ACP24_FLAGS                             0                               // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * IRMP16:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define IRMP16_START_BIT_PULSE_TIME              842.0e-6                       //  842 usec pulse (32 x 1/38kHz)
+#define IRMP16_START_BIT_PAUSE_TIME             1052.0e-6                       // 1052 usec pause (40 x 1/38kHz)
+#define IRMP16_PULSE_TIME                        421.0e-6                       //  421 usec pulse (16 x 1/38kHz)
+#define IRMP16_1_PAUSE_TIME                      842.0e-6                       //  842 usec pause (32 x 1/38kHz)
+#define IRMP16_0_PAUSE_TIME                      421.0e-6                       //  421 usec pause (16 x 1/38kHz)
+#define IRMP16_FRAME_REPEAT_PAUSE_TIME            40.0e-3                       // frame repeat after 40ms
+#define IRMP16_ADDRESS_OFFSET                   0                               // skip 0 bits
+#define IRMP16_ADDRESS_LEN                      0                               // read 0 address bits
+#define IRMP16_COMMAND_OFFSET                   0                               // skip 0 bits
+#define IRMP16_COMMAND_LEN                      16                              // read 16 bits (12 command + 4 CRC)
+#define IRMP16_COMPLETE_DATA_LEN                16                              // complete length
+#define IRMP16_STOP_BIT                         1                               // has stop bit
+#define IRMP16_LSB                              1                               // LSB...MSB
+#define IRMP16_FLAGS                            0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * RADIO1 - e.g. Tevion

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.192 2017/02/17 09:13:06 fm Exp $
+ * $Id: irmp.c,v 1.193 2017/08/25 12:24:18 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -449,6 +449,17 @@
 #define LEGO_0_PAUSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define LEGO_0_PAUSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 
+#define IRMP16_START_BIT_PULSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define IRMP16_START_BIT_PULSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define IRMP16_START_BIT_PAUSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define IRMP16_START_BIT_PAUSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define IRMP16_PULSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define IRMP16_PULSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define IRMP16_1_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define IRMP16_1_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define IRMP16_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
+#define IRMP16_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+
 #define BOSE_START_BIT_PULSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define BOSE_START_BIT_PULSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define BOSE_START_BIT_PAUSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
@@ -659,6 +670,7 @@ static const char proto_panasonic[]     PROGMEM = "PANASONIC";
 static const char proto_mitsu_heavy[]   PROGMEM = "MITSU_HEAVY";
 static const char proto_vincent[]       PROGMEM = "VINCENT";
 static const char proto_samsungah[]     PROGMEM = "SAMSUNGAH";
+static const char proto_irmp16[]        PROGMEM = "IRMP16";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -717,6 +729,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_mitsu_heavy,
     proto_vincent,
     proto_samsungah,
+    proto_irmp16,
     proto_radio1
 };
 
@@ -1868,6 +1881,31 @@ static const PROGMEM IRMP_PARAMETER lego_param =
     LEGO_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
     LEGO_LSB,                                                           // lsb_first:       flag: LSB first
     LEGO_FLAGS                                                          // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_IRMP16_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER irmp16_param =
+{
+    IRMP_IRMP16_PROTOCOL,                                               // protocol:        ir protocol
+    IRMP16_PULSE_LEN_MIN,                                               // pulse_1_len_min: minimum length of pulse with bit value 1
+    IRMP16_PULSE_LEN_MAX,                                               // pulse_1_len_max: maximum length of pulse with bit value 1
+    IRMP16_1_PAUSE_LEN_MIN,                                             // pause_1_len_min: minimum length of pause with bit value 1
+    IRMP16_1_PAUSE_LEN_MAX,                                             // pause_1_len_max: maximum length of pause with bit value 1
+    IRMP16_PULSE_LEN_MIN,                                               // pulse_0_len_min: minimum length of pulse with bit value 0
+    IRMP16_PULSE_LEN_MAX,                                               // pulse_0_len_max: maximum length of pulse with bit value 0
+    IRMP16_0_PAUSE_LEN_MIN,                                             // pause_0_len_min: minimum length of pause with bit value 0
+    IRMP16_0_PAUSE_LEN_MAX,                                             // pause_0_len_max: maximum length of pause with bit value 0
+    IRMP16_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    IRMP16_ADDRESS_OFFSET + IRMP16_ADDRESS_LEN,                         // address_end:     end of address
+    IRMP16_COMMAND_OFFSET,                                              // command_offset:  command offset
+    IRMP16_COMMAND_OFFSET + IRMP16_COMMAND_LEN,                         // command_end:     end of command
+    IRMP16_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    IRMP16_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    IRMP16_LSB,                                                         // lsb_first:       flag: LSB first
+    IRMP16_FLAGS                                                        // flags:           some flags
 };
 
 #endif
@@ -3580,6 +3618,20 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_LEGO_PROTOCOL == 1
+
+#if IRMP_SUPPORT_IRMP16_PROTOCOL == 1
+                    if (irmp_pulse_time >= IRMP16_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= IRMP16_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= IRMP16_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= IRMP16_START_BIT_PAUSE_LEN_MAX)
+                    {
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = IRMP16, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        IRMP16_START_BIT_PULSE_LEN_MIN, IRMP16_START_BIT_PULSE_LEN_MAX,
+                                        IRMP16_START_BIT_PAUSE_LEN_MIN, IRMP16_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &irmp16_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_IRMP16_PROTOCOL == 1
 
 #if IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
                     if (irmp_pulse_time >= A1TVBOX_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= A1TVBOX_START_BIT_PULSE_LEN_MAX &&

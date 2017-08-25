@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpsystem.h,v 1.25 2016/12/19 09:01:41 fm Exp $
+ * $Id: irmpsystem.h,v 1.26 2017/08/25 12:24:18 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,7 +160,7 @@ typedef unsigned short                  uint16_t;
 
 #endif
 
-#if defined(PIC_CCS) || defined(PIC_C18) || defined(ARM_STM32) || defined(STELLARIS_ARM_CORTEX_M4)
+#if defined(PIC_CCS) || defined(PIC_C18)
 typedef unsigned char                   uint8_t;
 typedef unsigned short                  uint16_t;
 typedef unsigned char                   uint_fast8_t;

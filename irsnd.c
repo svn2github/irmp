@@ -14,7 +14,7 @@
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
  *
- * $Id: irsnd.c,v 1.103 2017/02/17 09:13:06 fm Exp $
+ * $Id: irsnd.c,v 1.104 2017/08/25 12:24:18 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -483,6 +483,14 @@
 #define LEGO_1_PAUSE_LEN                        (uint8_t)(F_INTERRUPTS * LEGO_1_PAUSE_TIME + 0.5)
 #define LEGO_0_PAUSE_LEN                        (uint8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME + 0.5)
 #define LEGO_FRAME_REPEAT_PAUSE_LEN             (uint16_t)(F_INTERRUPTS * LEGO_FRAME_REPEAT_PAUSE_TIME + 0.5)               // use uint16_t!
+
+#define IRMP16_START_BIT_PULSE_LEN              (uint8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME + 0.5)
+#define IRMP16_START_BIT_PAUSE_LEN              (uint8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME + 0.5)
+#define IRMP16_REPEAT_START_BIT_PAUSE_LEN       (uint8_t)(F_INTERRUPTS * IRMP16_REPEAT_START_BIT_PAUSE_TIME + 0.5)
+#define IRMP16_PULSE_LEN                        (uint8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME + 0.5)
+#define IRMP16_1_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME + 0.5)
+#define IRMP16_0_PAUSE_LEN                      (uint8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME + 0.5)
+#define IRMP16_FRAME_REPEAT_PAUSE_LEN           (uint16_t)(F_INTERRUPTS * IRMP16_FRAME_REPEAT_PAUSE_TIME + 0.5)               // use uint16_t!
 
 #define A1TVBOX_START_BIT_PULSE_LEN             (uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PULSE_TIME + 0.5)
 #define A1TVBOX_START_BIT_PAUSE_LEN             (uint8_t)(F_INTERRUPTS * A1TVBOX_START_BIT_PAUSE_TIME + 0.5)
@@ -1502,6 +1510,17 @@ irsnd_send_data (IRMP_DATA * irmp_data_p, uint8_t do_wait)
             break;
         }
 #endif
+#if IRSND_SUPPORT_IRMP16_PROTOCOL == 1
+        case IRMP_IRMP16_PROTOCOL:
+        {
+            command = bitsrevervse (irmp_data_p->command, IRMP16_COMMAND_LEN);
+
+            irsnd_buffer[0] = (command & 0xFF00) >> 8;                                                          // CCCCCCCC
+            irsnd_buffer[1] = (command & 0x00FF);                                                               // CCCCCCCC
+            irsnd_busy      = TRUE;
+            break;
+        }
+#endif
 #if IRSND_SUPPORT_A1TVBOX_PROTOCOL == 1
         case IRMP_A1TVBOX_PROTOCOL:
         {
@@ -2388,6 +2407,24 @@ irsnd_ISR (void)
                         break;
                     }
 #endif
+#if IRSND_SUPPORT_IRMP16_PROTOCOL == 1
+                    case IRMP_IRMP16_PROTOCOL:
+                    {
+                        startbit_pulse_len          = IRMP16_START_BIT_PULSE_LEN;
+                        startbit_pause_len          = IRMP16_START_BIT_PAUSE_LEN - 1;
+                        complete_data_len           = IRMP16_COMPLETE_DATA_LEN;
+                        pulse_1_len                 = IRMP16_PULSE_LEN;
+                        pause_1_len                 = IRMP16_1_PAUSE_LEN - 1;
+                        pulse_0_len                 = IRMP16_PULSE_LEN;
+                        pause_0_len                 = IRMP16_0_PAUSE_LEN - 1;
+                        has_stop_bit                = IRMP16_STOP_BIT;
+                        n_auto_repetitions          = 1;                                            // 1 frame
+                        auto_repetition_pause_len   = 0;
+                        repeat_frame_pause_len      = IRMP16_FRAME_REPEAT_PAUSE_LEN;
+                        irsnd_set_freq (IRSND_FREQ_38_KHZ);
+                        break;
+                    }
+#endif
 #if IRSND_SUPPORT_A1TVBOX_PROTOCOL == 1
                     case IRMP_A1TVBOX_PROTOCOL:
                     {
@@ -2552,6 +2589,9 @@ irsnd_ISR (void)
 #if IRSND_SUPPORT_LEGO_PROTOCOL == 1
                 case IRMP_LEGO_PROTOCOL:
 #endif
+#if IRSND_SUPPORT_IRMP16_PROTOCOL == 1
+                case IRMP_IRMP16_PROTOCOL:
+#endif
 #if IRSND_SUPPORT_THOMSON_PROTOCOL == 1
                 case IRMP_THOMSON_PROTOCOL:
 #endif
@@ -2572,7 +2612,7 @@ irsnd_ISR (void)
     IRSND_SUPPORT_FDC_PROTOCOL == 1 || IRSND_SUPPORT_RCCAR_PROTOCOL == 1 || IRSND_SUPPORT_JVC_PROTOCOL == 1 || IRSND_SUPPORT_NIKON_PROTOCOL == 1 || \
     IRSND_SUPPORT_LEGO_PROTOCOL == 1 || IRSND_SUPPORT_THOMSON_PROTOCOL == 1 || IRSND_SUPPORT_ROOMBA_PROTOCOL == 1 || IRSND_SUPPORT_TELEFUNKEN_PROTOCOL == 1 || \
     IRSND_SUPPORT_PENTAX_PROTOCOL == 1 || IRSND_SUPPORT_ACP24_PROTOCOL == 1 || IRSND_SUPPORT_PANASONIC_PROTOCOL == 1 || IRSND_SUPPORT_BOSE_PROTOCOL == 1 || \
-    IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL == 1
+    IRSND_SUPPORT_MITSU_HEAVY_PROTOCOL == 1 || IRSND_SUPPORT_IRMP16_PROTOCOL == 1
                 {
                     if (pulse_counter == 0)
                     {
