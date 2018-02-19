@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2013-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmpprotocols.h,v 1.49 2017/08/25 12:24:18 fm Exp $
+ * $Id: irmpprotocols.h,v 1.50 2018/02/19 10:23:36 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
  * IR protocols:
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
+#define IRMP_UNKNOWN_PROTOCOL                    0              // uknown protocol
 #define IRMP_SIRCS_PROTOCOL                      1              // Sony
 #define IRMP_NEC_PROTOCOL                        2              // NEC, Pioneer, JVC, Toshiba, NoName etc.
 #define IRMP_SAMSUNG_PROTOCOL                    3              // Samsung

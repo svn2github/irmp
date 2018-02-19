@@ -89,6 +89,7 @@ done
 # t-home-mediareceiver-15kHz.txt (RUWIDO) conflicts with Denon
 # a1tvbox-15kHz.txt (A1TVBOX) conflicts with MERLIN
 # Siemens-Gigaset-M740AV-15kHz.txt (SIEMENS) conflicts with MERLIN
+# irmp16-15kHz.txt conflicts with BOSE
 
 for j in                                \
     bo_beolink1000-15kHz.txt            \

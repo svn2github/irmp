@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
  *
- * $Id: irmp.c,v 1.193 2017/08/25 12:24:18 fm Exp $
+ * $Id: irmp.c,v 1.194 2018/02/19 10:23:36 fm Exp $
  *
  * Supported AVR mikrocontrollers:
  *
@@ -449,16 +449,16 @@
 #define LEGO_0_PAUSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
 #define LEGO_0_PAUSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * LEGO_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
 
-#define IRMP16_START_BIT_PULSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define IRMP16_START_BIT_PULSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define IRMP16_START_BIT_PAUSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define IRMP16_START_BIT_PAUSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define IRMP16_PULSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define IRMP16_PULSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define IRMP16_1_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define IRMP16_1_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
-#define IRMP16_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MIN_TOLERANCE_40 + 0.5) - 1)
-#define IRMP16_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MAX_TOLERANCE_40 + 0.5) + 1)
+#define IRMP16_START_BIT_PULSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define IRMP16_START_BIT_PULSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define IRMP16_START_BIT_PAUSE_LEN_MIN          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define IRMP16_START_BIT_PAUSE_LEN_MAX          ((uint_fast8_t)(F_INTERRUPTS * IRMP16_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define IRMP16_PULSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define IRMP16_PULSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * IRMP16_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define IRMP16_1_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define IRMP16_1_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define IRMP16_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define IRMP16_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
 #define BOSE_START_BIT_PULSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define BOSE_START_BIT_PULSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
@@ -2461,13 +2461,18 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
         if (rtc)
         {
             irmp_data_p->protocol = irmp_protocol;
-            irmp_data_p->address = irmp_address;
-            irmp_data_p->command = irmp_command;
-            irmp_data_p->flags   = irmp_flags;
-            irmp_command = 0;
-            irmp_address = 0;
-            irmp_flags   = 0;
+            irmp_data_p->address  = irmp_address;
+            irmp_data_p->command  = irmp_command;
+            irmp_data_p->flags    = irmp_flags;
         }
+        else
+        {
+            irmp_protocol = IRMP_UNKNOWN_PROTOCOL;
+        }
+
+        irmp_command  = 0;                                      // don't reset irmp_protocol here, needed for detection of NEC & JVC repetition frames!
+        irmp_address  = 0;
+        irmp_flags    = 0;
 
         irmp_ir_detected = FALSE;
     }
