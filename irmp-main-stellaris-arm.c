@@ -1,9 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp-main-stellaris-arm.c - demo main module to test IRMP decoder on LM4F120 Launchpad (ARM Cortex M4)
  *
- * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irmp-main-stellaris-arm.c,v 1.1 2016/01/12 11:55:05 fm Exp $
+ * Copyright (c) 2009-2018 Frank Meyer - frank(at)fli4l.de
  *
  * This demo module is runnable on LM4F120 Launchpad (ARM Cortex M4)
  *

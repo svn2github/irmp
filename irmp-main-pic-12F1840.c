@@ -5,8 +5,6 @@
  *
  * (c) 2014 Wolfgang Strobl (news4 at mystrobl.de) 2014-03-12:2014-07-20
  *
- * $Id: irmp-main-pic-12F1840.c,v 1.6 2017/02/17 09:13:06 fm Exp $
- *
  * This demo module is runnable on a Microchip PIC 12F1840
  *
  * To be used with IRMP by Frank Meyer (frank(at)fli4l.de)

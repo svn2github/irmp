@@ -1,9 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.c - infrared multi-protocol decoder, supports several remote control protocols
  *
- * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irmp.c,v 1.194 2018/02/19 10:23:36 fm Exp $
+ * Copyright (c) 2009-2018 Frank Meyer - frank(at)fli4l.de
  *
  * Supported AVR mikrocontrollers:
  *
@@ -460,6 +458,17 @@
 #define IRMP16_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
 #define IRMP16_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * IRMP16_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
 
+#define GREE_START_BIT_PULSE_LEN_MIN            ((uint_fast8_t)(F_INTERRUPTS * GREE_START_BIT_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GREE_START_BIT_PULSE_LEN_MAX            ((uint_fast8_t)(F_INTERRUPTS * GREE_START_BIT_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GREE_START_BIT_PAUSE_LEN_MIN            ((uint_fast8_t)(F_INTERRUPTS * GREE_START_BIT_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GREE_START_BIT_PAUSE_LEN_MAX            ((uint_fast8_t)(F_INTERRUPTS * GREE_START_BIT_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GREE_PULSE_LEN_MIN                      ((uint_fast8_t)(F_INTERRUPTS * GREE_PULSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GREE_PULSE_LEN_MAX                      ((uint_fast8_t)(F_INTERRUPTS * GREE_PULSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GREE_1_PAUSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * GREE_1_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GREE_1_PAUSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * GREE_1_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+#define GREE_0_PAUSE_LEN_MIN                    ((uint_fast8_t)(F_INTERRUPTS * GREE_0_PAUSE_TIME * MIN_TOLERANCE_20 + 0.5) - 1)
+#define GREE_0_PAUSE_LEN_MAX                    ((uint_fast8_t)(F_INTERRUPTS * GREE_0_PAUSE_TIME * MAX_TOLERANCE_20 + 0.5) + 1)
+
 #define BOSE_START_BIT_PULSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PULSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
 #define BOSE_START_BIT_PULSE_LEN_MAX             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PULSE_TIME * MAX_TOLERANCE_30 + 0.5) + 1)
 #define BOSE_START_BIT_PAUSE_LEN_MIN             ((uint_fast8_t)(F_INTERRUPTS * BOSE_START_BIT_PAUSE_TIME * MIN_TOLERANCE_30 + 0.5) - 1)
@@ -671,6 +680,7 @@ static const char proto_mitsu_heavy[]   PROGMEM = "MITSU_HEAVY";
 static const char proto_vincent[]       PROGMEM = "VINCENT";
 static const char proto_samsungah[]     PROGMEM = "SAMSUNGAH";
 static const char proto_irmp16[]        PROGMEM = "IRMP16";
+static const char proto_gree[]          PROGMEM = "GREE";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -730,6 +740,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_vincent,
     proto_samsungah,
     proto_irmp16,
+    proto_gree,
     proto_radio1
 };
 
@@ -758,6 +769,10 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
 #    include "usb_serial.h"
 #  else
 #    error USB_SERIAL not defined in ARDUINO Environment
+#  endif
+#elif defined(_CHIBIOS_HAL_)                                            // ChibiOS HAL
+#  if IRMP_EXT_LOGGING == 1
+#    error IRMP_EXT_LOGGING not implemented for ChibiOS HAL, use regular logging instead
 #  endif
 #else
 #  if IRMP_EXT_LOGGING == 1                                             // use external logging
@@ -906,6 +921,9 @@ irmp_uart_init (void)
     PORTC.DIR |= (1<<7);                                                                            // TXD is output
     PORTC.DIR &= ~(1<<6);
 
+#elif defined (_CHIBIOS_HAL_)
+    // we use the SD interface for logging, no need to init that here
+
 #else
 
 #if (IRMP_EXT_LOGGING == 0)                                                                         // use UART
@@ -955,6 +973,10 @@ irmp_uart_putc (unsigned char ch)
 #elif defined(ARDUINO)
     // we use the Arduino Serial Imlementation
     usb_serial_putchar(ch);
+
+#elif defined(_CHIBIOS_HAL_)
+    // use the SD interface from HAL, log to IRMP_LOGGING_SD which is defined in irmpconfig.h
+    sdWriteI(&IRMP_LOGGING_SD,&ch,1);      // we are called from interrupt context, so use the ...I version of the function
 
 #else
 #if (IRMP_EXT_LOGGING == 0)
@@ -1910,6 +1932,31 @@ static const PROGMEM IRMP_PARAMETER irmp16_param =
 
 #endif
 
+#if IRMP_SUPPORT_GREE_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER gree_param =
+{
+    IRMP_GREE_PROTOCOL,                                               // protocol:        ir protocol
+    GREE_PULSE_LEN_MIN,                                               // pulse_1_len_min: minimum length of pulse with bit value 1
+    GREE_PULSE_LEN_MAX,                                               // pulse_1_len_max: maximum length of pulse with bit value 1
+    GREE_1_PAUSE_LEN_MIN,                                             // pause_1_len_min: minimum length of pause with bit value 1
+    GREE_1_PAUSE_LEN_MAX,                                             // pause_1_len_max: maximum length of pause with bit value 1
+    GREE_PULSE_LEN_MIN,                                               // pulse_0_len_min: minimum length of pulse with bit value 0
+    GREE_PULSE_LEN_MAX,                                               // pulse_0_len_max: maximum length of pulse with bit value 0
+    GREE_0_PAUSE_LEN_MIN,                                             // pause_0_len_min: minimum length of pause with bit value 0
+    GREE_0_PAUSE_LEN_MAX,                                             // pause_0_len_max: maximum length of pause with bit value 0
+    GREE_ADDRESS_OFFSET,                                              // address_offset:  address offset
+    GREE_ADDRESS_OFFSET + GREE_ADDRESS_LEN,                         // address_end:     end of address
+    GREE_COMMAND_OFFSET,                                              // command_offset:  command offset
+    GREE_COMMAND_OFFSET + GREE_COMMAND_LEN,                         // command_end:     end of command
+    GREE_COMPLETE_DATA_LEN,                                           // complete_len:    complete length of frame
+    GREE_STOP_BIT,                                                    // stop_bit:        flag: frame has stop bit
+    GREE_LSB,                                                         // lsb_first:       flag: LSB first
+    GREE_FLAGS                                                        // flags:           some flags
+};
+
+#endif
+
 #if IRMP_SUPPORT_THOMSON_PROTOCOL == 1
 
 static const PROGMEM IRMP_PARAMETER thomson_param =
@@ -2257,6 +2304,9 @@ irmp_init (void)
 
 #elif defined(__MBED__)
     gpio_init_in_ex(&gpioIRin, IRMP_PIN, IRMP_PINMODE);                 // initialize input for IR diode
+
+#elif defined(_CHIBIOS_HAL_)
+    // ChibiOS HAL automatically initializes all pins according to the board config file, no need to repeat here
 
 #else                                                                   // AVR
     IRMP_PORT &= ~(1<<IRMP_BIT);                                        // deactivate pullup
@@ -3637,6 +3687,20 @@ irmp_ISR (void)
                     }
                     else
 #endif // IRMP_SUPPORT_IRMP16_PROTOCOL == 1
+
+#if IRMP_SUPPORT_GREE_PROTOCOL == 1
+                    if (irmp_pulse_time >= GREE_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= GREE_START_BIT_PULSE_LEN_MAX &&
+                        irmp_pause_time >= GREE_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= GREE_START_BIT_PAUSE_LEN_MAX)
+                    {
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = GREE, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        GREE_START_BIT_PULSE_LEN_MIN, GREE_START_BIT_PULSE_LEN_MAX,
+                                        GREE_START_BIT_PAUSE_LEN_MIN, GREE_START_BIT_PAUSE_LEN_MAX);
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &gree_param;
+                    }
+                    else
+#endif // IRMP_SUPPORT_GREE_PROTOCOL == 1
 
 #if IRMP_SUPPORT_A1TVBOX_PROTOCOL == 1
                     if (irmp_pulse_time >= A1TVBOX_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= A1TVBOX_START_BIT_PULSE_LEN_MAX &&
@@ -5191,6 +5255,11 @@ irmp_ISR (void)
 #if defined(STELLARIS_ARM_CORTEX_M4)
     // Clear the timer interrupt
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+#endif
+
+#if (defined(_CHIBIOS_RT_) || defined(_CHIBIOS_NIL_)) && IRMP_USE_EVENT == 1
+    if (IRMP_EVENT_THREAD_PTR != NULL && irmp_ir_detected)
+        chEvtSignalI(IRMP_EVENT_THREAD_PTR,IRMP_EVENT_BIT);
 #endif
 
     return (irmp_ir_detected);

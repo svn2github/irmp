@@ -1,9 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp.h
  *
- * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irmp.h,v 1.103 2016/09/09 07:53:29 fm Exp $
+ * Copyright (c) 2009-2018 Frank Meyer - frank(at)fli4l.de
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +84,10 @@
 #elif defined(__xtensa__)
 #  define IRMP_BIT                              IRMP_BIT_NUMBER
 #  define input(x)                              GPIO_INPUT_GET(IRMP_BIT_NUMBER)
+
+#elif defined(_CHIBIOS_HAL_)
+#  define input(x)                              palReadLine(x)
+
 #endif
 
 #if IRMP_SUPPORT_TECHNICS_PROTOCOL == 1

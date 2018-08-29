@@ -1,9 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmp-main-avr.c - demo main module to test IRMP decoder on AVR
  *
- * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irmp-main-avr.c,v 1.2 2016/01/12 21:15:16 fm Exp $
+ * Copyright (c) 2009-2018 Frank Meyer - frank(at)fli4l.de
  *
  * This demo module is runnable on AVRs
  *

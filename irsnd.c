@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * @file irsnd.c
  *
- * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2010-2018 Frank Meyer - frank(at)fli4l.de
  *
  * Supported AVR mikrocontrollers:
  *
@@ -13,8 +13,6 @@
  * ATmega162
  * ATmega164, ATmega324, ATmega644,  ATmega644P, ATmega1284, ATmega1284P
  * ATmega88,  ATmega88P, ATmega168,  ATmega168P, ATmega328P
- *
- * $Id: irsnd.c,v 1.104 2017/08/25 12:24:18 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

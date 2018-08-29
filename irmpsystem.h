@@ -1,9 +1,7 @@
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * irmpsystem.h - system specific includes and defines
  *
- * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irmpsystem.h,v 1.26 2017/08/25 12:24:18 fm Exp $
+ * Copyright (c) 2009-2018 Frank Meyer - frank(at)fli4l.de
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +63,8 @@
 #elif defined(__MBED__)                                                             // mbed platform
 // #include "mbed.h"                                                                // if mbed.h is used, source must be compiled as cpp
 #include "gpio_api.h"
+#elif defined(IRMP_CHIBIOS_HAL)                                                     // ChibiOS HAL
+#  include "hal.h"
 #else
 #  define ATMEL_AVR                                                                 // ATMEL AVR
 #endif

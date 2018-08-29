@@ -3,9 +3,7 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H or IRSND.H!
  *
- * Copyright (c) 2013-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irmpprotocols.h,v 1.50 2018/02/19 10:23:36 fm Exp $
+ * Copyright (c) 2013-2018 Frank Meyer - frank(at)fli4l.de
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,10 +76,11 @@
 #define IRMP_VINCENT_PROTOCOL                   50              // Vincent
 #define IRMP_SAMSUNGAH_PROTOCOL                 51              // SAMSUNG AH
 #define IRMP_IRMP16_PROTOCOL                    52              // IRMP specific protocol for data transfer, e.g. between two microcontrollers via IR
+#define IRMP_GREE_PROTOCOL                      53              // Gree climate
 
-#define IRMP_RADIO1_PROTOCOL                    53              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_RADIO1_PROTOCOL                    54              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        53              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        54              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -981,6 +980,25 @@ typedef uint8_t     PAUSE_LEN;
 #define IRMP16_STOP_BIT                         1                               // has stop bit
 #define IRMP16_LSB                              1                               // LSB...MSB
 #define IRMP16_FLAGS                            0                               // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * GREE - climate:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define GREE_START_BIT_PULSE_TIME              12000.0e-6                       // 12000 usec pulse (32 x 1/38kHz)
+#define GREE_START_BIT_PAUSE_TIME               6000.0e-6                       //  6000 usec pause (40 x 1/38kHz)
+#define GREE_PULSE_TIME                          900.0e-6                       //   900 usec pulse (16 x 1/38kHz)
+#define GREE_1_PAUSE_TIME                        700.0e-6                       //   700 usec pause (32 x 1/38kHz)
+#define GREE_0_PAUSE_TIME                       2100.0e-6                       //  2100 usec pause (16 x 1/38kHz)
+#define GREE_FRAME_REPEAT_PAUSE_TIME              40.0e-3                       // frame repeat after 40ms
+#define GREE_ADDRESS_OFFSET                     0                               // skip 0 bits
+#define GREE_ADDRESS_LEN                        16                              // read 16 address bits
+#define GREE_COMMAND_OFFSET                     16                              // skip 16 bits
+#define GREE_COMMAND_LEN                        16                              // read 16 bits
+#define GREE_COMPLETE_DATA_LEN                  32                              // complete length
+#define GREE_STOP_BIT                           1                               // has stop bit
+#define GREE_LSB                                1                               // LSB...MSB
+#define GREE_FLAGS                              0                               // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * RADIO1 - e.g. Tevion

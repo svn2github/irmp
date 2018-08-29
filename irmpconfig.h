@@ -3,10 +3,8 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRMP.H!
  *
- * Copyright (c) 2009-2016 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2009-2018 Frank Meyer - frank(at)fli4l.de
  * Extensions for PIC 12F1820 W.Strobl 2014-07-20
- *
- * $Id: irmpconfig.h,v 1.155 2018/02/19 10:25:25 fm Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,6 +99,7 @@
 #define IRMP_SUPPORT_VINCENT_PROTOCOL           0       // VINCENT              >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_SAMSUNGAH_PROTOCOL         0       // SAMSUNG AH           >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_IRMP16_PROTOCOL            0       // IRMP specific        >= 15000                 ~250 bytes
+#define IRMP_SUPPORT_GREE_PROTOCOL              1       // GREE CLIMATE         >= 10000                 ~250 bytes
 
 #define IRMP_SUPPORT_RADIO1_PROTOCOL            0       // RADIO, e.g. TEVION   >= 10000                 ~250 bytes (experimental)
 
@@ -177,6 +176,16 @@
 #  define IRMP_PINMODE                          PullUp                  // hardware dependent
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Change hardware pin here for ChibiOS HAL
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined(_CHIBIOS_HAL_)
+#  define IRMP_PIN                              LINE_IR_IN              // use pin names as defined in the board config file, prefixed with "LINE_"
+#  define IRMP_LOGGING_SD                       SD1                     // the ChibiOS HAL Serial Driver instance to log to
+                                                                        // (when IRMP_LOGGING is enabled below). 
+                                                                        // Make sure SERIAL_BUFFERS_SIZE is large enough when enabling logging
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Handling of unknown target system: DON'T CHANGE
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
@@ -216,5 +225,25 @@
 #ifndef IRMP_USE_CALLBACK
 #  define IRMP_USE_CALLBACK                     0       // 1: use callbacks. 0: do not. default is 0
 #endif
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Use ChibiOS Events to signal that valid IR data was received
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#if defined(_CHIBIOS_RT_) || defined(_CHIBIOS_NIL_)
+
+#  ifndef IRMP_USE_EVENT
+#    define IRMP_USE_EVENT                      0       // 1: use event. 0: do not. default is 0
+#  endif
+
+#  if IRMP_USE_EVENT == 1 && !defined(IRMP_EVENT_BIT)
+#    define IRMP_EVENT_BIT                      1                     // event flag or bit to send
+#  endif
+#  if IRMP_USE_EVENT == 1 && !defined(IRMP_EVENT_THREAD_PTR)
+#    define IRMP_EVENT_THREAD_PTR               ir_receive_thread_p   // pointer to the thread to send the event to
+extern thread_t *IRMP_EVENT_THREAD_PTR;                               // the pointer must be defined and initialized elsewhere
+#  endif
+
+#endif // _CHIBIOS_RT_ || _CHIBIOS_NIL_
 
 #endif // _IRMPCONFIG_H_

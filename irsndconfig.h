@@ -3,9 +3,7 @@
  *
  * DO NOT INCLUDE THIS FILE, WILL BE INCLUDED BY IRSND.H!
  *
- * Copyright (c) 2010-2016 Frank Meyer - frank(at)fli4l.de
- *
- * $Id: irsndconfig.h,v 1.91 2018/02/19 10:25:25 fm Exp $
+ * Copyright (c) 2010-2018 Frank Meyer - frank(at)fli4l.de
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,19 +158,19 @@
 #  define IRSND_PIN                             5                       // choose an arduino pin with PWM function!
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * ESP8266 (Arduino, see IRSEND.ino)
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (__xtensa__)
+#  define IRSND_PIN                             0                       // choose an arduino pin with PWM function!
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Other target systems
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #elif !defined (UNIX_OR_WINDOWS)
 #  error target system not defined.
 #endif
-
-/*---------------------------------------------------------------------------------------------------------------------------------------------------
- * ESP8266 (Arduino, see IRSEND.ino)
- *---------------------------------------------------------------------------------------------------------------------------------------------------
- */
-#elif defined (__xtensa__)
-#  define IRSND_PIN                             0                       // choose an arduino pin with PWM function!
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Use Callbacks to indicate output signal or something else
