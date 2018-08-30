@@ -2876,6 +2876,20 @@ irmp_ISR (void)
     uint_fast8_t            irmp_input;                                             // input value
 
 #ifdef ANALYZE
+
+#if 1 // only for test
+    static uint_fast8_t     last_irmp_start_bit_detected = 0xFF;
+    static uint_fast8_t     last_irmp_pulse_time = 0xFF;
+
+    if (last_irmp_start_bit_detected != irmp_start_bit_detected || last_irmp_pulse_time != irmp_pulse_time)
+    {
+        last_irmp_start_bit_detected    = irmp_start_bit_detected;
+        last_irmp_pulse_time            = irmp_pulse_time;
+
+        printf ("%d %d %d\n", time_counter, irmp_start_bit_detected, irmp_pulse_time);
+    }
+#endif // 0
+
     time_counter++;
 #endif // ANALYZE
 
@@ -5261,6 +5275,18 @@ irmp_ISR (void)
     if (IRMP_EVENT_THREAD_PTR != NULL && irmp_ir_detected)
         chEvtSignalI(IRMP_EVENT_THREAD_PTR,IRMP_EVENT_BIT);
 #endif
+
+#if IRMP_USE_IDLE_CALL == 1
+    // check if there is no ongoing transmission or repetition
+    if (!irmp_start_bit_detected && !irmp_pulse_time
+        && key_repetition_len > IRMP_KEY_REPETITION_LEN)
+    {
+        // no ongoing transmission
+        // enough time passed since last decoded signal that a repetition won't affect our output
+
+        irmp_idle();
+    }
+#endif // IRMP_USE_IDLE_CALL
 
     return (irmp_ir_detected);
 }

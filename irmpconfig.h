@@ -99,7 +99,7 @@
 #define IRMP_SUPPORT_VINCENT_PROTOCOL           0       // VINCENT              >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_SAMSUNGAH_PROTOCOL         0       // SAMSUNG AH           >= 10000                 ~250 bytes
 #define IRMP_SUPPORT_IRMP16_PROTOCOL            0       // IRMP specific        >= 15000                 ~250 bytes
-#define IRMP_SUPPORT_GREE_PROTOCOL              1       // GREE CLIMATE         >= 10000                 ~250 bytes
+#define IRMP_SUPPORT_GREE_PROTOCOL              0       // GREE CLIMATE         >= 10000                 ~250 bytes
 
 #define IRMP_SUPPORT_RADIO1_PROTOCOL            0       // RADIO, e.g. TEVION   >= 10000                 ~250 bytes (experimental)
 
@@ -224,6 +224,15 @@
  */
 #ifndef IRMP_USE_CALLBACK
 #  define IRMP_USE_CALLBACK                     0       // 1: use callbacks. 0: do not. default is 0
+#endif
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Call the user-provided irmp_idle() function when IRMP is idle.
+ * Can be used to disable the timer irq and enter a sleep mode to save power
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#ifndef IRMP_USE_IDLE_CALL
+#  define IRMP_USE_IDLE_CALL                    0       // 1: use idle calls. 0: do not. default is 0
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------

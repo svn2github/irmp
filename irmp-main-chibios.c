@@ -44,6 +44,43 @@ static const GPTConfig irmp_gpt_cfg =
     0
 };
 
+#if IRMP_USE_IDLE_CALL == 1
+/*
+ * Idle and sleepmode handling
+ *
+ * irmp_idle is called from irmp_ISR when irmp is idle.
+ * Switch off the timer and use a pinchange interrupt.
+ * 
+ * When a pinchange is detected, re-enable the timer.
+ * 
+ * To actually send the controller into a sleep mode, you have to provide code in
+ * CH_CFG_IDLE_ENTER_HOOK() or enable CORTEX_ENABLE_WFI_IDLE. Then ChibiOS activates
+ * the sleepmode when all threads are idle
+ *
+ * Both functions are called from irq context, so only use ...I syscalls
+ */
+
+static void irmp_reenable(void *arg)
+{
+    (void)arg;
+
+    palDisableLineEventI(LINE_IR_IN);
+    gptStartContinuousI(&GPTD14, 10);
+
+    // call irmp_ISR once, the next call is then done by the timer again
+    // this gives a slight timing imperfection but it seems to be within the allowed tolerance
+    (void) irmp_ISR();
+}
+
+void irmp_idle(void)
+{
+    gptStopTimerI(&GPTD14);
+
+    palSetLineCallbackI(LINE_IR_IN, irmp_reenable, NULL);
+    palEnableLineEventI(LINE_IR_IN, PAL_EVENT_MODE_FALLING_EDGE);
+}
+#endif // IRMP_USE_IDLE_CALL
+
 /*
  * IR receive thread, sends decoded IR data to a serial data stream
  */
