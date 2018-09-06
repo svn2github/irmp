@@ -61,6 +61,11 @@
 #    warning The STM32 port of IRMP uses the ST standard peripheral drivers which are not enabled in your build configuration.
 #  endif
 
+#elif defined (ARM_STM32_HAL)
+#  define IRMP_BIT                              IRMP_BIT_NUMBER
+#  define IRMP_PIN                              IRMP_BIT_NUMBER   // for use with input(x) below
+#  define input(x)                              HAL_GPIO_ReadPin(IRMP_PORT_LETTER, x)
+
 #elif defined (STELLARIS_ARM_CORTEX_M4)
 #  define _CONCAT(a,b)                          a##b
 #  define CONCAT(a,b)                           _CONCAT(a,b)

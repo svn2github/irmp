@@ -2249,6 +2249,7 @@ void
 irmp_init (void)
 {
 #if defined(PIC_CCS) || defined(PIC_C18)                                // PIC: do nothing
+#elif defined (ARM_STM32_HAL)                                           // STM32 with Hal Library: do nothing
 #elif defined (ARM_STM32)                                               // STM32
     GPIO_InitTypeDef     GPIO_InitStructure;
 

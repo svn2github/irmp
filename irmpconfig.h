@@ -138,6 +138,14 @@
 #  define IRMP_BIT_NUMBER                       13
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * Hardware pin for ARM STM32 (HAL) - don't change here, define IRMP_RECEIVE_GPIO_Port & IRMP_RECEIVE_PIN in STM32Cube (Main.h)
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (ARM_STM32_HAL)                                           // STM32: IRMP_RECEIVE_GPIO_Port & IRMP_RECEIVE_PIN must be defined in STM32Cube
+#  define IRMP_PORT_LETTER                      IRMP_Receive_GPIO_Port
+#  define IRMP_BIT_NUMBER                       IRMP_Receive_Pin
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Change hardware pin here for Stellaris ARM Cortex M4
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */

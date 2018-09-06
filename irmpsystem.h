@@ -41,6 +41,13 @@
 #  include <stm32f4xx.h>
 #  define ARM_STM32
 #  define ARM_STM32F4XX
+#elif defined(USE_HAL_DRIVER)                                                       // ARM STM32 with HAL Library
+#  include "gpio.h"
+#  if defined(_IRSND_H_)
+#    include"tim.h"
+#  endif
+#  define ARM_STM32_HAL
+#  define F_CPU SystemCoreClock
 #elif defined(__SDCC_stm8)                                                          // STM8
 #  define SDCC_STM8
 #elif defined(TARGET_IS_BLIZZARD_RA2)                                               // TI Stellaris (tested on Stellaris Launchpad with Code Composer Studio)

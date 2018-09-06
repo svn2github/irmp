@@ -151,6 +151,17 @@
 #  define IRSND_TIMER_CHANNEL_NUMBER            1                       // only channel 1 can be used at the moment, others won't work
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * ARM STM32 with HAL section - don't change here, define IRSND_Transmit_GPIO_Port & IRSND_Transmit_Pin in STM32Cube (Main.h)
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#elif defined (ARM_STM32_HAL)                                           // IRSND_Transmit_GPIO_Port & IRSND_Transmit_Pin must be defined in STM32Cube
+#  define IRSND_PORT_LETTER                     IRSND_Transmit_GPIO_Port//Port of Transmit PWM Pin e.g.
+#  define IRSND_BIT_NUMBER                      IRSND_Transmit_Pin      //Pim of Transmit PWM Pin e.g.
+#  define IRSND_TIMER_HANDLER                   htim2                   //Handler of Timer e.g. htim (see tim.h)
+#  define IRSND_TIMER_CHANNEL_NUMBER            TIM_CHANNEL_2           //Channel of the used Timer PWM Pin e.g. TIM_CHANNEL_2
+#  define IRSND_TIMER_SPEED_APBX                64000000                //Speed of the corresponding APBx. (see STM32CubeMX: Clock Configuration)
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Teensy 3.x with teensyduino gcc compiler
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
