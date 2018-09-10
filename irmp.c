@@ -35,6 +35,7 @@
 #endif
 
 #if IRMP_SUPPORT_RC5_PROTOCOL == 1 ||                   \
+    IRMP_SUPPORT_RCII_PROTOCOL == 1 ||                  \
     IRMP_SUPPORT_S100_PROTOCOL == 1 ||                  \
     IRMP_SUPPORT_RC6_PROTOCOL == 1 ||                   \
     IRMP_SUPPORT_GRUNDIG_NOKIA_IR60_PROTOCOL == 1 ||    \
@@ -215,7 +216,6 @@
 #define RECS80_0_PAUSE_LEN_MIN                  ((uint_fast8_t)(F_INTERRUPTS * RECS80_0_PAUSE_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RECS80_0_PAUSE_LEN_MAX                  ((uint_fast8_t)(F_INTERRUPTS * RECS80_0_PAUSE_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
-
 #if IRMP_SUPPORT_BOSE_PROTOCOL == 1 // BOSE conflicts with RC5, so keep tolerance for RC5 minimal here:
 #define RC5_START_BIT_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
 #define RC5_START_BIT_LEN_MAX                   ((uint_fast8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
@@ -226,6 +226,17 @@
 
 #define RC5_BIT_LEN_MIN                         ((uint_fast8_t)(F_INTERRUPTS * RC5_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
 #define RC5_BIT_LEN_MAX                         ((uint_fast8_t)(F_INTERRUPTS * RC5_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
+
+#define RCII_START_BIT_PULSE_LEN_MIN            ((uint_fast8_t)(F_INTERRUPTS * RCII_START_BIT_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCII_START_BIT_PULSE_LEN_MAX            ((uint_fast8_t)(F_INTERRUPTS * RCII_START_BIT_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCII_START_BIT_PAUSE_LEN_MIN            ((uint_fast8_t)(F_INTERRUPTS * RCII_START_BIT_PAUSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCII_START_BIT_PAUSE_LEN_MAX            ((uint_fast8_t)(F_INTERRUPTS * RCII_START_BIT_PAUSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+#define RCII_START_BIT2_PULSE_LEN_MIN           ((uint_fast8_t)(F_INTERRUPTS * RCII_START_BIT2_PULSE_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
+#define RCII_START_BIT2_PULSE_LEN_MAX           ((uint_fast8_t)(F_INTERRUPTS * RCII_START_BIT2_PULSE_TIME * MAX_TOLERANCE_05 + 0.5) + 1)
+
+#define RCII_BIT_LEN_MIN                        ((uint_fast8_t)(F_INTERRUPTS * RCII_BIT_TIME * MIN_TOLERANCE_10 + 0.5) - 1)
+#define RCII_BIT_LEN                            ((uint_fast8_t)(F_INTERRUPTS * RCII_BIT_TIME))
+#define RCII_BIT_LEN_MAX                        ((uint_fast8_t)(F_INTERRUPTS * RCII_BIT_TIME * MAX_TOLERANCE_10 + 0.5) + 1)
 
 #if IRMP_SUPPORT_BOSE_PROTOCOL == 1 // BOSE conflicts with S100, so keep tolerance for S100 minimal here:
 #define S100_START_BIT_LEN_MIN                   ((uint_fast8_t)(F_INTERRUPTS * S100_BIT_TIME * MIN_TOLERANCE_05 + 0.5) - 1)
@@ -681,6 +692,7 @@ static const char proto_vincent[]       PROGMEM = "VINCENT";
 static const char proto_samsungah[]     PROGMEM = "SAMSUNGAH";
 static const char proto_irmp16[]        PROGMEM = "IRMP16";
 static const char proto_gree[]          PROGMEM = "GREE";
+static const char proto_rcii[]          PROGMEM = "RCII";
 
 static const char proto_radio1[]        PROGMEM = "RADIO1";
 
@@ -741,6 +753,7 @@ irmp_protocol_names[IRMP_N_PROTOCOLS + 1] PROGMEM =
     proto_samsungah,
     proto_irmp16,
     proto_gree,
+    proto_rcii,
     proto_radio1
 };
 
@@ -1499,6 +1512,31 @@ static const PROGMEM IRMP_PARAMETER rc5_param =
     RC5_STOP_BIT,                                                       // stop_bit:        flag: frame has stop bit
     RC5_LSB,                                                            // lsb_first:       flag: LSB first
     RC5_FLAGS                                                           // flags:           some flags
+};
+
+#endif
+
+#if IRMP_SUPPORT_RCII_PROTOCOL == 1
+
+static const PROGMEM IRMP_PARAMETER rcii_param =
+{
+    IRMP_RCII_PROTOCOL,                                                 // protocol:        ir protocol
+    RCII_BIT_LEN_MIN,                                                   // pulse_1_len_min: here: minimum length of short pulse
+    RCII_BIT_LEN_MAX,                                                   // pulse_1_len_max: here: maximum length of short pulse
+    RCII_BIT_LEN_MIN,                                                   // pause_1_len_min: here: minimum length of short pause
+    RCII_BIT_LEN_MAX,                                                   // pause_1_len_max: here: maximum length of short pause
+    RCII_BIT_LEN_MIN,                                                                  // pulse_0_len_min: here: not used
+    RCII_BIT_LEN_MAX,                                                                  // pulse_0_len_max: here: not used
+    RCII_BIT_LEN_MIN,                                                                  // pause_0_len_min: here: not used
+    RCII_BIT_LEN_MAX,                                                                  // pause_0_len_max: here: not used
+    RCII_ADDRESS_OFFSET,                                                // address_offset:  address offset
+    RCII_ADDRESS_OFFSET + RCII_ADDRESS_LEN,                             // address_end:     end of address
+    RCII_COMMAND_OFFSET,                                                // command_offset:  command offset
+    RCII_COMMAND_OFFSET + RCII_COMMAND_LEN,                             // command_end:     end of command
+    RCII_COMPLETE_DATA_LEN,                                             // complete_len:    complete length of frame
+    RCII_STOP_BIT,                                                      // stop_bit:        flag: frame has stop bit
+    RCII_LSB,                                                           // lsb_first:       flag: LSB first
+    RCII_FLAGS                                                          // flags:           some flags
 };
 
 #endif
@@ -2874,11 +2912,14 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_MANCHESTER == 1 || IRMP_SUPPORT_BANG_OLUFSEN_PROTOCOL == 1
     static uint_fast8_t     last_value;                                             // last bit value
 #endif
+#if IRMP_SUPPORT_RCII_PROTOCOL == 1
+    static uint_fast8_t     waiting_for_2nd_pulse = 0;
+#endif
     uint_fast8_t            irmp_input;                                             // input value
 
 #ifdef ANALYZE
 
-#if 1 // only for test
+#if 0 // only for test
     static uint_fast8_t     last_irmp_start_bit_detected = 0xFF;
     static uint_fast8_t     last_irmp_pulse_time = 0xFF;
 
@@ -3413,16 +3454,33 @@ irmp_ISR (void)
                         if ((irmp_pulse_time > RC5_START_BIT_LEN_MAX && irmp_pulse_time <= 2 * RC5_START_BIT_LEN_MAX) ||
                             (irmp_pause_time > RC5_START_BIT_LEN_MAX && irmp_pause_time <= 2 * RC5_START_BIT_LEN_MAX))
                         {
-                          last_value  = 0;
-                          rc5_cmd_bit6 = 1<<6;
+                            last_value  = 0;
+                            rc5_cmd_bit6 = 1<<6;
                         }
                         else
                         {
-                          last_value  = 1;
+                            last_value  = 1;
                         }
                     }
                     else
 #endif // IRMP_SUPPORT_RC5_PROTOCOL == 1
+
+#if IRMP_SUPPORT_RCII_PROTOCOL == 1
+                    if ((irmp_pulse_time >= RCII_START_BIT_PULSE_LEN_MIN && irmp_pulse_time <= RCII_START_BIT_PULSE_LEN_MAX) &&
+                        (irmp_pause_time >= RCII_START_BIT_PAUSE_LEN_MIN && irmp_pause_time <= RCII_START_BIT_PAUSE_LEN_MAX))
+                    {                                                           // it's RCII
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("protocol = RCII, start bit timings: pulse: %3d - %3d, pause: %3d - %3d\n",
+                                        RCII_START_BIT_PULSE_LEN_MIN, RCII_START_BIT_PULSE_LEN_MAX,
+                                        RCII_START_BIT_PAUSE_LEN_MIN, RCII_START_BIT_PAUSE_LEN_MAX)
+#endif // ANALYZE
+                        irmp_param_p = (IRMP_PARAMETER *) &rcii_param;
+                        last_pause = irmp_pause_time;
+                        waiting_for_2nd_pulse = 1;
+                        last_value  = 1;
+                    }
+                    else
+#endif // IRMP_SUPPORT_RCII_PROTOCOL == 1
 
 #if IRMP_SUPPORT_DENON_PROTOCOL == 1
                     if ( (irmp_pulse_time >= DENON_PULSE_LEN_MIN && irmp_pulse_time <= DENON_PULSE_LEN_MAX) &&
@@ -3851,7 +3909,8 @@ irmp_ISR (void)
 #if IRMP_SUPPORT_MANCHESTER == 1
                     if ((irmp_param.flags & IRMP_PARAM_FLAG_IS_MANCHESTER) &&
                          irmp_param.protocol != IRMP_RUWIDO_PROTOCOL && // Manchester, but not RUWIDO
-                         irmp_param.protocol != IRMP_RC6_PROTOCOL)      // Manchester, but not RC6
+                         irmp_param.protocol != IRMP_RC6_PROTOCOL /*** &&    // Manchester, but not RC6
+                         irmp_param.protocol != IRMP_RCII_PROTOCOL ****/)     // Manchester, but not RCII
                     {
                         if (irmp_pause_time > irmp_param.pulse_1_len_max && irmp_pause_time <= 2 * irmp_param.pulse_1_len_max)
                         {
@@ -4411,7 +4470,8 @@ irmp_ISR (void)
                                     ANALYZE_PUTCHAR ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? '1' : '0');
 #endif // ANALYZE
                                     irmp_store_bit ((irmp_param.flags & IRMP_PARAM_FLAG_1ST_PULSE_IS_1) ? 1 :   0 );
-#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
+
+#if IRMP_SUPPORT_RC5_PROTOCOL == 1 && IRMP_SUPPORT_RCII_PROTOCOL == 1 && (IRMP_SUPPORT_FDC_PROTOCOL == 1 || IRMP_SUPPORT_RCCAR_PROTOCOL == 1)
                                     if (! irmp_param2.protocol)
 #endif
                                     {
@@ -4925,6 +4985,25 @@ irmp_ISR (void)
                 {                                                                   // now it's dark!
                     wait_for_space  = 1;                                            // let's count the time (see above)
                     irmp_pause_time = 1;                                            // set pause counter to 1, not 0
+
+#if IRMP_SUPPORT_RCII_PROTOCOL == 1
+                    if (irmp_param.protocol == IRMP_RCII_PROTOCOL && waiting_for_2nd_pulse)
+                    {
+                        if (irmp_pulse_time >= RCII_BIT_LEN)
+                        {
+                            irmp_pulse_time -= RCII_BIT_LEN;
+                            last_value = 0;
+                        }
+                        else
+                        {
+                            last_value = 1;
+                        }
+#ifdef ANALYZE
+                        ANALYZE_PRINTF ("RCII: got 2nd pulse, irmp_pulse_time = %d\n", irmp_pulse_time);
+#endif
+                        waiting_for_2nd_pulse = 0;
+                    }
+#endif
                 }
             }
 

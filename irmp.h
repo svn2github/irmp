@@ -174,6 +174,20 @@ void irmp_idle(void);                   // the user has to provide an implementa
 #  define IRMP_SUPPORT_NETBOX_PROTOCOL          0
 #endif
 
+#if IRMP_SUPPORT_GRUNDIG_PROTOCOL == 1 && IRMP_SUPPORT_RCII_PROTOCOL == 1
+#  warning GRUNDIG protocol conflicts wih RCII, please enable only one of both protocols
+#  warning RCII protocol disabled
+#  undef IRMP_SUPPORT_RCII_PROTOCOL
+#  define IRMP_SUPPORT_RCII_PROTOCOL          0
+#endif
+
+#if IRMP_SUPPORT_NOKIA_PROTOCOL == 1 && IRMP_SUPPORT_RCII_PROTOCOL == 1
+#  warning NOKIA protocol conflicts wih RCII, please enable only one of both protocols
+#  warning RCII protocol disabled
+#  undef IRMP_SUPPORT_RCII_PROTOCOL
+#  define IRMP_SUPPORT_RCII_PROTOCOL          0
+#endif
+
 #if IRMP_SUPPORT_SIEMENS_PROTOCOL == 1 && F_INTERRUPTS < 15000
 #  warning F_INTERRUPTS too low, SIEMENS protocol disabled (should be at least 15000)
 #  undef IRMP_SUPPORT_SIEMENS_PROTOCOL

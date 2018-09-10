@@ -77,10 +77,11 @@
 #define IRMP_SAMSUNGAH_PROTOCOL                 51              // SAMSUNG AH
 #define IRMP_IRMP16_PROTOCOL                    52              // IRMP specific protocol for data transfer, e.g. between two microcontrollers via IR
 #define IRMP_GREE_PROTOCOL                      53              // Gree climate
+#define IRMP_RCII_PROTOCOL                      54              // RC II Infra Red Remote Control Protocol for FM8
 
-#define IRMP_RADIO1_PROTOCOL                    54              // Radio protocol (experimental status), do not use it yet!
+#define IRMP_RADIO1_PROTOCOL                    55              // Radio protocol (experimental status), do not use it yet!
 
-#define IRMP_N_PROTOCOLS                        54              // number of supported protocols
+#define IRMP_N_PROTOCOLS                        55              // number of supported protocols
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * timing constants:
@@ -371,6 +372,26 @@ typedef uint8_t     PAUSE_LEN;
 #define RC5_STOP_BIT                            0                               // has no stop bit
 #define RC5_LSB                                 0                               // MSB...LSB
 #define RC5_FLAGS                               IRMP_PARAM_FLAG_IS_MANCHESTER   // flags
+
+/*---------------------------------------------------------------------------------------------------------------------------------------------------
+ * RCII:
+ *---------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define RCII_START_BIT_PULSE_TIME                512.0e-6                       //  512 usec pulse
+#define RCII_START_BIT_PAUSE_TIME               2560.0e-6                       // 2560 usec pause
+#define RCII_START_BIT2_PULSE_TIME              1024.0e-6                       // 1024 usec pulse
+
+#define RCII_BIT_TIME                            512.0e-6                       // 512 usec pulse/pause
+#define RCII_FRAME_REPEAT_PAUSE_TIME             117.76e-3                      // frame repeat after 117.76ms
+
+#define RCII_ADDRESS_OFFSET                     0                               // skip 1 bit (2nd start)
+#define RCII_ADDRESS_LEN                        0                               // no address
+#define RCII_COMMAND_OFFSET                     0                               // command offset is 0
+#define RCII_COMMAND_LEN                        10                              // read 1 + 9 command bits
+#define RCII_COMPLETE_DATA_LEN                  10                              // complete length
+#define RCII_STOP_BIT                           0                               // has no stop bit
+#define RCII_LSB                                0                               // MSB...LSB
+#define RCII_FLAGS                              (IRMP_PARAM_FLAG_IS_MANCHESTER | IRMP_PARAM_FLAG_1ST_PULSE_IS_1)  // flags
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * S100: very similar to RC5, but 14 insted of 13 bits
